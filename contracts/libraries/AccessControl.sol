@@ -42,7 +42,6 @@ import "./GSN/Context.sol";
  */
 abstract contract AccessControl is Context {
     using EnumerableSet for EnumerableSet.AddressSet;
-    using Address for address;
 
     struct RoleData {
         EnumerableSet.AddressSet members;
