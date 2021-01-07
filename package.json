@@ -17,6 +17,9 @@
   },
   "homepage": "https://github.com/Hardhat-Hardcore/AR-Factory#readme",
   "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.1",
+    "@openzeppelin/hardhat-upgrades": "^1.4.3",
+    "ethers": "^5.0.24",
     "hardhat": "^2.0.6"
   }
 }
