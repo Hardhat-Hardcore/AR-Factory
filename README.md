@@ -6,9 +6,11 @@
 3. 生成數位資產與設定參考 `ITokenFactory.sol`
 4. GSN 參考 OpenGSN
 5. Upgrade Proxy 參考 Hardhat upgrade
+6. Inherit `Context.sol`
 
 ### TokenFactory
 1. 繼承 `ITokenFactory.sol` 
 2. 使用 `IWhitelist.sol` 查詢白名單
 3. GSN 參考 OpenGSN
 4. CloneFactory 參考 erc1167
+5. Inherit `Context.sol`
