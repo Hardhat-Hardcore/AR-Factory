@@ -8,7 +8,7 @@ import "./interfaces/IERC165.sol";
 import "./interfaces/IERC721.sol";
 import "./interfaces/IERC721Receiver.sol";
 import "./libraries/GSN/Context.sol";
-import "./libraries/Address.sol";
+import "./libraries/utils/Address.sol";
 
 contract TokenFactory is IERC165, IERC1155, IERC721, Context {
     using Address for address;
