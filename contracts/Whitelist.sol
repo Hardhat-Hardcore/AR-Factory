@@ -25,13 +25,17 @@ contract Whitelist is IWhitelist, AccessControl {
     function isAdmin(address _account) public view returns (bool) {
         return hasRole(DEFAULT_ADMIN_ROLE, _account);
     }
+
+	function inWhitelist(address _account) external override view returns (bool) {
+		return hasRole(SUPPLIER_ROLE, _account) || hasRole(ANCHOR_ROLE, _account);
+	}
     
-    function inSupplier(address _account) external override view returns (bool) {
+    function inSupplier(address _account) public view returns (bool) {
         return hasRole(SUPPLIER_ROLE, _account);
     }
     
-    function inAnchor(address _address) external override view returns (bool) {
-        return hasRole(ANCHOR_ROLE, _address);
+    function inAnchor(address _account) public view returns (bool) {
+        return hasRole(ANCHOR_ROLE, _account);
     }
 
     function addAdmin(address _account) public onlyAdmin {
