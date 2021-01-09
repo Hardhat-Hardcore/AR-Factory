@@ -10,14 +10,22 @@ import "./interfaces/IERC721Receiver.sol";
 import "./libraries/GSN/Context.sol";
 import "./libraries/utils/Address.sol";
 
-contract TokenFactory is IERC165, IERC1155, IERC721, Context {
+contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     using Address for address;
     
+    // Fungible token
     mapping(uint256 => mapping(address => uint256)) internal _ftBalances;
-    mapping(address => mapping(address => bool)) internal _operatorApproval;
+    // Non fungible tokens
     mapping(address => uint256) internal _nftBalances;
     mapping(uint256 => address) internal _nftOwners;
     mapping(uint256 => address) internal _nftOperators;
+    // Recording token
+    mapping(uint256 => mapping(address => uint256)) internal _recordingBalances;
+    mapping(uint256 => address) internal _recordingOperators;
+    // Approve all
+    mapping(address => mapping(address => bool)) internal _operatorApproval;
+    // Setting operator
+    mapping(uint256 => address) _settingOperators;
     
     // bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))
     bytes4 constant private ERC1155_ACCEPTED = 0xf23a6e61;
@@ -29,7 +37,10 @@ contract TokenFactory is IERC165, IERC1155, IERC721, Context {
     bytes4 constant private INTERFACE_SIGNATURE_ERC1155Receiver = type(IERC1155TokenReceiver).interfaceId;
     bytes4 constant private INTERFACE_SIGNATURE_ERC721 = type(IERC721).interfaceId;
     
-    uint256 public constant IS_NFT = 1 << 95;
+    uint256 private constant IS_NFT = 1 << 95;
+    uint256 private constant IS_NEED_TIME = 1 << 94;
+    uint256 private constant IS_RECORDING_TOKEN = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000;
+    uint256 private idNonce;
     
     /**
      * @dev Emitted when `tokenId` token is transferred from `from` to `to`.
@@ -41,6 +52,15 @@ contract TokenFactory is IERC165, IERC1155, IERC721, Context {
      */
     event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
     
+    /**
+     * @dev Emitted when `_tokenId` recording token is transferred from `_from` to `to` by `_operator`.
+     */
+    event RecordingTransferSingle(address indexed _operator, address indexed _from, address indexed _to, uint256 _tokenIds, uint256 _value);
+    
+    event RecordingTransferBatch(address indexed _operator, address[] _froms, address[] _tos, uint256[] _tokenIds, uint256[] _values);
+    
+    /////////////////////////////////////////// ERC165 //////////////////////////////////////////////
+    
     function supportsInterface(bytes4 _interfaceId) external pure override returns (bool) {
         if (_interfaceId == INTERFACE_SIGNATURE_ERC165 ||
             _interfaceId == INTERFACE_SIGNATURE_ERC1155 || 
@@ -49,6 +69,7 @@ contract TokenFactory is IERC165, IERC1155, IERC721, Context {
             }
         return false;
     }
+    
     
     /////////////////////////////////////////// ERC1155 //////////////////////////////////////////////
 
@@ -77,14 +98,14 @@ contract TokenFactory is IERC165, IERC1155, IERC721, Context {
             safeTransferFrom(_from, _to, _id, _data);
             return;
         }
-        require(_to != address(0x0), "TokenFactory: _to must be non-zero.");
-        require(_from == _msgSender() || _operatorApproval[_from][_msgSender()] == true, "Need operator approval for 3rd party transfers.");
+        require(_to != address(0x0), "_to must be non-zero.");
+        require(_from == _msgSender() || _operatorApproval[_from][_msgSender()], "Need operator approval");
 
         _transferFrom(_from, _to, _id, _value);
 
         if (_to.isContract()) {
             require(_checkReceivable(_msgSender(), _from, _to, _id, _value, _data, false, false),
-                    "TokenFactory: transfer rejected or _to not support");
+                    "transfer rejected or _to not support");
         }
     }
     
@@ -112,22 +133,14 @@ contract TokenFactory is IERC165, IERC1155, IERC721, Context {
         bytes calldata _data
     ) external override {
         require(_to != address(0x0), "TokenFactory: destination address must be non-zero.");
-        require(_ids.length == _values.length, "_ids and _values array length must match.");
-        require(_from == _msgSender() || _operatorApproval[_from][_msgSender()] == true, "Need operator approval for 3rd party transfers.");
-
-        for (uint256 i = 0; i < _ids.length; ++i) {
-            uint256 id = _ids[i];
-            uint256 value = _values[i];
-
-            _ftBalances[id][_from] -= value;
-            _ftBalances[id][_to] += value;
-        }
-
+        require(_ids.length == _values.length, "Array length must match.");
+        bool authorized = _from == _msgSender() || _operatorApproval[_from][_msgSender()];
+            
+        _batchTransferFrom(_from, _to, _ids, _values, authorized);
+        
         emit TransferBatch(_msgSender(), _from, _to, _ids, _values);
-
-        if (_to.isContract()) {
-            _doSafeBatchTransferAcceptanceCheck(_msgSender(), _from, _to, _ids, _values, _data);
-        }
+        require(_checkBatchReceivable(_msgSender(), _from, _to, _ids, _values, _data),
+                "BatchTransfer rejected");
     }
     
     /**
@@ -185,16 +198,17 @@ contract TokenFactory is IERC165, IERC1155, IERC721, Context {
         return _operatorApproval[_owner][_operator];
     }
 
-/////////////////////////////////////////// ERC721 //////////////////////////////////////////////
+    
+    /////////////////////////////////////////// ERC721 //////////////////////////////////////////////
 
     function balanceOf(address _owner) external view override returns (uint256) {
-        require(_owner != address(0), "TokenFactory: Owner is zero address");
+        require(_owner != address(0), "Owner is zero address");
         return _nftBalances[_owner];
     }
     
     function ownerOf(uint256 _tokenId) external view override returns (address) {
         address owner = _ownerOf(_tokenId);
-        require(owner != address(0), "TokenFactory: NFT does not exist");
+        require(owner != address(0), "NFT does not exist");
         return owner;
     }
     
@@ -212,10 +226,10 @@ contract TokenFactory is IERC165, IERC1155, IERC721, Context {
         uint256 _tokenId,
         bytes memory _data
     ) public override {
-        require(_to != address(0), "TokenFactory: _to must be non-zero");
-        require(_nftOwners[_tokenId] == _from, "TokenFactory: _from is not the token owner or it is not a nft");
+        require(_to != address(0), "_to must be non-zero");
+        require(_nftOwners[_tokenId] == _from, "Not owner or it's not nft");
         require(_from == _msgSender() || _nftOperators[_tokenId] == _msgSender() || _operatorApproval[_from][_msgSender()], 
-                "TokenFactory: _from is not the token owner nor approved operator");
+                "Not authorized");
         
         _transferFrom(_from, _to, _tokenId, 1);
         
@@ -253,7 +267,104 @@ contract TokenFactory is IERC165, IERC1155, IERC721, Context {
         return _nftOperators[_tokenId];
     }
     
-/////////////////////////////////////////// Internal //////////////////////////////////////////////
+    /////////////////////////////////////////// Recording //////////////////////////////////////////////
+    
+    function recordingTransferFrom(
+        address _from,
+        address _to,
+        uint256 _tokenId,
+        uint256 _value
+    ) external {
+        require(_msgSender() == _recordingOperators[_tokenId], "TokenFactory: Not authorized");
+        require(_tokenId & IS_RECORDING_TOKEN > 0, "TokenFatory: Not a recording token");
+        _recordingBalances[_tokenId][_from] -= _value;
+        _recordingBalances[_tokenId][_to] += _value;
+        
+        emit RecordingTransferSingle(_msgSender(), _from, _to, _tokenId, _value);
+    }
+    
+    function recordingBalanceOf(address _owner, uint256 _tokenId) external view returns(uint256) {
+        require(_tokenId & IS_RECORDING_TOKEN > 0, "TokenFatory: Not a recording token");
+        return _recordingBalances[_tokenId][_owner];
+    }
+    
+    /////////////////////////////////////////// Internal //////////////////////////////////////////////
+    
+    function _batchTransferFrom(
+        address _from,
+        address _to,
+        uint256[] memory _ids,
+        uint256[] memory _values,
+        bool authorized
+    ) internal {
+        uint256 numNFT;
+        
+        for (uint256 i = 0; i < _ids.length; i++) {
+            require(_ids[i] & IS_RECORDING_TOKEN == 0, "Can't transfer recording token");
+            if (_values[i] > 0) {
+                if (_ids[i] & IS_NFT > 0) {
+                    require(_values[i] == 1, "NFT amount is not 1");
+                    require(_nftOwners[_ids[i]] == _from, "_from is not owner");
+                    require(_nftOperators[_ids[i]] == _msgSender() || authorized, "Not authorized");
+                    numNFT++;
+                    _nftOwners[_ids[i]] = _to;
+                    _nftOperators[_ids[i]] = address(0);
+                    emit Transfer(_from, _to, _ids[i]);
+                } else {
+                    require(authorized, "Not authorized");
+                    _ftBalances[_ids[i]][_from] -= _values[i];
+                    _ftBalances[_ids[i]][_to] += _values[i];
+                }
+            }
+        }
+        _nftBalances[_from] -= numNFT;
+        _nftBalances[_to] += numNFT;
+    }
+    
+    function _mint(
+        uint256 _supply,
+        address _receiver,
+        address _operator,
+        bool _needTime,
+        bytes memory data
+    ) internal returns (uint256) {
+        uint256 tokenId = idNonce++;
+        if (_needTime) {
+            tokenId |= IS_NEED_TIME;
+        }
+        if (_supply == 1) {
+            tokenId |= IS_NFT;
+            _nftBalances[_receiver]++;
+            _nftOwners[tokenId] = _receiver;
+            emit Transfer(address(0), _receiver, tokenId);
+        } else {
+            _ftBalances[tokenId][_receiver]++;
+        }
+        _settingOperators[tokenId] = _operator;
+        
+        emit TransferSingle(_msgSender(), address(0), _receiver, tokenId, _supply);
+        
+        if (_receiver.isContract()) {
+            require(_checkReceivable(_msgSender(), address(0), _receiver, tokenId, _supply, data, false, false),
+                    "TokenFactory: transfer rejected");
+        }
+        return tokenId;
+    }
+    
+    function _mintCopy(
+        uint256 _tokenId,
+        uint256 _supply,
+        address _receiver,
+        bool _needTime
+    ) internal {
+        uint256 tokenId = _tokenId | IS_RECORDING_TOKEN;
+        if (_needTime) {
+            tokenId |= IS_NEED_TIME;
+        }
+        _recordingBalances[tokenId][_receiver]++;
+        _recordingOperators[tokenId] = _receiver;
+        emit RecordingTransferSingle(_msgSender(), address(0), _receiver, tokenId, _supply);
+    }
     
     function _checkReceivable(
         address _operator,
@@ -299,12 +410,29 @@ contract TokenFactory is IERC165, IERC1155, IERC721, Context {
     }
     
     function _checkIsERC1155Receiver(address _to) internal returns (bool) {
-        (bool success, bytes memory data) = address(_to).call(
+        (bool success, bytes memory data) = _to.call(
             abi.encodeWithSelector(IERC165.supportsInterface.selector, INTERFACE_SIGNATURE_ERC1155Receiver));
         bool result = abi.decode(data, (bool));
         return success && result;
     }
     
+    function _checkBatchReceivable(
+        address _operator,
+        address _from,
+        address _to,
+        uint256[] memory _ids,
+        uint256[] memory _values,
+        bytes memory _data
+    ) internal pure returns (bool) {
+        // TODO
+        _operator;
+        _from;
+        _to;
+        _ids;
+        _values;
+        _data;
+        return true;    
+    }
     
     function _ownerOf(uint256 _tokenId) internal view returns (address) {
         return _nftOwners[_tokenId]; 
@@ -356,8 +484,8 @@ contract TokenFactory is IERC165, IERC1155, IERC721, Context {
         uint256[] memory _values,
         bytes memory _data
     ) internal {
-        require(IERC1155TokenReceiver(_to).onERC1155BatchReceived(_operator, _from, _ids, _values, _data) == ERC1155_BATCH_ACCEPTED, "contract returned an unknown value from onERC1155BatchReceived");
+        require(IERC1155TokenReceiver(_to).onERC1155BatchReceived(_operator, _from, _ids, _values, _data) == ERC1155_BATCH_ACCEPTED,
+                "contract returned an unknown value from onERC1155BatchReceived");
     }
     
 }
-
