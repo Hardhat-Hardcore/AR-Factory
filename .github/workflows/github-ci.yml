@@ -27,4 +27,4 @@ jobs:
     - name: Solhint check
       run: |
         npm install solhint
-        npm run check
+        npm run lint
