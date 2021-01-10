@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.0;
 
-import './interfaces/IWhitelist.sol';
-import './libraries/AccessControl.sol';
+import "./interfaces/IWhitelist.sol";
+import "./libraries/AccessControl.sol";
 
 contract Whitelist is IWhitelist, AccessControl {
     

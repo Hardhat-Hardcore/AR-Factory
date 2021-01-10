@@ -25,7 +25,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     // Approve all
     mapping(address => mapping(address => bool)) internal _operatorApproval;
     // Setting operator
-    mapping(uint256 => address) _settingOperators;
+    mapping(uint256 => address) internal _settingOperators;
     
     // bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))
     bytes4 constant private ERC1155_ACCEPTED = 0xf23a6e61;
