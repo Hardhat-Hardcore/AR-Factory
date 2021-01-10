@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.0;
 
-import "./interfaces/ITokenFactory.sol";
 import "./interfaces/IERC1155.sol";
 import "./interfaces/IERC1155TokenReceiver.sol";
 import "./interfaces/IERC165.sol";
@@ -482,8 +481,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     function _mintCopy(
         uint256 _tokenId,
         uint256 _supply,
-        address _receiver,
-        bool _needTime
+        address _receiver
     )
         internal
     {
