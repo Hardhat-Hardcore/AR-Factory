@@ -23,9 +23,8 @@
     "chai": "^4.2.0",
     "ethereum-waffle": "^3.2.1",
     "ethers": "^5.0.25",
-    "hardhat": "^2.0.6"
-  },
-  "dependencies": {
+    "hardhat": "^2.0.6",
     "solhint": "^3.3.2"
-  }
+  },
+  "dependencies": {}
 }

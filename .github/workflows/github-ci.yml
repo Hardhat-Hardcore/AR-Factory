@@ -23,8 +23,8 @@ jobs:
     - name: Use Node.js
       uses: actions/setup-node@v1
       with:
-        node-version: '12.x'
+        node-version: '11.x'
     - name: Solhint check
       run: |
-        npm install solhint
+        npm install --only=dev
         npm run lint

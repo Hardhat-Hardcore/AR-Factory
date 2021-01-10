@@ -476,7 +476,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         
         if (_receiver.isContract()) {
             require(_checkReceivable(_msgSender(), address(0), _receiver, tokenId, _supply, data, false, false),
-                    "TokenFactory: transfer rejected");
+                    "Transfer rejected or not support");
         }
         return tokenId;
     }
