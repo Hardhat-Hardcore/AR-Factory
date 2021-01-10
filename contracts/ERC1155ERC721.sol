@@ -200,11 +200,10 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         returns (uint256) 
     {
         if (_tokenId & IS_NFT > 0) {
-            if (_ownerOf(_tokenId) == _owner) {
+            if (_ownerOf(_tokenId) == _owner)
                 return 1;
-            } else {
+            else
                 return 0;
-            }
         }
         return _ftBalances[_tokenId][_owner];
     }
@@ -459,9 +458,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         returns (uint256)
     {
         uint256 tokenId = idNonce++;
-        if (_needTime) {
+        if (_needTime)
             tokenId |= IS_NEED_TIME;
-        }
         if (_supply == 1) {
             tokenId |= IS_NFT;
             _nftBalances[_receiver]++;
@@ -490,9 +488,6 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         internal
     {
         uint256 tokenId = _tokenId | uint256(uint160(_receiver) << 96);
-        if (_needTime) {
-            tokenId |= IS_NEED_TIME;
-        }
         _recordingBalances[tokenId][_receiver]++;
         _recordingOperators[tokenId] = _receiver;
         emit RecordingTransferSingle(_msgSender(), address(0), _receiver, tokenId, _supply);
@@ -611,3 +606,4 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         emit TransferSingle(_msgSender(), _from, _to, _tokenId, _value);
     }
 }
+
