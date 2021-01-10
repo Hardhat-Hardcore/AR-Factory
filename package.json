@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "check": "solhint -f table contracts/*.sol"
+    "lint": "solhint -f table contracts/*.sol"
   },
   "repository": {
     "type": "git",
@@ -18,8 +18,14 @@
   "homepage": "https://github.com/Hardhat-Hardcore/AR-Factory#readme",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.1",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@openzeppelin/hardhat-upgrades": "^1.4.3",
-    "ethers": "^5.0.24",
+    "chai": "^4.2.0",
+    "ethereum-waffle": "^3.2.1",
+    "ethers": "^5.0.25",
     "hardhat": "^2.0.6"
+  },
+  "dependencies": {
+    "solhint": "^3.3.2"
   }
 }
