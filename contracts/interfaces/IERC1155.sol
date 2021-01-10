@@ -78,12 +78,12 @@ interface IERC1155 /* is ERC165 */ {
     function safeBatchTransferFrom(address _from, address _to, uint256[] calldata _ids, uint256[] calldata _values, bytes calldata _data) external;
 
     /**
-        @notice Get the balance of an account's Tokens.
-        @param _owner  The address of the token holder
-        @param _id     ID of the Token
-        @return        The _owner's balance of the Token type requested
-     */
-    function balanceOf(address _owner, uint256 _id) external view returns (uint256);
+        @notice Enable or disable approval for a third party ("operator") to manage all of the caller's tokens.
+        @dev MUST emit the ApprovalForAll event on success.
+        @param _operator  Address to add to the set of authorized operators
+        @param _approved  True if the operator is approved, false to revoke approval
+    */
+    function setApprovalForAll(address _operator, bool _approved) external;
 
     /**
         @notice Get the balance of multiple account/token pairs
@@ -94,12 +94,12 @@ interface IERC1155 /* is ERC165 */ {
     function balanceOfBatch(address[] calldata _owners, uint256[] calldata _ids) external view returns (uint256[] memory);
 
     /**
-        @notice Enable or disable approval for a third party ("operator") to manage all of the caller's tokens.
-        @dev MUST emit the ApprovalForAll event on success.
-        @param _operator  Address to add to the set of authorized operators
-        @param _approved  True if the operator is approved, false to revoke approval
-    */
-    function setApprovalForAll(address _operator, bool _approved) external;
+        @notice Get the balance of an account's Tokens.
+        @param _owner  The address of the token holder
+        @param _id     ID of the Token
+        @return        The _owner's balance of the Token type requested
+     */
+    function balanceOf(address _owner, uint256 _id) external view returns (uint256);
 
     /**
         @notice Queries the approval status of an operator for a given owner.

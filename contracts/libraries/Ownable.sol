@@ -67,7 +67,7 @@ abstract contract Ownable is Context {
     }
 
     function acceptOwnership() public {
-      require(_msgSender() == newOwner);
+      require(_msgSender() == newOwner, "Owable: Not new owner");
 
       emit OwnershipTransferred(_owner, newOwner);
       

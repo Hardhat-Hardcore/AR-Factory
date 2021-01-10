@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint": "solhint -f table contracts/*.sol"
+    "lint": "solhint -f table contracts/**/*.sol"
   },
   "repository": {
     "type": "git",
