@@ -8,6 +8,7 @@ import "./interfaces/IERC721.sol";
 import "./interfaces/IERC721Receiver.sol";
 import "./libraries/GSN/Context.sol";
 import "./libraries/utils/Address.sol";
+import "hardhat/console.sol";
 
 contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     using Address for address;
@@ -129,17 +130,17 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         NotRecording(_tokenId)
         AuthorizedTransfer(_msgSender(), _from, _tokenId)
     {
+        require(_to != address(0x0), "_to must be non-zero.");
         if (_tokenId & IS_NFT > 0) {
             safeTransferFrom(_from, _to, _tokenId, _data);
             return;
         }
-        require(_to != address(0x0), "_to must be non-zero.");
 
         _transferFrom(_from, _to, _tokenId, _value);
 
         if (_to.isContract()) {
             require(_checkReceivable(_msgSender(), _from, _to, _tokenId, _value, _data, false, false),
-                    "transfer rejected or _to not support");
+                    "Transfer rejected");
         }
     }
     
@@ -322,7 +323,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         
         if (_to.isContract()) {
             require(_checkReceivable(_msgSender(), _from, _to, _tokenId, 1, _data, true, true),
-                    "Transfer rejected or not support");
+                    "Transfer rejected");
         }
     }
     
@@ -341,7 +342,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
                 
         _transferFrom(_from, _to, _tokenId, 1);
         require(_checkReceivable(_msgSender(), _from, _to, _tokenId, 1, "", true, false),
-                "transfer rejected or not support");
+                "Transfer rejected");
     }
     
     function approve(
@@ -465,7 +466,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
             _nftOwners[tokenId] = _receiver;
             emit Transfer(address(0), _receiver, tokenId);
         } else {
-            _ftBalances[tokenId][_receiver]++;
+            _ftBalances[tokenId][_receiver] = _supply;
         }
         _settingOperators[tokenId] = _operator;
         
@@ -473,7 +474,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         
         if (_receiver.isContract()) {
             require(_checkReceivable(_msgSender(), address(0), _receiver, tokenId, _supply, data, false, false),
-                    "Transfer rejected or not support");
+                    "Transfer rejected");
         }
         return tokenId;
     }
