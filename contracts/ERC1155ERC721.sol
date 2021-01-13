@@ -45,12 +45,12 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     /**
      * @dev Emitted when `tokenId` token is transferred from `from` to `to`.
      */
-    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+    event Transfer(address indexed _from, address indexed _to, uint256 indexed _tokenId);
 
     /**
      * @dev Emitted when `owner` enables `approved` to manage the `tokenId` token.
      */
-    event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
+    event Approval(address indexed _owner, address indexed _approved, uint256 indexed _tokenId);
     
     /**
      * @dev Emitted when `_tokenId` recording token is transferred from `_from` to `to` by `_operator`.

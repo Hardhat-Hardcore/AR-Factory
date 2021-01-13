@@ -160,7 +160,7 @@ describe("ERC1155", async () => {
       const ownerBalance = await tokenFactory[balanceOf](owner.address, 0)
       const receiverBalance = await tokenFactory[balanceOf](receiverContract.address, 0)
       const filter = receiverContract.filters.TransferSingleReceiver()
-      const tx = tokenFactory[safeTransferFrom](owner.address, receiverContract.address, 0, 1, [])
+      await tokenFactory[safeTransferFrom](owner.address, receiverContract.address, 0, 1, [])
       const events = await receiverContract.queryFilter(filter)
       
       expect(events[0].args._from).to.be.eql(owner.address)
@@ -176,6 +176,33 @@ describe("ERC1155", async () => {
 
       expect(ownerBalance).to.be.eql(BigNumber.from(99))
       expect(receiverBalance).to.be.eql(BigNumber.from(1))
+    })
+
+    it("should emit TransferSingle event correctly", async () => {
+      const filter = tokenFactory.filters.TransferSingle()
+      const tx = await tokenFactory[safeTransferFrom](owner.address, receiver.address, 0, 1, [])
+      const events = await tokenFactory.queryFilter(filter, tx.blockNumber)
+      
+      expect(events.length).to.be.eql(1)
+      expect(events[0].args._operator).to.be.eql(owner.address)
+      expect(events[0].args._from).to.be.eql(owner.address)
+      expect(events[0].args._to).to.be.eql(receiver.address)
+      expect(events[0].args._tokenId).to.be.eql(BigNumber.from(0))
+      expect(events[0].args._value).to.be.eql(BigNumber.from(1))
+    })
+
+    it("should have `msg.sender` as `_operator` field in TransferSingle event", async () => {
+      await tokenFactory.setApprovalForAll(operator.address, true)
+      const filter = tokenFactory.filters.TransferSingle()
+      const tx = await tokenFactory.connect(operator)[safeTransferFrom](owner.address, receiver.address, 0, 1, [])
+      const events = await tokenFactory.queryFilter(filter, tx.blockNumber)
+      
+      expect(events.length).to.be.eql(1)
+      expect(events[0].args._operator).to.be.eql(operator.address)
+      expect(events[0].args._from).to.be.eql(owner.address)
+      expect(events[0].args._to).to.be.eql(receiver.address)
+      expect(events[0].args._tokenId).to.be.eql(BigNumber.from(0))
+      expect(events[0].args._value).to.be.eql(BigNumber.from(1))
     })
   })
 })
