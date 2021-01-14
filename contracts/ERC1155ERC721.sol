@@ -35,7 +35,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     bytes4 constant private INTERFACE_SIGNATURE_ERC165 = type(IERC165).interfaceId;
     bytes4 constant private INTERFACE_SIGNATURE_ERC1155 = type(IERC1155).interfaceId;
     bytes4 constant private INTERFACE_SIGNATURE_ERC1155Receiver = type(IERC1155TokenReceiver).interfaceId;
-    bytes4 constant private INTERFACE_SIGNATURE_ERC721 = type(IERC721).interfaceId;
+    bytes4 constant private INTERFACE_SIGNATURE_ERC721 = 0x80ac58cd;
     
     uint256 private constant IS_NFT = 1 << 95;
     uint256 private constant IS_NEED_TIME = 1 << 94;
