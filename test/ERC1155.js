@@ -339,5 +339,50 @@ describe("ERC1155", async () => {
       expect(ev.args._operator).to.be.eql(operator.address)
     })
   })
+
+  describe("setApprovalForAll() function", async () => {
+    beforeEach(async () => {
+      [owner, receiver, operator] = await ethers.getSigners()
+    })
+
+    it("should emit ApprovalForAll event", async () => {
+      const approveTx = await tokenFactory.setApprovalForAll(operator.address, true)
+      const approveReceipt = await approveTx.wait(1)
+      
+      expect(approveReceipt.events.length).to.be.eql(1)
+      expect(approveReceipt.events[0].event).to.be.eql("ApprovalForAll")
+      expect(approveReceipt.events[0].args._owner).to.be.eql(owner.address)
+      expect(approveReceipt.events[0].args._operator).to.be.eql(operator.address)
+      expect(approveReceipt.events[0].args._approved).to.be.eql(true)
+
+      const disapproveTx = await tokenFactory.setApprovalForAll(operator.address, false)
+      const disapproveReceipt = await disapproveTx.wait(1)
+      
+      expect(disapproveReceipt.events.length).to.be.eql(1)
+      expect(disapproveReceipt.events[0].event).to.be.eql("ApprovalForAll")
+      expect(disapproveReceipt.events[0].args._owner).to.be.eql(owner.address)
+      expect(disapproveReceipt.events[0].args._operator).to.be.eql(operator.address)
+      expect(disapproveReceipt.events[0].args._approved).to.be.eql(false)
+    })
+
+    it("should set the operator status correctly", async () => {
+      const preStatus = await tokenFactory.isApprovedForAll(owner.address, operator.address)
+      expect(preStatus).to.be.eql(false)
+
+      await tokenFactory.setApprovalForAll(operator.address, true)
+      const status = await tokenFactory.isApprovedForAll(owner.address, operator.address)
+      expect(status).to.be.eql(true)
+    })
+
+    it("should be able to set operator status again", async () => {
+      await tokenFactory.setApprovalForAll(operator.address, true)
+      const status1 = await tokenFactory.isApprovedForAll(owner.address, operator.address)
+      expect(status1).to.be.eql(true)
+
+      await tokenFactory.setApprovalForAll(operator.address, true)
+      const status2 = await tokenFactory.isApprovedForAll(owner.address, operator.address)
+      expect(status2).to.be.eql(true)
+    })
+  })
 })
 
