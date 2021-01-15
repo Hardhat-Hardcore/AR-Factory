@@ -7,12 +7,13 @@ import "./libraries/AccessControl.sol";
 
 contract Whitelist is IWhitelist, AccessControl {
 
+	address public TRUST;
     bytes32 public constant SUPPLIER_ROLE = keccak256("SUPPLIER_ROLE");
-
     bytes32 public constant ANCHOR_ROLE = keccak256("ANCHOR_ROLE");
 
-    constructor(address _root) {
-        _setupRole(DEFAULT_ADMIN_ROLE, _root);
+    constructor(address _root, address _trust) {
+        _setupRole(DEFAULT_ADMIN_ROLE, _trust);
+		_setupRole(DEFAULT_ADMIN_ROLE, TRU
         _setupRole(SUPPLIER_ROLE, _root);
         _setupRole(ANCHOR_ROLE, _root);
         _setRoleAdmin(SUPPLIER_ROLE, DEFAULT_ADMIN_ROLE);
@@ -42,18 +43,10 @@ contract Whitelist is IWhitelist, AccessControl {
         return hasRole(DEFAULT_ADMIN_ROLE, _account);
     }
 
-	function inWhitelist(address _account)
-		external 
-		override 
-		view 
-		returns (bool)
-	{
-		return hasRole(SUPPLIER_ROLE, _account) || hasRole(ANCHOR_ROLE, _account);
-	}
-
     function inSupplier(address _account)
 		public
 		view
+		override
 		returns (bool)
 	{
         return hasRole(SUPPLIER_ROLE, _account);
@@ -61,14 +54,15 @@ contract Whitelist is IWhitelist, AccessControl {
 
     function inAnchor(address _account)
 		public
-		view 
+		view
+		override
 		returns (bool) 
 	{
         return hasRole(ANCHOR_ROLE, _account);
     }
 
     function renounceAdmin(address _account)
-		public 
+		public
 		onlyAdmin 
 	{
         renounceRole(DEFAULT_ADMIN_ROLE, _account);
@@ -76,6 +70,7 @@ contract Whitelist is IWhitelist, AccessControl {
 
     function addSupplier(address _account)
 		public
+		override
 		onlyAdmin 
 	{
         _addSupplier(_account);
@@ -83,6 +78,7 @@ contract Whitelist is IWhitelist, AccessControl {
 
     function addAnchor(address _account)
 		public
+		override
 		onlyAdmin
 	{
         _addAnchor(_account);
@@ -90,6 +86,7 @@ contract Whitelist is IWhitelist, AccessControl {
 
     function removeSupplier(address _account) 
 		public
+		override
 		onlyAdmin
 	{
         _removeSupplier(_account);
@@ -97,6 +94,7 @@ contract Whitelist is IWhitelist, AccessControl {
 
     function removeAnchor(address _account)
 		public
+		override
 		onlyAdmin 
 	{
         _removeAnchor(_account);
