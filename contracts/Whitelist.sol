@@ -7,17 +7,20 @@ import "./libraries/AccessControl.sol";
 
 contract Whitelist is IWhitelist, AccessControl {
 
-	address public TRUST;
+    address public TRUST;
     bytes32 public constant SUPPLIER_ROLE = keccak256("SUPPLIER_ROLE");
     bytes32 public constant ANCHOR_ROLE = keccak256("ANCHOR_ROLE");
 
     constructor(address _root, address _trust) {
+        /* 
+            need change setupRole here
+        */
         _setupRole(DEFAULT_ADMIN_ROLE, _trust);
-		_setupRole(DEFAULT_ADMIN_ROLE, TRU
-        _setupRole(SUPPLIER_ROLE, _root);
-        _setupRole(ANCHOR_ROLE, _root);
-        _setRoleAdmin(SUPPLIER_ROLE, DEFAULT_ADMIN_ROLE);
-        _setRoleAdmin(ANCHOR_ROLE, DEFAULT_ADMIN_ROLE);
+        // _setupRole(DEFAULT_ADMIN_ROLE, TRUST);
+        // _setupRole(SUPPLIER_ROLE, _root);
+        // _setupRole(ANCHOR_ROLE, _root);
+        // _setRoleAdmin(SUPPLIER_ROLE, DEFAULT_ADMIN_ROLE);
+        // _setRoleAdmin(ANCHOR_ROLE, DEFAULT_ADMIN_ROLE);
     }
 
     modifier onlyAdmin() {
@@ -25,78 +28,78 @@ contract Whitelist is IWhitelist, AccessControl {
         _;
     }
 
-	modifier onlySupplier() {
-		require(inSupplier(_msgSender()), "Restricted to suppliers.");
-		_;
-	}
+    modifier onlySupplier() {
+        require(inSupplier(_msgSender()), "Restricted to suppliers.");
+        _;
+    }
 
-	modifier onlyAnchor() {
-		require(inAnchor(_msgSender()), "Restricted to anchors.");
-		_;
-	}
+    modifier onlyAnchor() {
+        require(inAnchor(_msgSender()), "Restricted to anchors.");
+        _;
+    }
 
     function isAdmin(address _account) 
-		public
-		view
-		returns (bool)
-	{
+        public
+        view
+        returns (bool)
+    {
         return hasRole(DEFAULT_ADMIN_ROLE, _account);
     }
 
     function inSupplier(address _account)
-		public
-		view
-		override
-		returns (bool)
-	{
+        public
+        view
+        override
+        returns (bool)
+    {
         return hasRole(SUPPLIER_ROLE, _account);
     }
 
     function inAnchor(address _account)
-		public
-		view
-		override
-		returns (bool) 
-	{
+        public
+        view
+        override
+        returns (bool) 
+    {
         return hasRole(ANCHOR_ROLE, _account);
     }
 
     function renounceAdmin(address _account)
-		public
-		onlyAdmin 
-	{
+        public
+        onlyAdmin 
+    {
         renounceRole(DEFAULT_ADMIN_ROLE, _account);
     }
 
     function addSupplier(address _account)
-		public
-		override
-		onlyAdmin 
-	{
+        public
+        override
+        onlyAdmin 
+    {
         _addSupplier(_account);
     }
 
     function addAnchor(address _account)
-		public
-		override
-		onlyAdmin
-	{
+        public
+        override
+        onlyAdmin
+    {
         _addAnchor(_account);
     }
 
     function removeSupplier(address _account) 
-		public
-		override
-		onlyAdmin
-	{
+        public
+        override
+        onlyAdmin
+    {
         _removeSupplier(_account);
     }
 
     function removeAnchor(address _account)
-		public
-		override
-		onlyAdmin 
-	{
+        public
+        override
+        onlyAdmin 
+    {
         _removeAnchor(_account);
     }
 
