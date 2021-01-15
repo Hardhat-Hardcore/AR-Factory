@@ -3,8 +3,9 @@ pragma solidity 0.8.0;
 
 import "./interfaces/ITokenFactory.sol";
 import "./ERC1155ERC721.sol";
+import "./GSN/BaseRelayRecipient.sol";
 
-contract TokenFactory is ERC1155ERC721, ITokenFactory {
+contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
     function createToken(
         uint256 _supply,
         address _receiver,
@@ -46,5 +47,17 @@ contract TokenFactory is ERC1155ERC721, ITokenFactory {
         override
     {
         return;
+    }
+
+    function versionRecipient() external override virtual view returns (string memory) {
+        return "2.1.0";
+    }
+    
+    function _msgSender() internal override(Context, BaseRelayRecipient) view returns (address payable ret) {
+        return BaseRelayRecipient._msgSender();
+    }
+    
+    function _msgData() internal override(Context, BaseRelayRecipient) view returns (bytes memory ret) {
+        return BaseRelayRecipient._msgData();
     }
 }
