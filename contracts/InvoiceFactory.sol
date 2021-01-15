@@ -4,8 +4,9 @@ pragma solidity 0.8.0;
 import "./interfaces/IWhitelist.sol";
 import "./interfaces/ITokenFactory.sol";
 import "./libraries/GSN/Context.sol";
+import "./GSN/BaseRelayRecipient.sol";
 
-contract InvoiceFactory is Context{
+contract InvoiceFactory is Context, BaseRelayRecipient {
 
     uint256 public InvoiceCount;
     address public HOST_Address;
@@ -154,5 +155,17 @@ contract InvoiceFactory is Context{
         address receiverAddress = (_hosted ? HOST_Address : InvoiceList[_invoiceIdx].originSupplier);
         InvoiceList[_invoiceIdx].tradable = true;
         return receiverAddress;
+    }
+    
+    function _msgSender() internal override(Context, BaseRelayRecipient) view returns (address payable ret) {
+        return BaseRelayRecipient._msgSender();
+    }
+    
+    function _msgData() internal override(Context, BaseRelayRecipient) view returns (bytes memory ret) {
+        return BaseRelayRecipient._msgData();
+    }
+    
+    function versionRecipient() external override virtual view returns (string memory) {
+        return "2.1.0";
     }
 }
