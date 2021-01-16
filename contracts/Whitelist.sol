@@ -7,20 +7,11 @@ import "./libraries/AccessControl.sol";
 
 contract Whitelist is IWhitelist, AccessControl {
 
-    address public TRUST;
-    bytes32 public constant SUPPLIER_ROLE = keccak256("SUPPLIER_ROLE");
-    bytes32 public constant ANCHOR_ROLE = keccak256("ANCHOR_ROLE");
+    bytes32 public constant WHITELIST_ROLE = keccak256("WHITELIST_ROLE");
 
-    constructor(address _root, address _trust) {
-        /* 
-            need change setupRole here
-        */
-        _setupRole(DEFAULT_ADMIN_ROLE, _trust);
-        // _setupRole(DEFAULT_ADMIN_ROLE, TRUST);
-        // _setupRole(SUPPLIER_ROLE, _root);
-        // _setupRole(ANCHOR_ROLE, _root);
-        // _setRoleAdmin(SUPPLIER_ROLE, DEFAULT_ADMIN_ROLE);
-        // _setRoleAdmin(ANCHOR_ROLE, DEFAULT_ADMIN_ROLE);
+    constructor(address _trustAddress) {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(WHITELIST_ROLE, _trustAddress);
     }
 
     modifier onlyAdmin() {
@@ -28,15 +19,6 @@ contract Whitelist is IWhitelist, AccessControl {
         _;
     }
 
-    modifier onlySupplier() {
-        require(inSupplier(_msgSender()), "Restricted to suppliers.");
-        _;
-    }
-
-    modifier onlyAnchor() {
-        require(inAnchor(_msgSender()), "Restricted to anchors.");
-        _;
-    }
 
     function isAdmin(address _account) 
         public
@@ -46,24 +28,15 @@ contract Whitelist is IWhitelist, AccessControl {
         return hasRole(DEFAULT_ADMIN_ROLE, _account);
     }
 
-    function inSupplier(address _account)
+    function inWhitelist(address _account)
         public
         view
         override
         returns (bool)
     {
-        return hasRole(SUPPLIER_ROLE, _account);
+        return hasRole(WHITELIST_ROLE, _account);
     }
-
-    function inAnchor(address _account)
-        public
-        view
-        override
-        returns (bool) 
-    {
-        return hasRole(ANCHOR_ROLE, _account);
-    }
-
+    
     function renounceAdmin(address _account)
         public
         onlyAdmin 
@@ -71,51 +44,28 @@ contract Whitelist is IWhitelist, AccessControl {
         renounceRole(DEFAULT_ADMIN_ROLE, _account);
     }
 
-    function addSupplier(address _account)
+    function addWhitelist(address _account)
         public
-        override
-        onlyAdmin 
-    {
-        _addSupplier(_account);
-    }
-
-    function addAnchor(address _account)
-        public
-        override
         onlyAdmin
     {
-        _addAnchor(_account);
+        _addWhitelist(_account);
     }
 
-    function removeSupplier(address _account) 
+    function removeWhitelist(address _account)
         public
-        override
-        onlyAdmin
-    {
-        _removeSupplier(_account);
-    }
-
-    function removeAnchor(address _account)
-        public
-        override
         onlyAdmin 
     {
-        _removeAnchor(_account);
+        _removeWhitelist(_account);
+    }
+    
+    function 
+
+    function _addWhitelist(address _account) internal {
+        grantRole(WHITELIST_ROLE, _account);
     }
 
-    function _addSupplier(address _account) internal {
-        grantRole(SUPPLIER_ROLE, _account);
+    function _removeWhitelist(address _account) internal {
+        revokeRole(WHITELIST_ROLE, _account);
     }
-
-    function _addAnchor(address _account) internal {
-        grantRole(ANCHOR_ROLE, _account);
-    }
-
-    function _removeSupplier(address _account) internal {
-        revokeRole(SUPPLIER_ROLE, _account);
-    }
-
-    function _removeAnchor(address _account) internal {
-        revokeRole(ANCHOR_ROLE, _account);
-    }
+    
 }
