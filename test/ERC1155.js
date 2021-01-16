@@ -9,7 +9,7 @@ chai.use(ChaiAsPromised)
 
 
 describe("ERC1155", async () => {
-  const createToken = "createToken(uint256,address,address,bool,bool)"
+  const createToken = "createToken(uint256,address,address,bool)"
   const balanceOf = "balanceOf(address,uint256)"
   const safeTransferFrom = "safeTransferFrom(address,address,uint256,uint256,bytes)"
 
@@ -25,8 +25,8 @@ describe("ERC1155", async () => {
   describe("Getter functions", () => {
     it("balanceOf() should return correct balance for quried address", async () => {
       const [user1, user2, user3] = await ethers.getSigners()
-      const tx1 = await tokenFactory[createToken](100, user1.address, user3.address, false, false)
-      const tx2 = await tokenFactory[createToken](200, user2.address, user3.address, false, false)
+      const tx1 = await tokenFactory[createToken](100, user1.address, user3.address, false)
+      const tx2 = await tokenFactory[createToken](200, user2.address, user3.address, false)
 
       const receipt1 = await tx1.wait(1)
       const receipt2 = await tx2.wait(1)
@@ -49,8 +49,8 @@ describe("ERC1155", async () => {
     
     it("balanceOfBatch() should return balances for quries addresses", async () => {
       const [user1, user2, user3] = await ethers.getSigners()
-      const tx1 = await tokenFactory[createToken](100, user1.address, user3.address, false, false)
-      const tx2 = await tokenFactory[createToken](200, user2.address, user3.address, false, false)
+      const tx1 = await tokenFactory[createToken](100, user1.address, user3.address, false)
+      const tx2 = await tokenFactory[createToken](200, user2.address, user3.address, false)
 
       const receipt1 = await tx1.wait(1)
       const receipt2 = await tx2.wait(1)
@@ -99,7 +99,7 @@ describe("ERC1155", async () => {
       const ReceiverContract = await ethers.getContractFactory("ERC1155ReceiverMock")
       receiverContract = await ReceiverContract.deploy()
       await receiverContract.deployed()
-      await tokenFactory[createToken](100, owner.address, operator.address, false, false)
+      await tokenFactory[createToken](100, owner.address, operator.address, false)
     })
     
     it("should be able to transfer if balance is sufficient", async () => {
@@ -129,7 +129,7 @@ describe("ERC1155", async () => {
     })
 
     it("should revert if transfer leads to overflow or underflow", async () => {
-      await tokenFactory[createToken](MAXVAL, receiver.address, operator.address, false, false)      
+      await tokenFactory[createToken](MAXVAL, receiver.address, operator.address, false)      
       const tx = tokenFactory[safeTransferFrom](owner.address, receiver.address, 1, 1, [])
       await expect(tx).to.be.reverted
     })
@@ -222,7 +222,7 @@ describe("ERC1155", async () => {
       for (let i = 0; i < 30; i++) {
         values.push(10)
         tokenIds.push(i)
-        await tokenFactory[createToken](10, owner.address, operator.address, false, false)
+        await tokenFactory[createToken](10, owner.address, operator.address, false)
       }
       const ReceiverContract = await ethers.getContractFactory("ERC1155ReceiverMock")
       receiverContract = await ReceiverContract.deploy()

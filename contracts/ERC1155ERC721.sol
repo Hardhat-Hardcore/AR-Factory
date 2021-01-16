@@ -37,9 +37,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     bytes4 constant private INTERFACE_SIGNATURE_ERC1155Receiver = type(IERC1155TokenReceiver).interfaceId;
     bytes4 constant private INTERFACE_SIGNATURE_ERC721 = 0x80ac58cd;
     
-    uint256 private constant IS_NFT = 1 << 95;
-    uint256 private constant IS_NEED_TIME = 1 << 94;
-    uint256 private constant IS_RECORDING_TOKEN = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000;
+    uint256 private constant IS_NFT = 1 << 255;
+    uint256 private constant HAS_NEED_TIME = 1 << 254;
     uint256 private idNonce;
     
     /**
@@ -58,17 +57,6 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     event RecordingTransferSingle(address indexed _operator, address indexed _from, address indexed _to, uint256 _tokenIds, uint256 _value);
     
     event RecordingTransferBatch(address indexed _operator, address[] _froms, address[] _tos, uint256[] _tokenIds, uint256[] _values);
-    
-    
-    modifier NotRecording(uint256 _tokenId) {
-        require(_tokenId & IS_RECORDING_TOKEN == 0, "Can't be recording token");
-        _;
-    }
-    
-    modifier Recording(uint256 _tokenId) {
-        require(_tokenId & IS_RECORDING_TOKEN > 0, "Need to be recording token");
-        _;
-    }
     
     modifier AuthorizedTransfer(
         address _operator,
@@ -127,7 +115,6 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     ) 
         external
         override
-        NotRecording(_tokenId)
         AuthorizedTransfer(_msgSender(), _from, _tokenId)
     {
         require(_to != address(0x0), "_to must be non-zero.");
@@ -196,7 +183,6 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         public
         view
         override
-        NotRecording(_tokenId)
         returns (uint256) 
     {
         if (_tokenId & IS_NFT > 0) {
@@ -285,7 +271,6 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         external
         view
         override
-        NotRecording(_tokenId)
         returns (address) 
     {
         address owner = _ownerOf(_tokenId);
@@ -300,7 +285,6 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     ) 
         external
         override
-        NotRecording(_tokenId)
     {
         safeTransferFrom(_from, _to, _tokenId, "");
     }
@@ -313,7 +297,6 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     )
         public
         override
-        NotRecording(_tokenId)
         AuthorizedTransfer(_msgSender(), _from, _tokenId)
     {
         require(_to != address(0), "_to must be non-zero");
@@ -334,7 +317,6 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     ) 
         external
         override
-        NotRecording(_tokenId)
         AuthorizedTransfer(_msgSender(), _from, _tokenId)
     {
         require(_to != address(0), "_to must be non-zero");
@@ -351,7 +333,6 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     )
         external
         override 
-        NotRecording(_tokenId)
     {
         address owner = _nftOwners[_tokenId];
         require(owner == _msgSender() || _operatorApproval[owner][_msgSender()],
@@ -364,7 +345,6 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         external
         view
         override
-        NotRecording(_tokenId)
         returns (address) 
     {
         require(_tokenId & IS_NFT > 0, "Not a nft");
@@ -380,10 +360,10 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         uint256 _value
     ) 
         external
-        Recording(_tokenId)
     {
         require(_msgSender() == _recordingOperators[_tokenId], "Not authorized");
-        
+        require(_to != address(0), "_to must be non-zero");
+        // TODO: calculate time  
         _recordingTransferFrom(_from, _to, _tokenId, _value);
     }
     
@@ -393,7 +373,6 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     ) 
         external
         view
-        Recording(_tokenId)
         returns(uint256)
     {
         return _recordingBalances[_tokenId][_owner];
@@ -426,7 +405,6 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         uint256 numNFT;
         
         for (uint256 i = 0; i < _tokenIds.length; i++) {
-            require(_tokenIds[i] & IS_RECORDING_TOKEN == 0, "Can't transfer recording token");
             if (_values[i] > 0) {
                 if (_tokenIds[i] & IS_NFT > 0) {
                     require(_values[i] == 1, "NFT amount is not 1");
@@ -450,7 +428,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     function _mint(
         uint256 _supply,
         address _receiver,
-        address _operator,
+        address _settingOperator,
         bool _needTime,
         bytes memory data
     )
@@ -459,7 +437,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     {
         uint256 tokenId = idNonce++;
         if (_needTime)
-            tokenId |= IS_NEED_TIME;
+            tokenId |= HAS_NEED_TIME;
+
         if (_supply == 1) {
             tokenId |= IS_NFT;
             _nftBalances[_receiver]++;
@@ -468,7 +447,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         } else {
             _ftBalances[tokenId][_receiver] = _supply;
         }
-        _settingOperators[tokenId] = _operator;
+
+        _settingOperators[tokenId] = _settingOperator;
         
         emit TransferSingle(_msgSender(), address(0), _receiver, tokenId, _supply);
         
@@ -482,14 +462,13 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     function _mintCopy(
         uint256 _tokenId,
         uint256 _supply,
-        address _receiver
+        address _recordingOperator
     )
         internal
     {
-        uint256 tokenId = _tokenId | uint256(uint160(_receiver) << 96);
-        _recordingBalances[tokenId][_receiver]++;
-        _recordingOperators[tokenId] = _receiver;
-        emit RecordingTransferSingle(_msgSender(), address(0), _receiver, tokenId, _supply);
+        _recordingBalances[_tokenId][_recordingOperator] += _supply;
+        _recordingOperators[_tokenId] = _recordingOperator;
+        emit RecordingTransferSingle(_msgSender(), address(0), _recordingOperator, _tokenId, _supply);
     }
     
     function _checkReceivable(
