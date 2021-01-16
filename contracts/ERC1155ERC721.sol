@@ -362,6 +362,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         external
     {
         require(_msgSender() == _recordingOperators[_tokenId], "Not authorized");
+        require(_to != address(0), "_to must be non-zero");
         // TODO: calculate time  
         _recordingTransferFrom(_from, _to, _tokenId, _value);
     }

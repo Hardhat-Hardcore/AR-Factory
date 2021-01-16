@@ -5,7 +5,7 @@ import "./interfaces/ITokenFactory.sol";
 import "./ERC1155ERC721.sol";
 import "./GSN/BaseRelayRecipient.sol";
 
-contract TokenFactory is ERC1155ERC721, ITokenFactory {
+contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
     function createToken(
         uint256 _supply,
         address _receiver,
