@@ -16,6 +16,8 @@ describe("ERC1155", async () => {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
   const MAXVAL = BigNumber.from(2).pow(256).sub(1)
 
+  let tokenFactory
+
   beforeEach(async () => {
     const TokenFactory = await ethers.getContractFactory("TokenFactory")
     tokenFactory = await TokenFactory.deploy()
