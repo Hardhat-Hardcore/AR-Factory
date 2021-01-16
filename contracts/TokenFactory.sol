@@ -5,37 +5,70 @@ import "./interfaces/ITokenFactory.sol";
 import "./ERC1155ERC721.sol";
 import "./GSN/BaseRelayRecipient.sol";
 
-contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
+contract TokenFactory is ERC1155ERC721, ITokenFactory {
     function createToken(
         uint256 _supply,
         address _receiver,
-        address _operator,
-        bool _needTime,
-        bool _needCopy
+        address _settingOperator,
+        bool _needTime
     )
-        external
+        public 
         override
         returns(uint256)
     {
-        uint256 tokenId = _mint(_supply, _receiver, _operator, _needTime, "");
-        if (_needCopy)
-            _mintCopy(tokenId, _supply, _receiver);
-            
+        uint256 tokenId = _mint(_supply, _receiver, _settingOperator, _needTime, "");
         return tokenId;
     }
     
     function createToken(
         uint256 _supply,
         address _receiver,
-        address _operator,
+        address _settingOperator,
         bool _needTime,
-        bool _needCopy,
         string calldata _uri
     )
         external
         override
         returns(uint256)
     {
+        uint256 tokenId = createToken(_supply, _receiver, _settingOperator, _needTime);
+        // TODO: set uri
+        _uri;
+        return tokenId;
+    }
+
+    function createTokenWithRecording(
+        uint256 _supply,
+        address _receiver,
+        address _settingOperator,
+        bool _needTime,
+        address _recordingOperator
+    )
+        public
+        override
+        returns(uint256)
+    {
+        uint256 tokenId = createToken(_supply, _receiver, _settingOperator, _needTime);
+        _mintCopy(tokenId, _supply, _recordingOperator);
+        return tokenId;
+    }
+
+    function createTokenWithRecording(
+        uint256 _supply,
+        address _receiver,
+        address _settingOperator,
+        bool _needTime,
+        address _recordingOperator,
+        string calldata _uri
+    )
+        external
+        override
+        returns(uint256)
+    {
+        uint256 tokenId = createToken(_supply, _receiver, _settingOperator, _needTime);
+        _mintCopy(tokenId, _supply, _recordingOperator);
+        // TODO: set uri
+        _uri;
         return 0;
     }
     
@@ -46,6 +79,9 @@ contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
         external
         override
     {
+        // TODO
+        _startTime;
+        _endTime;
         return;
     }
 
@@ -53,11 +89,11 @@ contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
         return "2.1.0";
     }
     
-    function _msgSender() internal override(Context, BaseRelayRecipient) view returns (address payable ret) {
+    function _msgSender() internal override(Context, BaseRelayRecipient) view returns (address payable) {
         return BaseRelayRecipient._msgSender();
     }
     
-    function _msgData() internal override(Context, BaseRelayRecipient) view returns (bytes memory ret) {
+    function _msgData() internal override(Context, BaseRelayRecipient) view returns (bytes memory) {
         return BaseRelayRecipient._msgData();
     }
 }
