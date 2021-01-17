@@ -336,7 +336,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     {
         address owner = _nftOwners[_tokenId];
         require(owner == _msgSender() || _operatorApproval[owner][_msgSender()],
-                "Not authorized or Not a nft");
+                "Not authorized or not a nft");
         _nftOperators[_tokenId] = _to;
         emit Approval(owner, _to, _tokenId);
     }
@@ -484,14 +484,11 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         internal
         returns (bool)
     {
-        if (_erc721) {
-            if (!_checkIsERC1155Receiver(_to)) {
-                if (_erc721safe) {
-                    return _checkERC721Receivable(_operator, _from, _to, _tokenId, _data);
-                } else {
-                    return true;
-                }
-            }
+        if (_erc721 && !_checkIsERC1155Receiver(_to)) {
+            if (_erc721safe)
+                return _checkERC721Receivable(_operator, _from, _to, _tokenId, _data);
+            else
+                return true;
         }
         return _checkERC1155Receivable(_operator, _from, _to, _tokenId, _value, _data);
     }
