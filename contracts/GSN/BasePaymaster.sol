@@ -56,6 +56,13 @@ abstract contract BasePaymaster is IPaymaster, Ownable {
         require(address(trustedForwarder) == relayRequest.relayData.forwarder, "Forwarder is not trusted");
         GsnEip712Library.verifyForwarderTrusted(relayRequest);
     }
+    
+    function _verifySignature(GsnTypes.RelayRequest calldata relayRequest, bytes calldata signature)
+        public
+        view
+    {
+        GsnEip712Library.verifySignature(relayRequest, signature);
+    }
 
     /*
      * modifier to be used by recipients as access control protection for preRelayedCall & postRelayedCall
