@@ -8,7 +8,7 @@ const expect = chai.expect
 chai.use(ChaiAsPromised)
 
 
-describe("ERC1155", async () => {
+describe("ERC1155", () => {
   const createToken = "createToken(uint256,address,address,bool)"
   const balanceOf = "balanceOf(address,uint256)"
   const safeTransferFrom = "safeTransferFrom(address,address,uint256,uint256,bytes)"
@@ -342,7 +342,7 @@ describe("ERC1155", async () => {
     })
   })
 
-  describe("setApprovalForAll() function", async () => {
+  describe("setApprovalForAll() function", () => {
     beforeEach(async () => {
       [owner, receiver, operator] = await ethers.getSigners()
     })
