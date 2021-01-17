@@ -92,18 +92,24 @@ contract Whitelist is IWhitelist, AccessControl, BasePaymaster {
 
     function addWhitelist(address _account)
         public
+        override
         onlyAdmin
+        returns (bool)
     {
         _addWhitelist(_account);
+        return true;
     }
 
     function removeWhitelist(address _account)
         public
-        onlyAdmin 
+        override
+        onlyAdmin
+        returns (bool)
     {
         _removeWhitelist(_account);
+        return true;
     }
-
+    
     function _addWhitelist(address _account) internal {
         grantRole(WHITELIST_ROLE, _account);
     }

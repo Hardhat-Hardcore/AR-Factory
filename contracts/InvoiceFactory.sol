@@ -10,9 +10,11 @@ import "./GSN/BaseRelayRecipient.sol";
 contract InvoiceFactory is Context, BaseRelayRecipient, AccessControl {
 
     uint256 public InvoiceCount;
+    uint256 public FIXED_DECIMAL = 3;
     address public TRUST_Address;
     //address public WhitelistAddress;
     address public TokenFactoryAddress;
+    address public EMPTY;
     bytes32 public constant SUPPLIER_ROLE = keccak256("SUPPLIER_ROLE");
     bytes32 public constant ANCHOR_ROLE = keccak256("ANCHOR_ROLE");
     
@@ -20,22 +22,25 @@ contract InvoiceFactory is Context, BaseRelayRecipient, AccessControl {
         uint256 invoiceId;
         uint256 tokenId;
         uint256 invoiceTime;
+        uint256 txAmount;
         uint256 startDate;
         uint256 dueDate;
         uint256 anchorConfirmTime;
+        uint256 totalSupply;
         bytes32 annualRate;
         address Supplier;
         address Anchor;
         bool    toList;
     }
     
-    mapping(uint256=>uint256) public tokenIDtoInvoiceID;
+    mapping(uint256=>uint256) public tokenIdtoInvoiceId;
+    mapping(uint256=>uint256) public invoiceIdtoTokenId;
     mapping(address=>uint256) public verifiedAnchor;
     mapping(address=>uint256) public verifiedSupplier;
     
     Invoice[] public InvoiceList;
-    ITokenFactory public TokenFactory;
-    IWhitelist public Whitelist;
+    ITokenFactory public tempTokenFactory;
+    IWhitelist public tempWhitelist;
 
     //////////////////////////////////// MODIFIER ////////////////////////////////////////////////    
 
@@ -80,14 +85,14 @@ contract InvoiceFactory is Context, BaseRelayRecipient, AccessControl {
         public
         onlyAdmin
     {
-        TokenFactory = ITokenFactory(_newTokenFactory);
+        tempTokenFactory = ITokenFactory(_newTokenFactory);
     }
     
     function updateWhitelist(address _newWhitelist)
         public
         onlyAdmin
     {
-        Whitelist = IWhitelist(_newWhitelist);
+        tempWhitelist = IWhitelist(_newWhitelist);
     }
     
     function enrollAnchor(address _newAnchor)
@@ -95,11 +100,11 @@ contract InvoiceFactory is Context, BaseRelayRecipient, AccessControl {
         onlyAdmin
     {
         require(hasRole(ANCHOR_ROLE, _newAnchor) == false, "This account has already been added to the anchor.");
+        if (tempWhitelist.inWhitelist(_newAnchor) == false)
+        {
+            tempWhitelist.addWhitelist(_newAnchor);
+        }
         grantRole(ANCHOR_ROLE, _newAnchor);
-        /*
-            Have to put into Whitelist as well.
-            and have to check if it's in Whitelist too.
-        */
     }
     
     function enrollSupplier(address _newSupplier)
@@ -107,11 +112,11 @@ contract InvoiceFactory is Context, BaseRelayRecipient, AccessControl {
         onlyAdmin
     {
         require(hasRole(SUPPLIER_ROLE, _newSupplier) == false, "This account has already been added to the supplier.");
+        if (tempWhitelist.inWhitelist(_newSupplier) == false)
+        {
+            tempWhitelist.addWhitelist(_newSupplier);
+        }
         grantRole(SUPPLIER_ROLE, _newSupplier);
-        /*
-            Have to put into Whitelist as well.
-            and have to check if it's in Whitelist too.
-        */
     }
     
     function trustVerifyAnchor(address _anchor)
@@ -131,6 +136,7 @@ contract InvoiceFactory is Context, BaseRelayRecipient, AccessControl {
     function anchorVerify(uint256 _invoiceId)
         public
         onlyAnchor
+        checkVerify(InvoiceList[_invoiceId].Supplier, _msgSender())
     {
         require(verifiedAnchor[_msgSender()] != 0, "You have't been verified yet.");
         require(InvoiceList[_invoiceId].Anchor == _msgSender(), "You don't own this invoice.");
@@ -140,20 +146,24 @@ contract InvoiceFactory is Context, BaseRelayRecipient, AccessControl {
     function uploadInvoice(
         uint256 _tokenId,
         uint256 _invoiceTime,
+        uint256 _txAmount,
+        uint256 _totalSupply,
         bytes32 _annualRate,
-        address _supplierAddr,
         address _anchorAddr,
         bool _tolist
     ) 
         public
         onlySupplier
+        checkVerify(_msgSender(), _anchorAddr)
     {
         require(verifiedSupplier[_msgSender()] != 0, "You have't been verified yet.");
         _uploadInvoice(
             _tokenId,
             _invoiceTime,
+            _txAmount,
+            _totalSupply,
             _annualRate,
-            _supplierAddr,
+            _msgSender(),
             _anchorAddr,
             _tolist
         );
@@ -162,6 +172,8 @@ contract InvoiceFactory is Context, BaseRelayRecipient, AccessControl {
     function _uploadInvoice(
         uint256 _tokenId,
         uint256 _invoiceTime,
+        uint256 _txAmount,
+        uint256 _totalSupply,
         bytes32 _annualRate,
         address _supplierAddr,
         address _anchorAddr,
@@ -173,9 +185,11 @@ contract InvoiceFactory is Context, BaseRelayRecipient, AccessControl {
             InvoiceCount,
             _tokenId,
             _invoiceTime,
+            _txAmount,
             0,
             0,
             0,
+            _totalSupply,
             _annualRate,
             _supplierAddr,
             _anchorAddr,
@@ -190,13 +204,38 @@ contract InvoiceFactory is Context, BaseRelayRecipient, AccessControl {
         onlyAdmin
     {
         require(InvoiceList[_invoiceId].anchorConfirmTime != 0, "Anchor hasn't confirm this invoice yet");
-        // TokenFactory.call();
         /*
         Should call TokenFactory contract to use createToken function
         */
+        require(invoiceIdtoTokenId[_invoiceId] == 0, "This invoice's token had been created before.");
+        tempTokenFactory.createTokenWithRecording(
+            InvoiceList[_invoiceId].totalSupply * 1000,
+            TRUST_Address,
+            _msgSender(),
+            false,
+            TRUST_Address,
+            ""
+        );
     }
     
-    function _msgSender() internal override(Context, BaseRelayRecipient) view returns (address payable) {
+    function restoreAccount(address _originAddress, address _newAddress)
+        public
+        onlyAdmin
+    {
+        require((verifiedSupplier[_originAddress] > 0) || (verifiedAnchor[_originAddress] > 0), "You hadn't enroll to anything yet.");
+        if (verifiedSupplier[_originAddress] > 0)
+        {
+            verifiedSupplier[_newAddress] = block.timestamp;
+        }
+        
+        if (verifiedAnchor[_originAddress] > 0)
+        {
+            verifiedAnchor[_newAddress] = block.timestamp;
+        }
+    }
+    
+
+    function _msgSender() internal override(Context, BaseRelayRecipient) view returns (address payable ret) {
         return BaseRelayRecipient._msgSender();
     }
     
