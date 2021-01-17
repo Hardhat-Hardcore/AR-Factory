@@ -16,12 +16,12 @@ abstract contract BaseRelayRecipient is IRelayRecipient, Ownable {
      */
     address public trustedForwarder;
 
-    function isTrustedForwarder(address forwarder) public override view returns(bool) {
-        return forwarder == trustedForwarder;
-    }
-    
     function setTrustedForwarder(address forwarder) external onlyOwner {
         trustedForwarder = forwarder;
+    }
+
+    function isTrustedForwarder(address forwarder) public override view returns(bool) {
+        return forwarder == trustedForwarder;
     }
 
     /**
