@@ -119,7 +119,10 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     {
         require(_to != address(0x0), "_to must be non-zero.");
         if (_tokenId & IS_NFT > 0) {
-            safeTransferFrom(_from, _to, _tokenId, _data);
+            if (_value > 0) {
+                require(_value == 1, "NFT amount more than 1");
+                safeTransferFrom(_from, _to, _tokenId, _data);
+            }
             return;
         }
 
@@ -185,6 +188,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         override
         returns (uint256) 
     {
+        require(_owner != address(0), "Owner is zero address");
         if (_tokenId & IS_NFT > 0) {
             if (_ownerOf(_tokenId) == _owner)
                 return 1;
