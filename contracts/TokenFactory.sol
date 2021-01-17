@@ -73,6 +73,7 @@ contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
     }
     
     function setTimeInterval(
+        uint256 _tokenId,
         uint256 _startTime,
         uint256 _endTime
     )
@@ -80,6 +81,7 @@ contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
         override
     {
         // TODO
+        _tokenId;
         _startTime;
         _endTime;
         return;

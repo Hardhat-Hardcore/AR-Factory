@@ -62,8 +62,13 @@ describe("ERC721", () => {
   })
 
   describe("safeTransferFrom()", async () => {
+    let receiverContract
+
     beforeEach(async () => {
       await tokenFactory[createToken](1, owner.address, operator.address, false)
+      const ReceiverContract = await ethers.getContractFactory("ERC721ReceiverMock")
+      receiverContract = await ReceiverContract.deploy()
+      await receiverContract.deployed()
     })
 
     it("shoud update balance correctly", async () => {
@@ -117,6 +122,80 @@ describe("ERC721", () => {
       expect(ownerBalance).to.be.eql(BigNumber.from(0))
       expect(receiverBalance).to.be.eql(BigNumber.from(1))
       expect(tokenOwner).to.be.eql(receiver.address)
+    })
+
+    it("should revert if _to is not a receiver contract", async () => {
+      const tokenId = IS_NFT
+      const tx = tokenFactory[safeTransferFrom](owner.address, tokenFactory.address, tokenId, [])
+      expect(tx).to.be.reverted
+    })
+
+    it("should be able to transfer if _to is a receiver contract", async () => {
+      const tokenId = IS_NFT
+      const tx = tokenFactory[safeTransferFrom](owner.address, receiverContract.address, tokenId, [])
+      await expect(tx).to.be.fulfilled
+
+      const ownerBalance = await tokenFactory[balanceOf](owner.address)
+      const receiverBalance = await tokenFactory[balanceOf](receiverContract.address)
+      const tokenOwner = await tokenFactory.ownerOf(tokenId)
+      expect(ownerBalance).to.be.eql(BigNumber.from(0))
+      expect(receiverBalance).to.be.eql(BigNumber.from(1))
+      expect(tokenOwner).to.be.eql(receiverContract.address)
+    })
+
+    it("should revert if receiver contract reject", async () => {
+      const tokenId = IS_NFT
+      await receiverContract.setShouldReject(true)
+      const tx = tokenFactory[safeTransferFrom](owner.address, receiverContract.address, tokenId, [])
+      await expect(tx).to.be.revertedWith("Transfer rejected")
+    })
+
+    it("should be able to transfer to receiver contract with data", async () => {
+      const tokenId = IS_NFT
+      const rejectData = ethers.utils.toUtf8Bytes("Hello")
+      const rejectTx = tokenFactory[safeTransferFrom](owner.address, receiverContract.address, tokenId, rejectData)
+      await expect(rejectTx).to.be.reverted
+
+      const data = ethers.utils.toUtf8Bytes("Hello from the other side")
+      const tx = tokenFactory[safeTransferFrom](owner.address, receiverContract.address, tokenId, data)
+      await expect(tx).to.be.fulfilled
+    })
+
+    it("should have balances and ownership updated before external call", async () => {
+      const tokenId = IS_NFT
+      const ownerBalance = await tokenFactory[balanceOf](owner.address)
+      const receiverBalance = await tokenFactory[balanceOf](receiver.address)
+      const filter = receiverContract.filters.TransferReceiver()
+      await tokenFactory[safeTransferFrom](owner.address, receiverContract.address, tokenId, [])
+      const events = await receiverContract.queryFilter(filter)
+
+      expect(events.length).to.be.eql(1)
+      expect(events[0].args._from).to.be.eql(owner.address)
+      expect(events[0].args._to).to.be.eql(receiverContract.address)
+      expect(events[0].args._fromBalance).to.be.eql(ownerBalance.sub(1))
+      expect(events[0].args._toBalance).to.be.eql(receiverBalance.add(1))
+      expect(events[0].args._tokenOwner).to.be.eql(receiverContract.address)
+    })
+
+    it("should emit Transfer event", async () => {
+      const tokenId = IS_NFT
+      const filter = tokenFactory.filters.Transfer()
+      const tx = await tokenFactory[safeTransferFrom](owner.address, receiver.address, tokenId, [])
+      const events = await tokenFactory.queryFilter(filter, tx.blockNumber) 
+
+      expect(events.length).to.be.eql(1)
+      expect(events[0].args._from).to.be.eql(owner.address)
+      expect(events[0].args._to).be.to.eql(receiver.address)
+      expect(events[0].args._tokenId).to.be.eql(IS_NFT)
+    })
+
+    it("should reset nft operator after a transfer", async () => {
+      const tokenId = IS_NFT
+      await tokenFactory.approve(operator.address, tokenId)
+      await tokenFactory[safeTransferFrom](owner.address, receiver.address, tokenId, [])
+
+      const approvedOperator = await tokenFactory.getApproved(tokenId)
+      expect(approvedOperator).to.be.eql(ZERO_ADDRESS)
     })
   })
 })
