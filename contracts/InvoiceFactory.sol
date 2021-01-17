@@ -7,7 +7,7 @@ import "./libraries/GSN/Context.sol";
 import "./libraries/AccessControl.sol";
 import "./GSN/BaseRelayRecipient.sol";
 
-contract InvoiceFactory is Context, BaseRelayRecipient, AccessControl{
+contract InvoiceFactory is Context, BaseRelayRecipient, AccessControl {
 
     uint256 public InvoiceCount;
     address public TRUST_Address;
@@ -195,12 +195,12 @@ contract InvoiceFactory is Context, BaseRelayRecipient, AccessControl{
         Should call TokenFactory contract to use createToken function
         */
     }
-
-    function _msgSender() internal override(Context, BaseRelayRecipient) view returns (address payable ret) {
+    
+    function _msgSender() internal override(Context, BaseRelayRecipient) view returns (address payable) {
         return BaseRelayRecipient._msgSender();
     }
     
-    function _msgData() internal override(Context, BaseRelayRecipient) view returns (bytes memory ret) {
+    function _msgData() internal override(Context, BaseRelayRecipient) view returns (bytes memory) {
         return BaseRelayRecipient._msgData();
     }
     

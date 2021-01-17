@@ -3,12 +3,13 @@
 pragma solidity 0.8.0;
 
 import "./interfaces/IRelayRecipient.sol";
+import "../libraries/Ownable.sol";
 
 /**
  * A base contract to be inherited by any contract that want to receive relayed transactions
  * A subclass must use "_msgSender()" instead of "msg.sender"
  */
-abstract contract BaseRelayRecipient is IRelayRecipient {
+abstract contract BaseRelayRecipient is IRelayRecipient, Ownable {
 
     /*
      * Forwarder singleton we accept calls from
@@ -17,6 +18,10 @@ abstract contract BaseRelayRecipient is IRelayRecipient {
 
     function isTrustedForwarder(address forwarder) public override view returns(bool) {
         return forwarder == trustedForwarder;
+    }
+    
+    function setTrustedForwarder(address forwarder) external onlyOwner {
+        trustedForwarder = forwarder;
     }
 
     /**
@@ -27,7 +32,7 @@ abstract contract BaseRelayRecipient is IRelayRecipient {
      */
     function _msgSender() 
         internal 
-        override
+        override(Context, IRelayRecipient)
         virtual 
         view 
         returns (address payable ret) 
@@ -54,7 +59,7 @@ abstract contract BaseRelayRecipient is IRelayRecipient {
      */
     function _msgData() 
         internal 
-        override
+        override(Context, IRelayRecipient)
         virtual 
         view 
         returns (bytes memory ret)

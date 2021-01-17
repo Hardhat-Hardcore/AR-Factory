@@ -87,15 +87,15 @@ contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
         return;
     }
 
-    function versionRecipient() external override virtual view returns (string memory) {
-        return "2.1.0";
-    }
-    
     function _msgSender() internal override(Context, BaseRelayRecipient) view returns (address payable) {
         return BaseRelayRecipient._msgSender();
     }
     
     function _msgData() internal override(Context, BaseRelayRecipient) view returns (bytes memory) {
         return BaseRelayRecipient._msgData();
+    }
+    
+    function versionRecipient() external override virtual view returns (string memory) {
+        return "2.1.0";
     }
 }
