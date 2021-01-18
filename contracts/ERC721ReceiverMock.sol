@@ -34,7 +34,6 @@ contract ERC721ReceiverMock {
    * @param _data      Additional data with no specified format
    * @return           `bytes4(keccak256("onERC721Received(address,address,uint256,uint256,bytes)"))`
    */
-
   function onERC721Received(
       address,
       address _from,
