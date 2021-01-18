@@ -166,7 +166,6 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
             
         _batchTransferFrom(_from, _to, _tokenIds, _values, authorized);
         
-        emit TransferBatch(_msgSender(), _from, _to, _tokenIds, _values);
         if (_to.isContract()) {
             require(_checkBatchReceivable(_msgSender(), _from, _to, _tokenIds, _values, _data),
                     "BatchTransfer rejected");
@@ -427,6 +426,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         }
         _nftBalances[_from] -= numNFT;
         _nftBalances[_to] += numNFT;
+
+        emit TransferBatch(_msgSender(), _from, _to, _tokenIds, _values);
     }
     
     function _mint(
