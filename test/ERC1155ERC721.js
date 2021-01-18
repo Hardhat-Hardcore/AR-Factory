@@ -282,5 +282,45 @@ describe("ERC1155ERC721", () => {
       await expect(tx).to.be.reverted
     })
   })
+
+  describe("transferFrom()", () => {
+    it("should revert if transfer non nft", async () => {
+      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false)
+      const tokenId = 0
+      const tx = tokenFactory.transferFrom(owner.address, receiver.address, tokenId)
+      
+      await expect(tx).to.be.revertedWith("Not owner or it's not nft")
+    })
+  })
+
+  describe("ownerOf()", () => {
+    it("should revert if is not nft", async () => {
+      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false)
+      const tokenId = 0
+      const tx = tokenFactory.ownerOf(tokenId)
+      
+      await expect(tx).to.be.revertedWith("Not nft or not exist")
+    })
+  })
+
+  describe("approve()", () => {
+    it("should revert if is not nft", async () => {
+      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false)
+      const tokenId = 0
+      const tx = tokenFactory.approve(operator.address, tokenId)
+
+      await expect(tx).to.be.revertedWith("Not authorized or not a nft")
+    })
+  })
+
+  describe("getApproved()", () => {
+    it("should revert if is not nft", async () => {
+      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false)
+      const tokenId = 0
+      const tx = tokenFactory.getApproved(tokenId)
+      
+      await expect(tx).to.be.revertedWith("Not a nft")
+    })
+  })
 })
 

@@ -323,7 +323,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         AuthorizedTransfer(_msgSender(), _from, _tokenId)
     {
         require(_to != address(0), "_to must be non-zero");
-        require(_nftOwners[_tokenId] == _from, "Not token owner or not nft");
+        require(_nftOwners[_tokenId] == _from, "Not owner or it's not nft");
                 
         _transferFrom(_from, _to, _tokenId, 1);
         require(_checkReceivable(_msgSender(), _from, _to, _tokenId, 1, "", true, false),
