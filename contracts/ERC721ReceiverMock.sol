@@ -24,6 +24,22 @@ contract ERC721ReceiverMock {
   event TransferReceiver(address _from, address _to, uint256 _fromBalance, uint256 _toBalance, address _tokenOwner);
 
   /**
+   * @notice Indicates whether a contract implements the `ERC721TokenReceiver` functions and so can accept ERC721 token types.
+   * @param  interfaceID The ERC-165 interface ID that is queried for support.s
+   * @dev This function MUST return true if it implements the ERC721TokenReceiver interface and ERC-165 interface.
+   *      This function MUST NOT consume more than 5,000 gas.
+   * @return Wheter ERC-165 or ERC721TokenReceiver interfaces are supported.
+   */
+  function supportsInterface(bytes4 interfaceID)
+      external
+      pure
+      returns (bool)
+  {
+      return  interfaceID == 0x01ffc9a7 || // ERC-165 support (i.e. `bytes4(keccak256('supportsInterface(bytes4)'))`).
+          interfaceID == IS_ERC721_RECEIVER;         // ERC-721 `ERC721TokenReceiver` support
+  }
+
+  /**
    * @notice Handle the receipt of a single ERC721 token type.
    * @dev An ERC721-compliant smart contract MUST call this function on the token recipient contract, at the end of a `safeTransferFrom` after the balance has been updated.
    * This function MAY throw to revert and reject the transfer.
@@ -64,22 +80,6 @@ contract ERC721ReceiverMock {
       } else {
           return ERC721_RECEIVED_SIG;
       }
-  }
-
-  /**
-   * @notice Indicates whether a contract implements the `ERC721TokenReceiver` functions and so can accept ERC721 token types.
-   * @param  interfaceID The ERC-165 interface ID that is queried for support.s
-   * @dev This function MUST return true if it implements the ERC721TokenReceiver interface and ERC-165 interface.
-   *      This function MUST NOT consume more than 5,000 gas.
-   * @return Wheter ERC-165 or ERC721TokenReceiver interfaces are supported.
-   */
-  function supportsInterface(bytes4 interfaceID)
-      external
-      pure
-      returns (bool)
-  {
-      return  interfaceID == 0x01ffc9a7 || // ERC-165 support (i.e. `bytes4(keccak256('supportsInterface(bytes4)'))`).
-          interfaceID == IS_ERC721_RECEIVER;         // ERC-721 `ERC721TokenReceiver` support
   }
 
   function setShouldReject(bool _value)

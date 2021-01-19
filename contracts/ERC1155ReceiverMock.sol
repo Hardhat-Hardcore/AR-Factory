@@ -25,6 +25,18 @@ contract ERC1155ReceiverMock {
   event TransferBatchReceiver(address _from, address _to, uint256[] _fromBalances, uint256[] _toBalances);
 
   /**
+   * @notice Indicates whether a contract implements the `ERC1155TokenReceiver` functions and so can accept ERC1155 token types.
+   * @param  interfaceID The ERC-165 interface ID that is queried for support.s
+   * @dev This function MUST return true if it implements the ERC1155TokenReceiver interface and ERC-165 interface.
+   *      This function MUST NOT consume more than 5,000 gas.
+   * @return Wheter ERC-165 or ERC1155TokenReceiver interfaces are supported.
+   */
+  function supportsInterface(bytes4 interfaceID) external pure returns (bool) {
+    return  interfaceID == 0x01ffc9a7 || // ERC-165 support (i.e. `bytes4(keccak256('supportsInterface(bytes4)'))`).
+      interfaceID == 0x4e2312e0;         // ERC-1155 `ERC1155TokenReceiver` support
+  }
+
+  /**
    * @notice Handle the receipt of a single ERC1155 token type.
    * @dev An ERC1155-compliant smart contract MUST call this function on the token recipient contract, at the end of a `safeTransferFrom` after the balance has been updated.
    * This function MAY throw to revert and reject the transfer.
@@ -99,18 +111,6 @@ contract ERC1155ReceiverMock {
     } else {
       return ERC1155_BATCH_RECEIVED_SIG;
     }
-  }
-
-  /**
-   * @notice Indicates whether a contract implements the `ERC1155TokenReceiver` functions and so can accept ERC1155 token types.
-   * @param  interfaceID The ERC-165 interface ID that is queried for support.s
-   * @dev This function MUST return true if it implements the ERC1155TokenReceiver interface and ERC-165 interface.
-   *      This function MUST NOT consume more than 5,000 gas.
-   * @return Wheter ERC-165 or ERC1155TokenReceiver interfaces are supported.
-   */
-  function supportsInterface(bytes4 interfaceID) external pure returns (bool) {
-    return  interfaceID == 0x01ffc9a7 || // ERC-165 support (i.e. `bytes4(keccak256('supportsInterface(bytes4)'))`).
-      interfaceID == 0x4e2312e0;         // ERC-1155 `ERC1155TokenReceiver` support
   }
 
   function setShouldReject(bool _value) public {

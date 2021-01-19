@@ -28,9 +28,9 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     mapping(uint256 => address) internal _settingOperators;
 
     mapping(uint256 => uint256) internal _timeInterval;
-    mapping(uint256 => mapping(address => uint256)) _lastUpdateAt;
+    mapping(uint256 => mapping(address => uint256)) internal _lastUpdateAt;
     mapping(uint256 => mapping(address => uint256)) internal _holdingTime;
-    mapping(uint256 => mapping(address => uint256)) _recordingLastUpdateAt;
+    mapping(uint256 => mapping(address => uint256)) internal _recordingLastUpdateAt;
     mapping(uint256 => mapping(address => uint256)) internal _recordingHoldingTime;
     
     // bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))
