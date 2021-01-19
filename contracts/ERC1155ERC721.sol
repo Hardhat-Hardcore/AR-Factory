@@ -422,7 +422,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         public 
     {
         for (uint256 i = 0; i < _tokenIds.length; i++) {
-            updateHoldingTime(_owner, _tokenIds[i]);
+            if (_tokenIds[i] & HAS_NEED_TIME > 0)
+                updateHoldingTime(_owner, _tokenIds[i]);
         }
     }
     
