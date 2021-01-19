@@ -36,7 +36,7 @@ interface ITokenFactory {
     
     function setTimeInterval(
         uint256 _tokenId,
-        uint256 _startTime,
-        uint256 _endTime
+        uint128 _startTime,
+        uint128 _endTime
     ) external;
 }

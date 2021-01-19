@@ -6,6 +6,7 @@ import "./ERC1155ERC721.sol";
 import "./GSN/BaseRelayRecipient.sol";
 
 contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
+
     function createToken(
         uint256 _supply,
         address _receiver,
@@ -74,16 +75,13 @@ contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
     
     function setTimeInterval(
         uint256 _tokenId,
-        uint256 _startTime,
-        uint256 _endTime
+        uint128 _startTime,
+        uint128 _endTime
     )
         external
         override
     {
-        // TODO
-        _tokenId;
-        _startTime;
-        _endTime;
+        _setTime(_tokenId, _startTime, _endTime);
         return;
     }
 
