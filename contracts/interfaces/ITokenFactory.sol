@@ -39,4 +39,14 @@ interface ITokenFactory {
         uint128 _startTime,
         uint128 _endTime
     ) external;
+
+    function holdingTimeOf(
+        uint256 _tokenId,
+        address _owner
+    ) external view returns(uint256);
+
+    function recordingHoldingTimeOf(
+        uint256 _tokenId,
+        address _owner
+    ) external view returns(uint256);
 }

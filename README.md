@@ -2,7 +2,7 @@
 
 ### Business Logic
 1. Inherit `IWhitelist.sol`, 提供查詢白單節接口
-2. 參考官方 AccessControl.sol 使用建議
+2. 參考官方 `AccessControl.sol` 使用建議
 3. 生成數位資產與設定參考 `ITokenFactory.sol`
 4. GSN 參考 OpenGSN
 5. Upgrade Proxy 參考 Hardhat upgrade
@@ -16,4 +16,4 @@
 5. Inherit `Context.sol`
 
 ### To show contract size
-https://hardhat.org/plugins/hardhat-contract-sizer.html
+`npx hardhat size-contracts`

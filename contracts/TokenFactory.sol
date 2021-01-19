@@ -81,8 +81,39 @@ contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
         external
         override
     {
+        require(_msgSender() == _settingOperators[_tokenId], "Not authorized");
         _setTime(_tokenId, _startTime, _endTime);
         return;
+    }
+
+    function holdingTimeOf(
+        uint256 _tokenId,
+        address _owner
+    )
+        external
+        view
+        override
+        returns(uint256)
+    {
+        require(_tokenId & HAS_NEED_TIME > 0, "Doesn't support this token");
+        
+        return _holdingTime[_tokenId][_owner] + _calcHoldingTime(_owner, _tokenId);
+    }
+
+    function recordingHoldingTimeOf(
+        uint256 _tokenId,
+        address _owner
+    )
+        external
+        view
+        override
+        returns(uint256)
+    {
+        return _recordingHoldingTime[_tokenId][_owner] + _calcRecordingHoldingTime(_owner, _tokenId);
+    }
+    
+    function versionRecipient() external override virtual view returns (string memory) {
+        return "2.1.0";
     }
 
     function _msgSender() internal override(Context, BaseRelayRecipient) view returns (address payable) {
@@ -91,9 +122,5 @@ contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
     
     function _msgData() internal override(Context, BaseRelayRecipient) view returns (bytes memory) {
         return BaseRelayRecipient._msgData();
-    }
-    
-    function versionRecipient() external override virtual view returns (string memory) {
-        return "2.1.0";
     }
 }

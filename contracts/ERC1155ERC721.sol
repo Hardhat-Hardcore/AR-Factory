@@ -44,7 +44,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     bytes4 constant private INTERFACE_SIGNATURE_ERC721 = 0x80ac58cd;
     
     uint256 private constant IS_NFT = 1 << 255;
-    uint256 private constant HAS_NEED_TIME = 1 << 254;
+    uint256 internal constant HAS_NEED_TIME = 1 << 254;
     uint256 private idNonce;
     
     /**
@@ -131,8 +131,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         }
 
         if (_tokenId & HAS_NEED_TIME > 0) {
-            calcHoldingTime(_from, _tokenId);
-            calcHoldingTime(_to, _tokenId);
+            updateHoldingTime(_from, _tokenId);
+            updateHoldingTime(_to, _tokenId);
         }
         _transferFrom(_from, _to, _tokenId, _value);
 
@@ -172,8 +172,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         require(_tokenIds.length == _values.length, "Array length must match.");
         bool authorized = _from == _msgSender() || _operatorApproval[_from][_msgSender()];
             
-        batchCalcHoldingTime(_from, _tokenIds);
-        batchCalcHoldingTime(_to, _tokenIds);
+        batchUpdateHoldingTime(_from, _tokenIds);
+        batchUpdateHoldingTime(_to, _tokenIds);
         _batchTransferFrom(_from, _to, _tokenIds, _values, authorized);
         
         if (_to.isContract()) {
@@ -316,8 +316,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         require(_nftOwners[_tokenId] == _from, "Not owner or it's not nft");
         
         if (_tokenId & HAS_NEED_TIME > 0) {
-            calcHoldingTime(_from, _tokenId);
-            calcHoldingTime(_to, _tokenId);
+            updateHoldingTime(_from, _tokenId);
+            updateHoldingTime(_to, _tokenId);
         }
         _transferFrom(_from, _to, _tokenId, 1);
         
@@ -340,8 +340,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         require(_nftOwners[_tokenId] == _from, "Not owner or it's not nft");
                 
         if (_tokenId & HAS_NEED_TIME > 0) {
-            calcHoldingTime(_from, _tokenId);
-            calcHoldingTime(_to, _tokenId);
+            updateHoldingTime(_from, _tokenId);
+            updateHoldingTime(_to, _tokenId);
         }
         _transferFrom(_from, _to, _tokenId, 1);
         require(_checkReceivable(_msgSender(), _from, _to, _tokenId, 1, "", true, false),
@@ -385,8 +385,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         require(_msgSender() == _recordingOperators[_tokenId], "Not authorized");
         require(_to != address(0), "_to must be non-zero");
 
-        calcRecordingHoldingTime(_from, _tokenId);
-        calcRecordingHoldingTime(_to, _tokenId);
+        updateRecordingHoldingTime(_from, _tokenId);
+        updateRecordingHoldingTime(_to, _tokenId);
         _recordingTransferFrom(_from, _to, _tokenId, _value);
     }
     
@@ -394,7 +394,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         address _owner,
         uint256 _tokenId
     ) 
-        external
+        public 
         view
         returns(uint256)
     {
@@ -403,7 +403,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     
     /////////////////////////////////////////// Holding Time //////////////////////////////////////////////
 
-    function calcHoldingTime(
+    function updateHoldingTime(
         address _owner,
         uint256 _tokenId
     )
@@ -411,77 +411,88 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     {
         require(_tokenId & HAS_NEED_TIME > 0, "Doesn't support this token");
 
-        if (_lastUpdateAt[_tokenId][_owner] == 0) {
-            _lastUpdateAt[_tokenId][_owner] = block.timestamp;
-            return;
-        }
-
-        uint256 lastTime = _lastUpdateAt[_tokenId][_owner];
-        uint256 startTime = uint256(uint128(_timeInterval[_tokenId]));
-        uint256 endTime = uint256(_timeInterval[_tokenId] >> 128);
-        uint256 balance = balanceOf(_owner, _tokenId);
-
-        if (balance == 0)
-            return;
-        if (startTime == 0 || startTime >= block.timestamp)
-            return;
-        if (lastTime >= endTime)
-            return;
-        if (lastTime < startTime)
-            lastTime = startTime;
-
+        _holdingTime[_tokenId][_owner] += _calcHoldingTime(_owner, _tokenId);
         _lastUpdateAt[_tokenId][_owner] = block.timestamp;
-        if (block.timestamp > endTime)
-            _holdingTime[_tokenId][_owner] += balance * (endTime - lastTime);
-        else
-            _holdingTime[_tokenId][_owner] += balance * (block.timestamp - lastTime);
     }
 
-    function batchCalcHoldingTime(
+    function batchUpdateHoldingTime(
         address _owner,
         uint256[] memory _tokenIds
     )
         public 
     {
         for (uint256 i = 0; i < _tokenIds.length; i++) {
-            if (_tokenIds[i] & HAS_NEED_TIME > 0)
-                calcHoldingTime(_owner, _tokenIds[i]);
+            updateHoldingTime(_owner, _tokenIds[i]);
         }
     }
     
-    function calcRecordingHoldingTime(
+    function updateRecordingHoldingTime(
         address _owner,
         uint256 _tokenId
     )
        public 
     {
-        if (_recordingLastUpdateAt[_tokenId][_owner] == 0) {
-            _recordingLastUpdateAt[_tokenId][_owner] = block.timestamp;
-            return;
-        }
+        _recordingHoldingTime[_tokenId][_owner] += _calcRecordingHoldingTime(_owner, _tokenId);
+        _recordingLastUpdateAt[_tokenId][_owner] = block.timestamp;
+    }
 
+    /////////////////////////////////////////// Internal //////////////////////////////////////////////
+
+    function _calcHoldingTime(
+        address _owner,
+        uint256 _tokenId
+    )
+        internal
+        view
+        returns(uint256)
+    {
+        uint256 lastTime = _lastUpdateAt[_tokenId][_owner];
+        uint256 startTime = uint256(uint128(_timeInterval[_tokenId]));
+        uint256 endTime = uint256(_timeInterval[_tokenId] >> 128);
+        uint256 balance = balanceOf(_owner, _tokenId);
+
+        if (balance == 0)
+            return 0;
+        if (startTime == 0 || startTime >= block.timestamp)
+            return 0;
+        if (lastTime >= endTime)
+            return 0;
+        if (lastTime < startTime)
+            lastTime = startTime;
+
+        if (block.timestamp > endTime)
+            return balance * (endTime - lastTime);
+        else
+            return balance * (block.timestamp - lastTime);
+    }
+
+    function _calcRecordingHoldingTime(
+        address _owner,
+        uint256 _tokenId
+    )
+        internal
+        view
+        returns(uint256)
+    {
         uint256 lastTime = _recordingLastUpdateAt[_tokenId][_owner];
         uint256 startTime = uint256(uint128(_timeInterval[_tokenId]));
         uint256 endTime = uint256(_timeInterval[_tokenId] >> 128);
-        uint256 balance = _recordingBalances[_tokenId][_owner];
+        uint256 balance = recordingBalanceOf(_owner, _tokenId);
 
         if (balance == 0)
-            return;
+            return 0;
         if (startTime == 0 || startTime >= block.timestamp)
-            return;
+            return 0;
         if (lastTime >= endTime)
-            return;
+            return 0;
         if (lastTime < startTime)
             lastTime = startTime;
-        
-        _recordingLastUpdateAt[_tokenId][_owner] = block.timestamp;
-        if (block.timestamp > endTime)
-            _recordingHoldingTime[_tokenId][_owner] += balance * (endTime - lastTime);
-        else
-            _recordingHoldingTime[_tokenId][_owner] += balance * (block.timestamp - lastTime);
 
+        if (block.timestamp > endTime)
+            return balance * (endTime - lastTime);
+        else
+            return balance * (block.timestamp - lastTime);
     }
-    /////////////////////////////////////////// Internal //////////////////////////////////////////////
 
     function _setTime(
         uint256 _tokenId,
