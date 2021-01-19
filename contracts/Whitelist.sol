@@ -9,9 +9,7 @@ import "./GSN/BasePaymaster.sol";
 contract Whitelist is IWhitelist, AccessControl, BasePaymaster {
     
     bytes32 public constant WHITELIST_ROLE = keccak256("WHITELIST_ROLE");
-    
-    mapping(address => bool) public whitelist;
-    
+        
     constructor(address _trustAddress) {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(WHITELIST_ROLE, _trustAddress);
@@ -20,10 +18,6 @@ contract Whitelist is IWhitelist, AccessControl, BasePaymaster {
     modifier onlyAdmin() {
         require(isAdmin(_msgSender()), "Restricted to admins.");
         _;
-    }
-    
-    function addToWhitelist(address _address) external onlyAdmin {
-        whitelist[_address] = true;
     }
     
     function preRelayedCall(
@@ -41,7 +35,7 @@ contract Whitelist is IWhitelist, AccessControl, BasePaymaster {
             bool rejectOnRecipientRevert
         )
     {
-        require(whitelist[relayRequest.request.from], "Address is not in whitelist");
+        require(inWhitelist(relayRequest.request.from), "Address is not in whitelist");
         _verifyForwarder(relayRequest);
         _verifySignature(relayRequest, signature);
         // _verifySigner or not ?
