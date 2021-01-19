@@ -14,3 +14,6 @@
 3. GSN 參考 OpenGSN
 4. CloneFactory 參考 erc1167
 5. Inherit `Context.sol`
+
+### To show contract size
+https://hardhat.org/plugins/hardhat-contract-sizer.html

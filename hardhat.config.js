@@ -1,4 +1,11 @@
 require("@nomiclabs/hardhat-waffle");
+require('hardhat-contract-sizer');
+
+contractSizer = {
+  alphaSort: true,
+  runOnCompile: true,
+  disambiguatePaths: false,
+};
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -20,5 +27,11 @@ module.exports = {
 	},
 	solidity: {
 		version: "0.8.0",
-  	}
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 1000
+      }
+    }
+  }
 };
