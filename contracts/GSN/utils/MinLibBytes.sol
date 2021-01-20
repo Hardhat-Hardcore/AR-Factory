@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+
 // minimal bytes manipulation required by GSN
 // a minimal subset from 0x/LibBytes
 /* solhint-disable no-inline-assembly */

@@ -1,11 +1,7 @@
-require("@nomiclabs/hardhat-waffle");
-require('hardhat-contract-sizer');
-
-contractSizer = {
-  alphaSort: true,
-  runOnCompile: true,
-  disambiguatePaths: false,
-};
+require("@nomiclabs/hardhat-waffle")
+require('hardhat-contract-sizer')
+require('hardhat-spdx-license-identifier')
+require("solidity-coverage")
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -33,5 +29,14 @@ module.exports = {
         runs: 1000
       }
     }
+  },
+  spdxLicenseIdentifier: {
+    overwrite: true,
+    runOnCompile: false,
+  },
+  contractSizer: {
+    alphaSort: false,
+    runOnCompile: true,
+    disambiguatePaths: false,
   }
-};
+}
