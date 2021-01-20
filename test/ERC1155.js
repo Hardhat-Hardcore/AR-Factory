@@ -14,13 +14,14 @@ describe("ERC1155", () => {
   const safeTransferFrom = "safeTransferFrom(address,address,uint256,uint256,bytes)"
 
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+  const TRUST_FORWARDER = "0x0000000000000000000000000000000000000001"
   const MAXVAL = BigNumber.from(2).pow(256).sub(1)
 
   let tokenFactory
 
   beforeEach(async () => {
     const TokenFactory = await ethers.getContractFactory("TokenFactory")
-    tokenFactory = await TokenFactory.deploy()
+    tokenFactory = await TokenFactory.deploy(TRUST_FORWARDER)
     await tokenFactory.deployed()
   })
 
@@ -48,7 +49,7 @@ describe("ERC1155", () => {
       const balance3 = await tokenFactory[balanceOf](user3.address, tokenId1)
       expect(balance3).to.be.eql(BigNumber.from(0))
     })
-    
+
     it("balanceOfBatch() should return balances for quries addresses", async () => {
       const [user1, user2, user3] = await ethers.getSigners()
       const tx1 = await tokenFactory[createToken](100, user1.address, user3.address, false)
@@ -103,7 +104,7 @@ describe("ERC1155", () => {
       await receiverContract.deployed()
       await tokenFactory[createToken](100, owner.address, operator.address, false)
     })
-    
+
     it("should be able to transfer if balance is sufficient", async () => {
       const tx = tokenFactory[safeTransferFrom](owner.address, receiver.address, 0, 1, [])
       await expect(tx).to.be.fulfilled
@@ -131,7 +132,7 @@ describe("ERC1155", () => {
     })
 
     it("should revert if transfer leads to overflow or underflow", async () => {
-      await tokenFactory[createToken](MAXVAL, receiver.address, operator.address, false)      
+      await tokenFactory[createToken](MAXVAL, receiver.address, operator.address, false)
       const tx = tokenFactory[safeTransferFrom](owner.address, receiver.address, 1, 1, [])
       await expect(tx).to.be.reverted
     })
@@ -140,7 +141,7 @@ describe("ERC1155", () => {
       const tx = tokenFactory[safeTransferFrom](owner.address, tokenFactory.address, 0, 1, [])
       await expect(tx).to.be.reverted
     })
-    
+
     it("should revert if receiver contract return invalid response", async () => {
       await receiverContract.setShouldReject(true)
       const tx = tokenFactory[safeTransferFrom](owner.address, receiverContract.address, 0, 1, [])
@@ -164,14 +165,14 @@ describe("ERC1155", () => {
       const filter = receiverContract.filters.TransferSingleReceiver()
       await tokenFactory[safeTransferFrom](owner.address, receiverContract.address, 0, 1, [])
       const events = await receiverContract.queryFilter(filter)
-      
+
       expect(events.length).to.be.eql(1)
       expect(events[0].args._from).to.be.eql(owner.address)
       expect(events[0].args._to).to.be.eql(receiverContract.address)
       expect(events[0].args._fromBalance).to.be.eql(ownerBalance.sub(1))
       expect(events[0].args._toBalance).to.be.eql(receiverBalance.add(1))
     })
-    
+
     it("should update balance correctly", async () => {
       await tokenFactory[safeTransferFrom](owner.address, receiver.address, 0, 1, [])
       const ownerBalance = await tokenFactory[balanceOf](owner.address, 0)
@@ -185,7 +186,7 @@ describe("ERC1155", () => {
       const filter = tokenFactory.filters.TransferSingle()
       const tx = await tokenFactory[safeTransferFrom](owner.address, receiver.address, 0, 1, [])
       const events = await tokenFactory.queryFilter(filter, tx.blockNumber)
-      
+
       expect(events.length).to.be.eql(1)
       expect(events[0].args._operator).to.be.eql(owner.address)
       expect(events[0].args._from).to.be.eql(owner.address)
@@ -199,7 +200,7 @@ describe("ERC1155", () => {
       const filter = tokenFactory.filters.TransferSingle()
       const tx = await tokenFactory.connect(operator)[safeTransferFrom](owner.address, receiver.address, 0, 1, [])
       const events = await tokenFactory.queryFilter(filter, tx.blockNumber)
-      
+
       expect(events.length).to.be.eql(1)
       expect(events[0].args._operator).to.be.eql(operator.address)
       expect(events[0].args._from).to.be.eql(owner.address)
@@ -316,7 +317,7 @@ describe("ERC1155", () => {
       const tx = await tokenFactory.safeBatchTransferFrom(owner.address, receiver.address, tokenIds, values, [])
       const receipt = await tx.wait(1)
       expect(receipt.events.length).to.be.eql(1)
-      
+
       const ev = receipt.events[0]
       expect(ev.event).to.be.eql("TransferBatch")
       expect(ev.args._operator).to.be.eql(owner.address)
@@ -335,7 +336,7 @@ describe("ERC1155", () => {
       const tx = await tokenFactory.connect(operator).safeBatchTransferFrom(owner.address, receiver.address, tokenIds, values, [])
       const receipt = await tx.wait(1)
       expect(receipt.events.length).to.be.eql(1)
-      
+
       const ev = receipt.events[0]
       expect(ev.event).to.be.eql("TransferBatch")
       expect(ev.args._operator).to.be.eql(operator.address)
@@ -350,7 +351,7 @@ describe("ERC1155", () => {
     it("should emit ApprovalForAll event", async () => {
       const approveTx = await tokenFactory.setApprovalForAll(operator.address, true)
       const approveReceipt = await approveTx.wait(1)
-      
+
       expect(approveReceipt.events.length).to.be.eql(1)
       expect(approveReceipt.events[0].event).to.be.eql("ApprovalForAll")
       expect(approveReceipt.events[0].args._owner).to.be.eql(owner.address)
@@ -359,7 +360,7 @@ describe("ERC1155", () => {
 
       const disapproveTx = await tokenFactory.setApprovalForAll(operator.address, false)
       const disapproveReceipt = await disapproveTx.wait(1)
-      
+
       expect(disapproveReceipt.events.length).to.be.eql(1)
       expect(disapproveReceipt.events[0].event).to.be.eql("ApprovalForAll")
       expect(disapproveReceipt.events[0].args._owner).to.be.eql(owner.address)

@@ -12,7 +12,8 @@ describe("ERC721", () => {
   const balanceOf = "balanceOf(address)"
   const safeTransferFrom = "safeTransferFrom(address,address,uint256,bytes)"
 
-  const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000" 
+  const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
+  const TRUST_FORWARDER = "0x0000000000000000000000000000000000000001"
   const MAX_VAL = BigNumber.from(2).pow(256).sub(1)
   const IS_NFT = BigNumber.from(2).pow(255)
 
@@ -22,7 +23,7 @@ describe("ERC721", () => {
   beforeEach(async () => {
     [owner, receiver, operator] = await ethers.getSigners()
     const TokenFactory = await ethers.getContractFactory("TokenFactory")
-    tokenFactory = await TokenFactory.deploy()
+    tokenFactory = await TokenFactory.deploy(TRUST_FORWARDER)
     await tokenFactory.deployed()
   })
 
@@ -31,7 +32,7 @@ describe("ERC721", () => {
       await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
       await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
       await tokenFactory[createToken](1, receiver.address, ZERO_ADDRESS, false)
-      
+
       const ownerBalance = await tokenFactory[balanceOf](owner.address)
       expect(ownerBalance).to.be.eql(BigNumber.from(2))
       const receiverBalance = await tokenFactory[balanceOf](receiver.address)
@@ -181,7 +182,7 @@ describe("ERC721", () => {
       const tokenId = IS_NFT
       const filter = tokenFactory.filters.Transfer()
       const tx = await tokenFactory[safeTransferFrom](owner.address, receiver.address, tokenId, [])
-      const events = await tokenFactory.queryFilter(filter, tx.blockNumber) 
+      const events = await tokenFactory.queryFilter(filter, tx.blockNumber)
 
       expect(events.length).to.be.eql(1)
       expect(events[0].args._from).to.be.eql(owner.address)
@@ -215,11 +216,11 @@ describe("ERC721", () => {
       receiverContract = await ReceiverContract.deploy()
       await receiverContract.deployed()
     })
-    
+
     it("should not call receiver contract's onReceived function", async () => {
       const tokenId = IS_NFT
       const tx = tokenFactory.transferFrom(owner.address, receiverContract.address, IS_NFT)
-      
+
       await expect(tx).not.to.emit(receiverContract, "TransferReceiver")
     })
   })
@@ -234,7 +235,7 @@ describe("ERC721", () => {
       const defaultOperator = await tokenFactory.getApproved(tokenId)
       expect(defaultOperator).to.be.eql(ZERO_ADDRESS)
 
-      await tokenFactory.approve(operator.address, tokenId)       
+      await tokenFactory.approve(operator.address, tokenId)
       const approvedOperator = await tokenFactory.getApproved(tokenId)
       expect(approvedOperator).to.be.eql(operator.address)
     })
@@ -246,7 +247,7 @@ describe("ERC721", () => {
 
       await tokenFactory.setApprovalForAll(receiver.address, true)
       const authorizedTx = tokenFactory.connect(receiver).approve(operator.address, tokenId)
-      await expect(authorizedTx).to.be.fulfilled 
+      await expect(authorizedTx).to.be.fulfilled
     })
 
     it("should revert it token is not nft or not exist", async () => {
