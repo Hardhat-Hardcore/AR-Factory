@@ -15,13 +15,13 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     using Address for address;
     
     // Fungible token
-    mapping(uint256 => mapping(address => uint256)) internal _ftBalances;
+    mapping(address => mapping(uint256 => uint256)) internal _ftBalances;
     // Non fungible tokens
     mapping(address => uint256) internal _nftBalances;
     mapping(uint256 => address) internal _nftOwners;
     mapping(uint256 => address) internal _nftOperators;
     // Recording token
-    mapping(uint256 => mapping(address => uint256)) internal _recordingBalances;
+    mapping(address => mapping(uint256 => uint256)) internal _recordingBalances;
     mapping(uint256 => address) internal _recordingOperators;
     // Approve all
     mapping(address => mapping(address => bool)) internal _operatorApproval;
@@ -29,10 +29,10 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     mapping(uint256 => address) internal _settingOperators;
 
     mapping(uint256 => uint256) internal _timeInterval;
-    mapping(uint256 => mapping(address => uint256)) internal _lastUpdateAt;
-    mapping(uint256 => mapping(address => uint256)) internal _holdingTime;
-    mapping(uint256 => mapping(address => uint256)) internal _recordingLastUpdateAt;
-    mapping(uint256 => mapping(address => uint256)) internal _recordingHoldingTime;
+    mapping(address => mapping(uint256 => uint256)) internal _lastUpdateAt;
+    mapping(address => mapping(uint256 => uint256)) internal _holdingTime;
+    mapping(address => mapping(uint256  => uint256)) internal _recordingLastUpdateAt;
+    mapping(address => mapping(uint256  => uint256)) internal _recordingHoldingTime;
     
     // bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))
     bytes4 constant private ERC1155_ACCEPTED = 0xf23a6e61;
@@ -205,7 +205,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
             else
                 return 0;
         }
-        return _ftBalances[_tokenId][_owner];
+        return _ftBalances[_owner][_tokenId];
     }
     
     /**
@@ -399,7 +399,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         view
         returns(uint256)
     {
-        return _recordingBalances[_tokenId][_owner];
+        return _recordingBalances[_owner][_tokenId];
     }
     
     /////////////////////////////////////////// Holding Time //////////////////////////////////////////////
@@ -412,8 +412,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     {
         require(_tokenId & HAS_NEED_TIME > 0, "Doesn't support this token");
 
-        _holdingTime[_tokenId][_owner] += _calcHoldingTime(_owner, _tokenId);
-        _lastUpdateAt[_tokenId][_owner] = block.timestamp;
+        _holdingTime[_owner][_tokenId] += _calcHoldingTime(_owner, _tokenId);
+        _lastUpdateAt[_owner][_tokenId] = block.timestamp;
     }
 
     function batchUpdateHoldingTime(
@@ -434,8 +434,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     )
        public 
     {
-        _recordingHoldingTime[_tokenId][_owner] += _calcRecordingHoldingTime(_owner, _tokenId);
-        _recordingLastUpdateAt[_tokenId][_owner] = block.timestamp;
+        _recordingHoldingTime[_owner][_tokenId] += _calcRecordingHoldingTime(_owner, _tokenId);
+        _recordingLastUpdateAt[_owner][_tokenId] = block.timestamp;
     }
 
     /////////////////////////////////////////// Internal //////////////////////////////////////////////
@@ -448,7 +448,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         view
         returns(uint256)
     {
-        uint256 lastTime = _lastUpdateAt[_tokenId][_owner];
+        uint256 lastTime = _lastUpdateAt[_owner][_tokenId];
         uint256 startTime = uint256(uint128(_timeInterval[_tokenId]));
         uint256 endTime = uint256(_timeInterval[_tokenId] >> 128);
         uint256 balance = balanceOf(_owner, _tokenId);
@@ -476,7 +476,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         view
         returns(uint256)
     {
-        uint256 lastTime = _recordingLastUpdateAt[_tokenId][_owner];
+        uint256 lastTime = _recordingLastUpdateAt[_owner][_tokenId];
         uint256 startTime = uint256(uint128(_timeInterval[_tokenId]));
         uint256 endTime = uint256(_timeInterval[_tokenId] >> 128);
         uint256 balance = recordingBalanceOf(_owner, _tokenId);
@@ -518,8 +518,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     )
         internal
     {
-        _recordingBalances[_tokenId][_from] -= _value;
-        _recordingBalances[_tokenId][_to] += _value;
+        _recordingBalances[_from][_tokenId] -= _value;
+        _recordingBalances[_to][_tokenId] += _value;
         emit RecordingTransferSingle(_msgSender(), _from, _to, _tokenId, _value);
     }
     
@@ -546,8 +546,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
                     emit Transfer(_from, _to, _tokenIds[i]);
                 } else {
                     require(authorized, "Not authorized");
-                    _ftBalances[_tokenIds[i]][_from] -= _values[i];
-                    _ftBalances[_tokenIds[i]][_to] += _values[i];
+                    _ftBalances[_from][_tokenIds[i]] -= _values[i];
+                    _ftBalances[_to][_tokenIds[i]] += _values[i];
                 }
             }
         }
@@ -577,7 +577,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
             _nftOwners[tokenId] = _receiver;
             emit Transfer(address(0), _receiver, tokenId);
         } else {
-            _ftBalances[tokenId][_receiver] = _supply;
+            _ftBalances[_receiver][tokenId] = _supply;
         }
 
         _settingOperators[tokenId] = _settingOperator;
@@ -598,7 +598,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     )
         internal
     {
-        _recordingBalances[_tokenId][_recordingOperator] += _supply;
+        _recordingBalances[_recordingOperator][_tokenId] += _supply;
         _recordingOperators[_tokenId] = _recordingOperator;
         emit RecordingTransferSingle(_msgSender(), address(0), _recordingOperator, _tokenId, _supply);
     }
@@ -705,8 +705,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
             }
         } else {
             if (_value > 0) {
-                _ftBalances[_tokenId][_from] -= _value;
-                _ftBalances[_tokenId][_to] += _value;
+                _ftBalances[_from][_tokenId] -= _value;
+                _ftBalances[_to][_tokenId] += _value;
             }
         }
         

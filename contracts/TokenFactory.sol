@@ -99,7 +99,7 @@ contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
     {
         require(_tokenId & HAS_NEED_TIME > 0, "Doesn't support this token");
         
-        return _holdingTime[_tokenId][_owner] + _calcHoldingTime(_owner, _tokenId);
+        return _holdingTime[_owner][_tokenId] + _calcHoldingTime(_owner, _tokenId);
     }
 
     function recordingHoldingTimeOf(
@@ -111,7 +111,7 @@ contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
         override
         returns (uint256)
     {
-        return _recordingHoldingTime[_tokenId][_owner] + _calcRecordingHoldingTime(_owner, _tokenId);
+        return _recordingHoldingTime[_owner][_tokenId] + _calcRecordingHoldingTime(_owner, _tokenId);
     }
     
     function versionRecipient()
