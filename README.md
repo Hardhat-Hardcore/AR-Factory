@@ -17,3 +17,6 @@
 
 ### To show contract size
 `npx hardhat size-contracts`
+
+### To see test coverage
+`npx hardhat coverage`
