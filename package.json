@@ -28,11 +28,10 @@
     "hardhat-spdx-license-identifier": "^2.0.3",
     "lodash": "^4.17.20",
     "solhint": "^3.3.2",
-    "solidity-coverage": "^0.7.14"
-  },
-  "dependencies": {
+    "solidity-coverage": "^0.7.14",
     "@opengsn/gsn": "^2.1.0",
     "web3-provider-engine": "^16.0.1",
     "chai-as-promised": "^7.1.1"
-  }
+  },
+  "dependencies": {}
 }
