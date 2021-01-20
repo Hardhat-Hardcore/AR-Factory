@@ -8,6 +8,10 @@ import "./ERC1155ERC721.sol";
 import "./GSN/BaseRelayRecipient.sol";
 
 contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
+    
+    constructor (address _trustedForwarder) {
+        trustedForwarder = _trustedForwarder;
+    }
 
     function createToken(
         uint256 _supply,

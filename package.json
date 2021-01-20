@@ -20,6 +20,7 @@
     "@nomiclabs/hardhat-ethers": "^2.0.1",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@openzeppelin/hardhat-upgrades": "^1.4.3",
+    "@opengsn/gsn": "^2.1.0",
     "chai": "^4.2.0",
     "ethereum-waffle": "^3.2.1",
     "ethers": "^5.0.25",
@@ -29,9 +30,9 @@
     "lodash": "^4.17.20",
     "solhint": "^3.3.2",
     "solidity-coverage": "^0.7.14",
-    "@opengsn/gsn": "^2.1.0",
     "chai-as-promised": "^7.1.1",
-    "scrypt": "github:barrysteyn/node-scrypt#fb60a8d3c158fe115a624b5ffa7480f3a24b03fb"
+    "scrypt": "github:barrysteyn/node-scrypt#fb60a8d3c158fe115a624b5ffa7480f3a24b03fb",
+    "web3-provider-engine": "^16.0.1"
   },
   "dependencies": {}
 }
