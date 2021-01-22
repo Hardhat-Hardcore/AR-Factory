@@ -11,7 +11,8 @@ contract Whitelist is IWhitelist, AccessControl, BasePaymaster {
     bytes32 public constant WHITELIST_ROLE = keccak256("WHITELIST_ROLE");
         
     constructor(address _trustAddress) {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _setupRole(WHITELIST_ROLE, _msgSender());
         _setupRole(WHITELIST_ROLE, _trustAddress);
     }
 
@@ -104,6 +105,16 @@ contract Whitelist is IWhitelist, AccessControl, BasePaymaster {
         return true;
     }
     
+    function addAdmin(address _account)
+        public
+        override
+        onlyAdmin
+        returns (bool)
+    {
+        grantRole(DEFAULT_ADMIN_ROLE, _account);
+        return true;
+    }
+
     function _addWhitelist(address _account) internal {
         grantRole(WHITELIST_ROLE, _account);
     }
