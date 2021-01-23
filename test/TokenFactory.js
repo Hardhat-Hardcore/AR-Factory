@@ -441,7 +441,7 @@ describe("TokenFactory", () => {
         expect(finalReceiverHoldingTime).to.be.eql(BigNumber.from(12000))
       })
 
-      it.only("should return correct holding time for nft token", async () => {
+      it("should return correct holding time for nft token", async () => {
         const tokenId = NEED_TIME.add(IS_NFT)
         const tx = await tokenFactory[createToken](1, owner.address, operator.address, true)
         const timestamp = await utils.getTransactionTimestamp(tx)
