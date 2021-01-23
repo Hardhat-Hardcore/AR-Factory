@@ -74,9 +74,10 @@ contract InvoiceFactory is Context, BaseRelayRecipient, AccessControl {
     
     ///////////////////////////////////  CONSTRUCTOR //////////////////////////////////////////    
     
-    constructor(address _trustAddress) {
+    constructor(address _trustAddress, address _trustedForwarder) {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         TRUST_ADDRESS = _trustAddress;
+        trustedForwarder = _trustedForwarder;
     }
 
     ///////////////////////////////////    EVENTS    //////////////////////////////////////////

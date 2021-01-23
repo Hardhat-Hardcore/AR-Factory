@@ -8,19 +8,19 @@ chai.use(ChaiAsPromised)
 
 describe("InvoiceFactory", () => {
 
-    let admin, whitelistAdmin, trust, trust2, user1, user2
+    let admin, whitelistAdmin, trust, trust2, user1, user2, trustF
     let whitelist
     let Whitelist
     let invoiceFactory
     let tokenFactory
 
     beforeEach(async () => {
-        [admin, whitelistAdmin, trust, trust2, user1, user2] = await ethers.getSigners()
+        [admin, whitelistAdmin, trust, trust2, user1, user2, trustF] = await ethers.getSigners()
         Whitelist = await ethers.getContractFactory("Whitelist")
         const InvoiceFactory = await ethers.getContractFactory("InvoiceFactory")
         const TokenFactory = await ethers.getContractFactory("TokenFactory")
         whitelist = await Whitelist.deploy(trust.address)
-        invoiceFactory = await InvoiceFactory.deploy(trust.address)
+        invoiceFactory = await InvoiceFactory.deploy(trust.address, trustF.address)
         tokenFactory = await TokenFactory.deploy(user2.address)
         await whitelist.deployed()
         await invoiceFactory.deployed()
@@ -28,16 +28,16 @@ describe("InvoiceFactory", () => {
     })
 
     describe("Constructor", () => {
-        
+
         it("Should initialize the trust address correctly", async () => {
             const trustAddr = await invoiceFactory.TRUST_ADDRESS()
             expect(trustAddr).to.be.eql(trust.address)
         })
 
     })
-    
+
     describe("Getter functions", () => {
-        
+
         beforeEach(async () => {
             whitelist = await Whitelist.deploy(trust.address)
             await invoiceFactory.updateWhitelist(whitelist.address)
@@ -61,7 +61,7 @@ describe("InvoiceFactory", () => {
             expect(ret).to.be.eql(true)
         })
 
-        it("isSupplier() should return false if the account is not Supplier", async () => { 
+        it("isSupplier() should return false if the account is not Supplier", async () => {
             const ret = await invoiceFactory.isSupplier(user2.address)
             expect(ret).to.be.eql(false)
         })
@@ -69,38 +69,38 @@ describe("InvoiceFactory", () => {
     })
 
     describe("Check Authorities", () => {
-        
-        it("updateTrustAddress() should revert if the operator isn't admin",  async () => {
+
+        it("updateTrustAddress() should revert if the operator isn't admin", async () => {
             const tx = invoiceFactory.connect(user1).updateTrustAddress(trust2.address)
             await expect(tx).to.be.revertedWith("Restricted to admins.")
         })
-        
-        it("updateTokenFactory() should revert if the operator isn't admin",  async () => {
+
+        it("updateTokenFactory() should revert if the operator isn't admin", async () => {
             const tx = invoiceFactory.connect(user1).updateTokenFactory(trust2.address)
             await expect(tx).to.be.revertedWith("Restricted to admins.")
         })
 
-        it("updateWhitelist() should revert if the operator isn't admin",  async () => {
+        it("updateWhitelist() should revert if the operator isn't admin", async () => {
             const tx = invoiceFactory.connect(user1).updateWhitelist(trust2.address)
             await expect(tx).to.be.revertedWith("Restricted to admins.")
         })
 
-        it("enrollAnchor() should revert if the operator isn't admin",  async () => {
+        it("enrollAnchor() should revert if the operator isn't admin", async () => {
             const tx = invoiceFactory.connect(user1).enrollAnchor(trust2.address)
             await expect(tx).to.be.revertedWith("Restricted to admins.")
         })
 
-        it("enrollSupplier() should revert if the operator isn't admin",  async () => {
+        it("enrollSupplier() should revert if the operator isn't admin", async () => {
             const tx = invoiceFactory.connect(user1).enrollSupplier(trust2.address)
             await expect(tx).to.be.revertedWith("Restricted to admins.")
         })
 
-        it("trustVerifyAnchor() should revert if the operator isn't trust",  async () => {
+        it("trustVerifyAnchor() should revert if the operator isn't trust", async () => {
             const tx = invoiceFactory.connect(user1).trustVerifyAnchor(trust2.address)
             await expect(tx).to.be.revertedWith("Restricted to only trust to verify.")
         })
- 
-        it("trustVerifySupplier() should revert if the operator isn't trust",  async () => {
+
+        it("trustVerifySupplier() should revert if the operator isn't trust", async () => {
             const tx = invoiceFactory.connect(user1).trustVerifySupplier(trust2.address)
             await expect(tx).to.be.revertedWith("Restricted to only trust to verify.")
         })
@@ -114,7 +114,7 @@ describe("InvoiceFactory", () => {
     })
 
     describe("Update utils addresses", () => {
-        
+
         it("updateTrustAddress() should be able to update address to a new TRUST_Address.", async () => {
             let curTrustAddress = await invoiceFactory.TRUST_ADDRESS()
             expect(curTrustAddress).to.be.eql(trust.address)
@@ -142,7 +142,7 @@ describe("InvoiceFactory", () => {
     })
 
     describe("Enroll Anchor", () => {
-        
+
         beforeEach(async () => {
             whitelist = await Whitelist.deploy(trust.address)
             //await invoiceFactory.updateWhitelist(whitelist.address)
@@ -185,7 +185,7 @@ describe("InvoiceFactory", () => {
     })
 
     describe("Enroll Supplier", () => {
-        
+
         beforeEach(async () => {
             whitelist = await Whitelist.deploy(trust.address)
             //await invoiceFactory.updateWhitelist(whitelist.address)
@@ -242,7 +242,7 @@ describe("InvoiceFactory", () => {
             const ret = await invoiceFactory.verifiedAnchor(user2.address)
             expect(ret).to.not.eql(BigNumber.from(0))
         })
-    
+
         it("should be able to verify supplier by TRUST.", async () => {
             await invoiceFactory.connect(trust).trustVerifyAnchor(user2.address)
             const ret = await invoiceFactory.verifiedAnchor(user2.address)
