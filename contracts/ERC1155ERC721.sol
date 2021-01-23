@@ -45,7 +45,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     bytes4 constant private INTERFACE_SIGNATURE_ERC721 = 0x80ac58cd;
     
     uint256 private constant IS_NFT = 1 << 255;
-    uint256 internal constant HAS_NEED_TIME = 1 << 254;
+    uint256 internal constant NEED_TIME = 1 << 254;
     uint256 private idNonce;
     
     /**
@@ -76,6 +76,35 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         );
         _;
     }
+
+    /////////////////////////////////////////// Query //////////////////////////////////////////////
+    
+    function settingOperatorOf(uint256 _tokenId)
+        external
+        view
+        returns (address)
+    {
+        return _settingOperators[_tokenId];
+    }
+
+    function recordingOperatorOf(uint256 _tokenId)
+        external
+        view
+        returns (address)
+    {
+        return _recordingOperators[_tokenId];
+    }
+
+    function timeIntervalOf(uint256 _tokenId)
+        external
+        view
+        returns (uint256, uint256)
+    {
+        uint256 startTime = uint256(uint128(_timeInterval[_tokenId]));
+        uint256 endTime = uint256(_timeInterval[_tokenId] >> 128);
+        return (startTime, endTime);
+    }
+
     /////////////////////////////////////////// ERC165 //////////////////////////////////////////////
     
     function supportsInterface(
@@ -131,7 +160,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
             return;
         }
 
-        if (_tokenId & HAS_NEED_TIME > 0) {
+        if (_tokenId & NEED_TIME > 0) {
             updateHoldingTime(_from, _tokenId);
             updateHoldingTime(_to, _tokenId);
         }
@@ -198,7 +227,6 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         override
         returns (uint256) 
     {
-        require(_owner != address(0), "Owner is zero address");
         if (_tokenId & IS_NFT > 0) {
             if (_ownerOf(_tokenId) == _owner)
                 return 1;
@@ -277,7 +305,6 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         override
         returns (uint256) 
     {
-        require(_owner != address(0), "Owner is zero address");
         return _nftBalances[_owner];
     }
     
@@ -316,7 +343,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         require(_to != address(0), "_to must be non-zero");
         require(_nftOwners[_tokenId] == _from, "Not owner or it's not nft");
         
-        if (_tokenId & HAS_NEED_TIME > 0) {
+        if (_tokenId & NEED_TIME > 0) {
             updateHoldingTime(_from, _tokenId);
             updateHoldingTime(_to, _tokenId);
         }
@@ -340,13 +367,16 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         require(_to != address(0), "_to must be non-zero");
         require(_nftOwners[_tokenId] == _from, "Not owner or it's not nft");
                 
-        if (_tokenId & HAS_NEED_TIME > 0) {
+        if (_tokenId & NEED_TIME > 0) {
             updateHoldingTime(_from, _tokenId);
             updateHoldingTime(_to, _tokenId);
         }
         _transferFrom(_from, _to, _tokenId, 1);
-        require(_checkReceivable(_msgSender(), _from, _to, _tokenId, 1, "", true, false),
-                "Transfer rejected");
+
+        if (_to.isContract()) {
+            require(_checkReceivable(_msgSender(), _from, _to, _tokenId, 1, "", true, false),
+                    "Transfer rejected");
+        }
     }
     
     function approve(
@@ -410,7 +440,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     )
        public 
     {
-        require(_tokenId & HAS_NEED_TIME > 0, "Doesn't support this token");
+        require(_tokenId & NEED_TIME > 0, "Doesn't support this token");
 
         _holdingTime[_owner][_tokenId] += _calcHoldingTime(_owner, _tokenId);
         _lastUpdateAt[_owner][_tokenId] = block.timestamp;
@@ -423,7 +453,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         public 
     {
         for (uint256 i = 0; i < _tokenIds.length; i++) {
-            if (_tokenIds[i] & HAS_NEED_TIME > 0)
+            if (_tokenIds[i] & NEED_TIME > 0)
                 updateHoldingTime(_owner, _tokenIds[i]);
         }
     }
@@ -503,10 +533,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     )
         internal
     {
-        require(_tokenId & HAS_NEED_TIME > 0, "Not a need time token");
-        require(_startTime > 0, "Time can't be zero");
-        require(_endTime > _startTime, "End greater than start");
-        uint256 timeInterval = _startTime + uint256(_endTime) << 128;
+        uint256 timeInterval = _startTime + (uint256(_endTime) << 128);
         _timeInterval[_tokenId] = timeInterval;
     }
 
@@ -569,7 +596,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     {
         uint256 tokenId = idNonce++;
         if (_needTime)
-            tokenId |= HAS_NEED_TIME;
+            tokenId |= NEED_TIME;
 
         if (_supply == 1) {
             tokenId |= IS_NFT;
@@ -658,8 +685,10 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     {
         (bool success, bytes memory data) = _to.call(
             abi.encodeWithSelector(IERC165.supportsInterface.selector, INTERFACE_SIGNATURE_ERC1155Receiver));
+        if (!success)
+            return false;
         bool result = abi.decode(data, (bool));
-        return success && result;
+        return result;
     }
     
     function _checkBatchReceivable(

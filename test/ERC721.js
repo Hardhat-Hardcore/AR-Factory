@@ -216,11 +216,23 @@ describe("ERC721", () => {
       receiverContract = await ReceiverContract.deploy()
       await receiverContract.deployed()
     })
+    
+    it("should be able to transfer with balances updated", async () => {
+      const tokenId = IS_NFT
+      const tx = tokenFactory.transferFrom(owner.address, receiver.address, tokenId)
+      
+      await expect(tx).to.be.fulfilled
+      const ownerBalance = await tokenFactory[balanceOf](owner.address)
+      const receiverBalance = await tokenFactory[balanceOf](receiver.address)
+
+      expect(ownerBalance).to.be.eql(BigNumber.from(0))
+      expect(receiverBalance).to.be.eql(BigNumber.from(1))
+    })
 
     it("should not call receiver contract's onReceived function", async () => {
       const tokenId = IS_NFT
-      const tx = tokenFactory.transferFrom(owner.address, receiverContract.address, IS_NFT)
-
+      const tx = tokenFactory.transferFrom(owner.address, receiverContract.address, tokenId)
+      
       await expect(tx).not.to.emit(receiverContract, "TransferReceiver")
     })
   })

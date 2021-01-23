@@ -271,6 +271,7 @@ describe("ERC1155ERC721", () => {
         .emit(tokenFactory, "Transfer")
         .withArgs(owner.address, receiver.address, nftId).and
         .emit(tokenFactory, "TransferBatch")
+        .withArgs(owner.address, owner.address, receiver.address, [ftId, nftId], [2, 1])
     })
 
     it("should revert if transfer non nft to erc721 receiver contract", async () => {

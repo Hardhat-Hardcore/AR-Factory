@@ -6,6 +6,7 @@ pragma solidity 0.8.0;
 import "./interfaces/ITokenFactory.sol";
 import "./ERC1155ERC721.sol";
 import "./GSN/BaseRelayRecipient.sol";
+import "hardhat/console.sol";
 
 contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
     
@@ -88,27 +89,30 @@ contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
         override
     {
         require(_msgSender() == _settingOperators[_tokenId], "Not authorized");
+        require(_startTime >= block.timestamp, "Time smaller than now");
+        require(_endTime > _startTime, "End greater than start");
+
         _setTime(_tokenId, _startTime, _endTime);
         return;
     }
 
     function holdingTimeOf(
-        uint256 _tokenId,
-        address _owner
+        address _owner,
+        uint256 _tokenId
     )
         external
         view
         override
         returns (uint256)
     {
-        require(_tokenId & HAS_NEED_TIME > 0, "Doesn't support this token");
+        require(_tokenId & NEED_TIME > 0, "Doesn't support this token");
         
         return _holdingTime[_owner][_tokenId] + _calcHoldingTime(_owner, _tokenId);
     }
 
     function recordingHoldingTimeOf(
-        uint256 _tokenId,
-        address _owner
+        address _owner,
+        uint256 _tokenId
     )
         external
         view
