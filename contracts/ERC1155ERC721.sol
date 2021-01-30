@@ -39,9 +39,9 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     // bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))
     bytes4 constant private ERC1155_BATCH_ACCEPTED = 0xbc197c81;
     bytes4 constant private ERC721_ACCEPTED = 0x150b7a02;
-    bytes4 constant private INTERFACE_SIGNATURE_ERC165 = type(IERC165).interfaceId;
-    bytes4 constant private INTERFACE_SIGNATURE_ERC1155 = type(IERC1155).interfaceId;
-    bytes4 constant private INTERFACE_SIGNATURE_ERC1155Receiver = type(IERC1155TokenReceiver).interfaceId;
+    bytes4 constant private INTERFACE_SIGNATURE_ERC165 = 0x01ffc9a7;
+    bytes4 constant private INTERFACE_SIGNATURE_ERC1155 = 0xd9b67a26;
+    bytes4 constant private INTERFACE_SIGNATURE_ERC1155Receiver = 0x4e2312e0;
     bytes4 constant private INTERFACE_SIGNATURE_ERC721 = 0x80ac58cd;
 
     uint256 private constant IS_NFT = 1 << 255;
