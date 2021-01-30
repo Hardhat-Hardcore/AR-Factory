@@ -6,7 +6,7 @@ import "./ERC1155ERC721.sol";
 
 contract ERC1155ERC721Metadata is ERC1155ERC721, IERC721Metadata, IERC1155Metadata {
     // Metadata
-    mapping(uint256 => string) _tokenURI;
+    mapping(uint256 => string) internal _tokenURI;
 
     bytes4 constant private INTERFACE_SIGNATURE_ERC1155Metadata = 0x0e89341c;
     bytes4 constant private INTERFACE_SIGNATURE_ERC721Metadata = 0x5b5e139f;
