@@ -313,8 +313,19 @@ describe("TokenFactory", () => {
 
         await utils.mine(timestamp + 1100)
         
-        const finalOwnerHoldingTime = await tokenFactory.recordingHoldingTimeOf(owner.address, tokenId)
-        const finalReceiverHoldingTime = await tokenFactory.recordingHoldingTimeOf(receiver.address, tokenId)
+        let finalOwnerHoldingTime = await tokenFactory.recordingHoldingTimeOf(owner.address, tokenId)
+        let finalReceiverHoldingTime = await tokenFactory.recordingHoldingTimeOf(receiver.address, tokenId)
+        // 100 * 200s + 50 * 100s + 50 * 600s
+        expect(finalOwnerHoldingTime).to.be.eql(BigNumber.from(55000))
+        // 0 * 0s + 50 * 100s + 50 * 600s
+        expect(finalReceiverHoldingTime).to.be.eql(BigNumber.from(35000))
+
+        await tokenFactory.recordingTransferFrom(owner.address, receiver.address, tokenId, 50)
+
+        await utils.mine(timestamp + 1200)
+
+        finalOwnerHoldingTime = await tokenFactory.recordingHoldingTimeOf(owner.address, tokenId)
+        finalReceiverHoldingTime = await tokenFactory.recordingHoldingTimeOf(receiver.address, tokenId)
         // 100 * 200s + 50 * 100s + 50 * 600s
         expect(finalOwnerHoldingTime).to.be.eql(BigNumber.from(55000))
         // 0 * 0s + 50 * 100s + 50 * 600s

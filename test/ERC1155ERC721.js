@@ -209,6 +209,18 @@ describe("ERC1155ERC721", () => {
         expect(events.length).to.be.eql(1)
       })
 
+      it("should revert if transfer nft to non receiver contract through erc721", async () => {
+        const EmptyFactory = await ethers.getContractFactory("Empty")
+        const empty = await EmptyFactory.deploy()
+        await empty.deployed()
+
+        await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+        const tokenId = IS_NFT
+        const tx = tokenFactory[safeTransferFromERC721](owner.address, empty.address, tokenId, [])
+
+        await expect(tx).to.be.reverted
+      })
+
       it("should revert if transfer nft to non receiver contract through erc1155", async () => {
         await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
         const tokenId = IS_NFT

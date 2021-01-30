@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity 0.8.0;
 
 import "./interfaces/IERC721Metadata.sol";
@@ -67,6 +69,7 @@ contract ERC1155ERC721Metadata is ERC1155ERC721, IERC721Metadata, IERC1155Metada
         return _tokenURI[_tokenId];
     }
 
+    // Internal
     function _setTokenURI(
         uint256 _tokenId,
         string memory _uri
