@@ -16,6 +16,7 @@ describe("TokenFactory", () => {
   const IS_NFT = BigNumber.from(2).pow(255)
   const NEED_TIME = BigNumber.from(2).pow(254)
   const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
+  const TRUST_FORWARDER = "0x0000000000000000000000000000000000000001"
 
   let owner, receiver, operator
   let tokenFactory
@@ -23,7 +24,7 @@ describe("TokenFactory", () => {
   beforeEach(async () => {
     [owner, receiver, operator] = await ethers.getSigners()
     const TokenFactory = await ethers.getContractFactory("TokenFactory")
-    tokenFactory = await TokenFactory.deploy()
+    tokenFactory = await TokenFactory.deploy(TRUST_FORWARDER)
     await tokenFactory.deployed()
   })
 

@@ -27,7 +27,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     mapping(address => mapping(address => bool)) internal _operatorApproval;
     // Setting operator
     mapping(uint256 => address) internal _settingOperators;
-
+    // Holding time
     mapping(uint256 => uint256) internal _timeInterval;
     mapping(address => mapping(uint256 => uint256)) internal _lastUpdateAt;
     mapping(address => mapping(uint256 => uint256)) internal _holdingTime;
@@ -43,7 +43,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     bytes4 constant private INTERFACE_SIGNATURE_ERC1155 = type(IERC1155).interfaceId;
     bytes4 constant private INTERFACE_SIGNATURE_ERC1155Receiver = type(IERC1155TokenReceiver).interfaceId;
     bytes4 constant private INTERFACE_SIGNATURE_ERC721 = 0x80ac58cd;
-    
+
     uint256 private constant IS_NFT = 1 << 255;
     uint256 internal constant NEED_TIME = 1 << 254;
     uint256 private idNonce;
@@ -110,8 +110,9 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     function supportsInterface(
         bytes4 _interfaceId
     )
-        external
+        public
         pure
+        virtual
         override
         returns (bool)
     {
@@ -122,7 +123,6 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         }
         return false;
     }
-    
     
     /////////////////////////////////////////// ERC1155 //////////////////////////////////////////////
 
@@ -296,7 +296,6 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         return _operatorApproval[_owner][_operator];
     }
 
-    
     /////////////////////////////////////////// ERC721 //////////////////////////////////////////////
 
     function balanceOf(address _owner) 
@@ -402,7 +401,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         require(_tokenId & IS_NFT > 0, "Not a nft");
         return _nftOperators[_tokenId];
     }
-    
+
     /////////////////////////////////////////// Recording //////////////////////////////////////////////
     
     function recordingTransferFrom(
@@ -427,7 +426,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     ) 
         public 
         view
-        returns(uint256)
+        returns (uint256)
     {
         return _recordingBalances[_owner][_tokenId];
     }
@@ -476,7 +475,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     )
         internal
         view
-        returns(uint256)
+        returns (uint256)
     {
         uint256 lastTime = _lastUpdateAt[_owner][_tokenId];
         uint256 startTime = uint256(uint128(_timeInterval[_tokenId]));
@@ -504,7 +503,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     )
         internal
         view
-        returns(uint256)
+        returns (uint256)
     {
         uint256 lastTime = _recordingLastUpdateAt[_owner][_tokenId];
         uint256 startTime = uint256(uint128(_timeInterval[_tokenId]));

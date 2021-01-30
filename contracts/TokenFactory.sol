@@ -4,11 +4,11 @@
 pragma solidity 0.8.0;
 
 import "./interfaces/ITokenFactory.sol";
-import "./ERC1155ERC721.sol";
+import "./ERC1155ERC721Metadata.sol";
 import "./GSN/BaseRelayRecipient.sol";
 import "hardhat/console.sol";
 
-contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
+contract TokenFactory is ERC1155ERC721Metadata, ITokenFactory, BaseRelayRecipient {
     
     constructor (address _trustedForwarder) {
         trustedForwarder = _trustedForwarder;
@@ -40,8 +40,7 @@ contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
         returns (uint256)
     {
         uint256 tokenId = createToken(_supply, _receiver, _settingOperator, _needTime);
-        // TODO: set uri
-        _uri;
+        _setTokenURI(tokenId, _uri);
         return tokenId;
     }
 
@@ -75,7 +74,7 @@ contract TokenFactory is ERC1155ERC721, ITokenFactory, BaseRelayRecipient {
     {
         uint256 tokenId = createToken(_supply, _receiver, _settingOperator, _needTime);
         _mintCopy(tokenId, _supply, _recordingOperator);
-        // TODO: set uri
+        _setTokenURI(tokenId, _uri);
         _uri;
         return 0;
     }
