@@ -22,7 +22,8 @@ module.exports = {
     },
     hardhat: {
       accounts: {
-        mnemonic: "test test test test test test test test test test test junk",
+        mnemonic: mnemonic,
+        path: "m/44'/60'/0'/0",
       }
     },
     forking: {
