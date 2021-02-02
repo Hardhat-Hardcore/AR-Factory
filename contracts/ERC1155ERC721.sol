@@ -14,6 +14,7 @@ import "hardhat/console.sol";
 contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     using Address for address;
     
+    mapping(uint256 => uint256) internal _totalSupply;
     // Fungible token
     mapping(address => mapping(uint256 => uint256)) internal _ftBalances;
     // Non fungible tokens
@@ -78,6 +79,14 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     }
 
     /////////////////////////////////////////// Query //////////////////////////////////////////////
+
+    function totalSupply(uint256 _tokenId)
+        external
+        view
+        returns (uint256)
+    {
+        return _totalSupply[_tokenId];
+    }
     
     function settingOperatorOf(uint256 _tokenId)
         external
@@ -603,9 +612,10 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
             _nftOwners[tokenId] = _receiver;
             emit Transfer(address(0), _receiver, tokenId);
         } else {
-            _ftBalances[_receiver][tokenId] = _supply;
+            _ftBalances[_receiver][tokenId] += _supply;
         }
 
+        _totalSupply[tokenId] += _supply;
         _settingOperators[tokenId] = _settingOperator;
         
         emit TransferSingle(_msgSender(), address(0), _receiver, tokenId, _supply);
@@ -636,13 +646,13 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         uint256 _tokenId,
         uint256 _value,
         bytes memory _data,
-        bool _erc721,
+        bool _erc721erc20,
         bool _erc721safe
     )
         internal
         returns (bool)
     {
-        if (_erc721 && !_checkIsERC1155Receiver(_to)) {
+        if (_erc721erc20 && !_checkIsERC1155Receiver(_to)) {
             if (_erc721safe)
                 return _checkERC721Receivable(_operator, _from, _to, _tokenId, _data);
             else

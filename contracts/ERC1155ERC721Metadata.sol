@@ -19,6 +19,7 @@ contract ERC1155ERC721Metadata is ERC1155ERC721, IERC721Metadata, IERC1155Metada
     )
         public
         pure
+        virtual
         override
         returns (bool)
     {

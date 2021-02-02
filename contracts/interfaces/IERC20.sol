@@ -12,13 +12,13 @@ interface IERC20 {
      *
      * Note that `value` may be zero.
      */
-    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Transfer(address indexed _from, address indexed _to, uint256 _value);
 
     /**
      * @dev Emitted when the allowance of a `spender` for an `owner` is set by
      * a call to {approve}. `value` is the new allowance.
      */
-    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Approval(address indexed _owner, address indexed _spender, uint256 _value);
 
     /**
      * @dev Moves `amount` tokens from the caller's account to `recipient`.

@@ -13,7 +13,6 @@
     ],
     "state-visibility": "error",
     "avoid-sha3": "error",
-    "ordering": "warn",
     "visibility-modifier-order": "warn",
     "avoid-call-value": "warn",
     "no-unused-vars": "warn",

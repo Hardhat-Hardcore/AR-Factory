@@ -5,13 +5,28 @@ pragma solidity 0.8.0;
 
 import "./interfaces/ITokenFactory.sol";
 import "./ERC1155ERC721Metadata.sol";
+import "./ERC1155ERC721WithAdapter.sol";
 import "./GSN/BaseRelayRecipient.sol";
 import "hardhat/console.sol";
 
-contract TokenFactory is ERC1155ERC721Metadata, ITokenFactory, BaseRelayRecipient {
+contract TokenFactory is
+    ITokenFactory,
+    ERC1155ERC721Metadata,
+    ERC1155ERC721WithAdapter,
+    BaseRelayRecipient
+{
     
     constructor (address _trustedForwarder) {
         trustedForwarder = _trustedForwarder;
+    }
+
+    function supportsInterface(bytes4 _interfaceId)
+        public
+        pure
+        override(ERC1155ERC721Metadata, ERC1155ERC721)
+        returns (bool)
+    {
+        return super.supportsInterface(_interfaceId);
     }
 
     function createToken(
@@ -93,6 +108,19 @@ contract TokenFactory is ERC1155ERC721Metadata, ITokenFactory, BaseRelayRecipien
 
         _setTime(_tokenId, _startTime, _endTime);
         return;
+    }
+
+    function createERC20Adapter(
+        uint256 _tokenId,
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals
+    )
+        external
+        override
+    {
+        require(_msgSender() == _settingOperators[_tokenId], "Not authorized");
+        _createAdapter(_tokenId, _name, _symbol, _decimals);
     }
 
     function holdingTimeOf(

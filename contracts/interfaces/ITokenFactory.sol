@@ -50,4 +50,11 @@ interface ITokenFactory {
         address _owner,
         uint256 _tokenId
     ) external view returns(uint256);
+
+    function createERC20Adapter(
+        uint256 _tokenId,
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals
+    ) external;
 }
