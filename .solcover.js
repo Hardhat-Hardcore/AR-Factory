@@ -1,3 +1,3 @@
 module.exports = {
-  skipFiles: ["interfaces", "libraries", "mock", "GSN"]
+  skipFiles: ["interfaces", "libraries", "mock", "GSN", "upgradeable"]
 };

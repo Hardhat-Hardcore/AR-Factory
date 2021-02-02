@@ -1,8 +1,9 @@
 require("@nomiclabs/hardhat-waffle")
-require("@nomiclabs/hardhat-web3");
+require("@nomiclabs/hardhat-web3")
 require("hardhat-contract-sizer")
 require("hardhat-spdx-license-identifier")
 require("solidity-coverage")
+require("@openzeppelin/hardhat-upgrades")
 
 /**
  * @type import("hardhat/config").HardhatUserConfig
