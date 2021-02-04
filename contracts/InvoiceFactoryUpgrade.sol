@@ -5,7 +5,6 @@ import "./interfaces/IWhitelist.sol";
 import "./interfaces/ITokenFactory.sol";
 import "./upgradeable/GSN/ContextUpgradeable.sol";
 import "./upgradeable/access/AccessControlUpgradeable.sol";
-import "./upgradeable/proxy/Initializable.sol";
 import "./GSN/BaseRelayRecipient.sol";
 
 // import "hardhat/console.sol";
@@ -13,34 +12,34 @@ import "./GSN/BaseRelayRecipient.sol";
 contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, AccessControlUpgradeable {
 
     struct Invoice {
-        uint256 invoiceId;
-        uint256 tokenId;
-        uint256 invoiceTime;
-        uint256 txAmount;
-        uint256 startDate;
-        uint256 dueDate;
-        uint256 anchorConfirmTime;
-        uint256 totalSupply;
-        bytes32 annualRate;
-        address Supplier;
-        address Anchor;
-        bool    toList;
+        uint256 invoiceId;              //發票編號
+        uint256 tokenId;                //生成的token id
+        uint256 txAmount;               //發票金額
+        uint256 anchorConfirmTime;      //anchor verify time
+        uint128 invoiceTime;            //發票時間
+        uint128 dueDate;                //發票回款時間
+        bytes32 annualRate;             //利率
+        bytes32 invoicePdfhash;         //發票pdf   hash
+        bytes32 invoiceNumberHash;      //發票編號  hash
+        bytes32 anchorHash;             //anchor address hash
+        address Supplier;               //supplier address
+        address Anchor;                 //anchor address
+        bool    toList;                 //to list or not
     }
 
     uint256 public InvoiceCount;
-    uint256 public FIXED_DECIMAL;
+    uint8 public FIXED_DECIMAL;
     address public TRUST_ADDRESS;
-    //address public WhitelistAddress;
     address public TokenFactoryAddress;
     bytes32 public constant SUPPLIER_ROLE = keccak256("SUPPLIER_ROLE");
     bytes32 public constant ANCHOR_ROLE = keccak256("ANCHOR_ROLE");    
     
-    mapping(uint256 => uint256) public tokenIdtoInvoiceId;
-    mapping(uint256 => uint256) public invoiceIdtoTokenId;
-    mapping(address => uint256) public verifiedAnchor;
-    mapping(address => uint256) public verifiedSupplier;
+    mapping(uint256 => uint256) internal tokenIdtoInvoiceId;
+    mapping(uint256 => uint256) internal invoiceIdtoTokenId;
+    mapping(address => uint256) internal verifiedAnchor;
+    mapping(address => uint256) internal verifiedSupplier;
     
-    Invoice[] public InvoiceList;
+    Invoice[] internal InvoiceList;
     ITokenFactory public tempTokenFactory;
     IWhitelist public tempWhitelist;
 
@@ -63,20 +62,20 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     }
     
     modifier checkWhitelist() {
-        require(address(tempWhitelist) != 0x0000000000000000000000000000000000000000, "Whitelist hasn't initialized yet.");
+        require(address(tempWhitelist) != address(0), "Whitelist not initialized yet.");
         _;
     }
     
     modifier checkVerify(address _anchor, address _supplier) {
-        require(verifiedAnchor[_anchor] != 0, "Anchor haven't been verified by trust.");
-        require(verifiedSupplier[_supplier] != 0, "Supplier haven't been verified by trust.");
+        require(verifiedAnchor[_anchor] != 0, "Anchor not verified by trust.");
+        require(verifiedSupplier[_supplier] != 0, "Supplier not verified by trust.");
         _;
     }
     
     ///////////////////////////////////  CONSTRUCTOR //////////////////////////////////////////    
     
     function __initialize(
-        uint256 decimal,
+        uint8   decimal,
         address _trustAddress,
         address _trustedForwarder
     ) 
@@ -97,8 +96,76 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     event TrustVerifySupplier(address _account);
     event AnchorVerify(address _account);
 
-    ///////////////////////////////////   FUNCTIONS ///////////////////////////////////////////
+    ///////////////////////////////////  GETTER FUNCTIONS ///////////////////////////////////////////
+   
+    function queryInvoiceId(uint256 _tokenId) external view returns (uint256) {
+        return tokenIdtoInvoiceId[_tokenId];
+    }
+
+    function queryTokenId(uint256 _invoiceId) external view returns (uint256) {
+        return invoiceIdtoTokenId[_invoiceId];
+    }
+
+    function queryAnchorVerified(address _anchor) external view returns (bool) {
+        return verifiedAnchor[_anchor] > 0;
+    }
+
+    function querySupplierVerified(address _anchor) external view returns (bool) {
+        return verifiedSupplier[_anchor] > 0;
+    }
+
+    function queryInvoiceInform(uint256 _invoiceId)
+        external
+        view
+        returns ( uint256, uint256, uint256,
+                  uint256, bytes32, bytes32,
+                  bytes32)
+    {
+        return (
+            InvoiceList[_invoiceId].invoiceId,
+            InvoiceList[_invoiceId].invoiceTime,
+            InvoiceList[_invoiceId].txAmount,
+            InvoiceList[_invoiceId].dueDate,
+            InvoiceList[_invoiceId].invoicePdfhash,
+            InvoiceList[_invoiceId].invoiceNumberHash,
+            InvoiceList[_invoiceId].anchorHash
+        );
+    }
+
+    function queryInvoiceData(uint256 _invoiceId)
+        external
+        view
+        returns ( uint256, uint256, bytes32,
+                  address, address, bool)
+    {
+        return (
+            InvoiceList[_invoiceId].tokenId,
+            InvoiceList[_invoiceId].anchorConfirmTime,
+            InvoiceList[_invoiceId].annualRate,
+            InvoiceList[_invoiceId].Supplier,
+            InvoiceList[_invoiceId].Anchor,
+            InvoiceList[_invoiceId].toList
+        );
+    }
+
+    function isAnchor(address _anchor)
+        public
+        view
+        returns (bool)
+    {
+        return hasRole(ANCHOR_ROLE, _anchor);
+    }
     
+    function isSupplier(address _supplier)
+        public
+        view
+        returns (bool)
+    {
+        return hasRole(SUPPLIER_ROLE, _supplier);
+    }
+
+    ///////////////////////////////////  UPDATE INTERFACE FUNCTIONS ///////////////////////////////////////////
+
     function updateTrustAddress(address _newTrust)
         public
         onlyAdmin
@@ -120,28 +187,14 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         tempWhitelist = IWhitelist(_newWhitelist);
     }
 
-    function isAnchor(address _anchor)
-        public
-        view
-        returns (bool)
-    {
-        return hasRole(ANCHOR_ROLE, _anchor);
-    }
-    
-    function isSupplier(address _supplier)
-        public
-        view
-        returns (bool)
-    {
-        return hasRole(SUPPLIER_ROLE, _supplier);
-    }
+    ///////////////////////////////////  ANCHOR , SUPPLIER ///////////////////////////////////////////
     
     function enrollAnchor(address _newAnchor)
         public
         onlyAdmin
         checkWhitelist
     {
-        require(hasRole(ANCHOR_ROLE, _newAnchor) == false, "This account has already been added to the anchor.");
+        require(hasRole(ANCHOR_ROLE, _newAnchor) == false, "Duplicated enroll on anchor");
         if (tempWhitelist.inWhitelist(_newAnchor) == false) {
             tempWhitelist.addWhitelist(_newAnchor);
         }
@@ -153,57 +206,63 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         onlyAdmin
         checkWhitelist
     {
-        require(hasRole(SUPPLIER_ROLE, _newSupplier) == false, "This account has already been added to the supplier.");
+        require(hasRole(SUPPLIER_ROLE, _newSupplier) == false, "Duplicated enroll on supplier");
         if (tempWhitelist.inWhitelist(_newSupplier) == false) {
             tempWhitelist.addWhitelist(_newSupplier);
         }
         grantRole(SUPPLIER_ROLE, _newSupplier);
     }
+   
+    function anchorVerify(uint256 _invoiceId, bytes32 _adminSigature)
+        public
+        onlyAnchor
+        checkVerify(_msgSender(), InvoiceList[_invoiceId].Supplier)
+    {
+        require(verifiedAnchor[_msgSender()] != 0, "You have't been verified yet");
+        require(InvoiceList[_invoiceId].Anchor == _msgSender(), "You don't own this invoice");
+        InvoiceList[_invoiceId].anchorConfirmTime = block.timestamp;
+    }
     
+    ///////////////////////////////////  TRUST ONLY FUNCTIONS ///////////////////////////////////////////
     function trustVerifyAnchor(address _anchor)
         public
     {
-        require(_msgSender() == TRUST_ADDRESS, "Restricted to only trust to verify.");
+        require(_msgSender() == TRUST_ADDRESS, "Restricted to only trust by verify");
         verifiedAnchor[_anchor] = block.timestamp;
     }
     
     function trustVerifySupplier(address _supplier)
         public
     {
-        require(_msgSender() == TRUST_ADDRESS, "Restricted to only trust to verify.");
+        require(_msgSender() == TRUST_ADDRESS, "Restricted to only trust by verify");
         verifiedSupplier[_supplier] = block.timestamp;
     }
-    
-    function anchorVerify(uint256 _invoiceId)
-        public
-        onlyAnchor
-        checkVerify(InvoiceList[_invoiceId].Supplier, _msgSender())
-    {
-        require(verifiedAnchor[_msgSender()] != 0, "You have't been verified yet.");
-        require(InvoiceList[_invoiceId].Anchor == _msgSender(), "You don't own this invoice.");
-        InvoiceList[_invoiceId].anchorConfirmTime = block.timestamp;
-    }
+
+    ///////////////////////////////////  INVOICE UPDATE FUNCTIONS ///////////////////////////////////////////
 
     function uploadInvoice(
-        uint256 _tokenId,
-        uint256 _invoiceTime,
         uint256 _txAmount,
-        uint256 _totalSupply,
+        uint128 _invoiceTime,
+        uint128 _dueDate,
         bytes32 _annualRate,
+        bytes32 _invoicePdfhash,
+        bytes32 _invoiceNumberHash,
         address _anchorAddr,
         bool _tolist
     ) 
         public
         onlySupplier
-        checkVerify(_msgSender(), _anchorAddr)
+        checkVerify(_anchorAddr, _msgSender())
     {
-        require(verifiedSupplier[_msgSender()] != 0, "You have't been verified yet.");
+        require(verifiedSupplier[_msgSender()] != 0, "Restricted to verified supplier");
+        require(address(tempTokenFactory) != address(0), "TokenFactory not inited");
         _uploadInvoice(
-            _tokenId,
-            _invoiceTime,
             _txAmount,
-            _totalSupply,
+            _invoiceTime,
+            _dueDate,
             _annualRate,
+            _invoicePdfhash,
+            _invoiceNumberHash,
             _msgSender(),
             _anchorAddr,
             _tolist
@@ -211,11 +270,12 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     }
     
     function _uploadInvoice(
-        uint256 _tokenId,
-        uint256 _invoiceTime,
         uint256 _txAmount,
-        uint256 _totalSupply,
+        uint128 _invoiceTime,
+        uint128 _dueDate,
         bytes32 _annualRate,
+        bytes32 _invoicePdfhash,
+        bytes32 _invoiceNumberHash,
         address _supplierAddr,
         address _anchorAddr,
         bool _tolist
@@ -224,14 +284,15 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     {
         Invoice memory newInvoice = Invoice(
             InvoiceCount,
-            _tokenId,
-            _invoiceTime,
+            0,
             _txAmount,
             0,
-            0,
-            0,
-            _totalSupply,
+            _invoiceTime,
+            _dueDate,
             _annualRate,
+            _invoicePdfhash,
+            _invoiceNumberHash,
+            "",
             _supplierAddr,
             _anchorAddr,
             _tolist
@@ -240,30 +301,45 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         InvoiceList.push(newInvoice);
     }
     
-    function invoiceToToken(uint _invoiceId)
+    function invoiceToToken(
+        uint _invoiceId,
+        string memory _name,
+        string memory _symbol)
         public
         onlyAdmin
     {
-        require(InvoiceList[_invoiceId].anchorConfirmTime != 0, "Anchor hasn't confirm this invoice yet");
+        require(address(tempTokenFactory) != address(0), "TokenFactory empty");
+        require(InvoiceList[_invoiceId].anchorConfirmTime != 0, "Anchor hasn't confirm");
         /*
         Should call TokenFactory contract to use createToken function
         */
-        require(invoiceIdtoTokenId[_invoiceId] == 0, "This invoice's token had been created before.");
-        tempTokenFactory.createTokenWithRecording(
-            InvoiceList[_invoiceId].totalSupply * 1000,
+        require(InvoiceList[_invoiceId].tokenId == 0, "Token already created");
+        uint256 tokenId = tempTokenFactory.createTokenWithRecording(
+            InvoiceList[_invoiceId].txAmount,
             TRUST_ADDRESS,
             _contractAddress(),
             false,
             TRUST_ADDRESS,
             ""
         );
+        InvoiceList[_invoiceId].tokenId = tokenId;
+        tempTokenFactory.setTimeInterval(
+            tokenId, 
+            (InvoiceList[_invoiceId].invoiceTime),
+            InvoiceList[_invoiceId].dueDate);
+        tempTokenFactory.createERC20Adapter(
+            tokenId,
+            _name,
+            _symbol,
+            FIXED_DECIMAL);
     }
     
+    ///////////////////////////////////  RESTORE FUNCTIONS ///////////////////////////////////////////
     function restoreAccount(address _originAddress, address _newAddress)
         public
         onlyAdmin
     {
-        require((verifiedSupplier[_originAddress] > 0) || (verifiedAnchor[_originAddress] > 0), "You hadn't enroll to anything yet.");
+        require((verifiedSupplier[_originAddress] > 0) || (verifiedAnchor[_originAddress] > 0), "You hadn't enroll yet");
         if (verifiedSupplier[_originAddress] > 0) {
             verifiedSupplier[_newAddress] = block.timestamp;
         }
@@ -271,21 +347,37 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         if (verifiedAnchor[_originAddress] > 0) {
             verifiedAnchor[_newAddress] = block.timestamp;
         }
+        tempWhitelist.addWhitelist(_newAddress);
     }
 
     function _contractAddress() internal view returns(address) {
         return address(this);
     } 
 
-    function _msgSender() internal override(ContextUpgradeable, BaseRelayRecipient) view returns (address payable ret) {
+    function _msgSender()
+        internal 
+        override(ContextUpgradeable, BaseRelayRecipient) 
+        view 
+        returns (address payable ret)
+    {
         return BaseRelayRecipient._msgSender();
     }
     
-    function _msgData() internal override(ContextUpgradeable, BaseRelayRecipient) view returns (bytes memory) {
+    function _msgData()
+        internal
+        override(ContextUpgradeable, BaseRelayRecipient)
+        view
+        returns (bytes memory)
+    {
         return BaseRelayRecipient._msgData();
     }
     
-    function versionRecipient() external override virtual view returns (string memory) {
+    function versionRecipient()
+        external
+        override
+        virtual
+        view returns (string memory)
+    {
         return "2.1.0";
     }
 }
