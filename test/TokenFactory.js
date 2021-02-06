@@ -17,6 +17,9 @@ describe("TokenFactory", () => {
   const NEED_TIME = BigNumber.from(2).pow(254)
   const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
   const TRUST_FORWARDER = "0x0000000000000000000000000000000000000001"
+  const NAME = "NAME"
+  const SYMBOL = "SYM"
+  const DECIMALS = 3
 
   let owner, receiver, operator
   let tokenFactory
@@ -548,6 +551,19 @@ describe("TokenFactory", () => {
         // 0 * 0s + 1 * 100s + 1 * 100s + 0 * 100s + 0 * 100s + 1 * 100s + 1 * 200s
         expect(finalReceiverHoldingTime).to.be.eql(BigNumber.from(500))
       })
+    })
+  })
+
+  describe("createERC20Adapter()", () => {
+    beforeEach(async () => {
+      await tokenFactory[createToken](100, owner.address, operator.address, false)
+    })
+
+    it("should set token property correctly", async () => {
+      const tokenId = 0
+      await tokenFactory.connect(operator).createERC20Adapter(
+        tokenId, NAME, SYMBOL, DECIMALS)
+
     })
   })
 })

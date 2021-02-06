@@ -79,14 +79,6 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     }
 
     /////////////////////////////////////////// Query //////////////////////////////////////////////
-
-    function totalSupply(uint256 _tokenId)
-        external
-        view
-        returns (uint256)
-    {
-        return _totalSupply[_tokenId];
-    }
     
     function settingOperatorOf(uint256 _tokenId)
         external
@@ -233,6 +225,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     )
         public
         view
+        virtual
         override
         returns (uint256) 
     {

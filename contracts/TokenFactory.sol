@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
 
-/* solhint-disable ordering */
 pragma solidity 0.8.0;
 
 import "./interfaces/ITokenFactory.sol";
 import "./ERC1155ERC721Metadata.sol";
 import "./ERC1155ERC721WithAdapter.sol";
 import "./GSN/BaseRelayRecipient.sol";
-import "hardhat/console.sol";
 
 contract TokenFactory is
     ITokenFactory,
