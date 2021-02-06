@@ -29,6 +29,7 @@ module.exports = {
         mnemonic: mnemonic,
         path: "m/44'/60'/0'/0",
       }
+    },
     forking: {
       url: "https://eth-mainnet.alchemyapi.io/v2/wOanzc8-3oDY4oNTJxmbwuijaJ6QILFH",
     },
