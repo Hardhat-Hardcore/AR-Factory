@@ -571,7 +571,7 @@ describe("InvoiceFactoryUpgrade", () => {
 
         it("should not be execute if anchor wasn't verified.", async () => {
             const ret = invoiceFactoryUpgrade.connect(user3).anchorVerify(0)
-            expect(ret).to.be.revertedWith("You have't been verified yet")
+            expect(ret).to.be.revertedWith("Restricted to anchors.")
         })
 
         it("should be able to execute correctly.", async () => {
@@ -620,36 +620,20 @@ describe("InvoiceFactoryUpgrade", () => {
         })
 
         it("should revert if anchor hasn't verify.", async () => {
-            const ret = invoiceFactoryUpgrade.invoiceToToken(
-                0,
-                "INVOICE",
-                "INV"
-            )
+            const ret = invoiceFactoryUpgrade.invoiceToToken(0)
             expect(ret).to.be.revertedWith("Anchor hasn't confirm")
         })
 
         it("should revert if it already been tranfer to token.", async () => {
             await invoiceFactoryUpgrade.connect(user1).anchorVerify(0)
-            await invoiceFactoryUpgrade.invoiceToToken(
-                0,
-                "INVOICE",
-                "INV"
-            )
-            const ret = invoiceFactoryUpgrade.invoiceToToken(
-                0,
-                "INVOICE",
-                "INV"
-            )
+            await invoiceFactoryUpgrade.invoiceToToken(0)
+            const ret = invoiceFactoryUpgrade.invoiceToToken(0)
             expect(ret).to.be.revertedWith("Token already created")
         })
 
         it("should be able fullfill", async () => {
             await invoiceFactoryUpgrade.connect(user1).anchorVerify(0)
-            const ret = invoiceFactoryUpgrade.invoiceToToken(
-                0,
-                "INVOICE",
-                "INV"
-            )
+            const ret = invoiceFactoryUpgrade.invoiceToToken(0)
             expect(ret).to.be.fulfilled
         })
 
@@ -700,9 +684,7 @@ describe("InvoiceFactoryUpgrade", () => {
             )
             // anchor verify invoice
             await invoiceFactoryUpgrade.connect(user1).anchorVerify(0)
-            await invoiceFactoryUpgrade.invoiceToToken(0, "INVOICE", "INV")
-
-            
+            await invoiceFactoryUpgrade.invoiceToToken(0) 
         })
 
     })

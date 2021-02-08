@@ -25,6 +25,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         address supplier;               //supplier address
         address anchor;                 //anchor address
         bool    toList;                 //to list or not
+        bool    inited;
     }
     
     using ECDSA for bytes32;
@@ -58,7 +59,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     }
     
     modifier onlyAnchor() {
-        require(hasRole(ANCHOR_ROLE, _msgSender()) == true, "Restricted to suppliers.");
+        require(hasRole(ANCHOR_ROLE, _msgSender()) == true, "Restricted to anchors.");
         _;
     }
     
@@ -109,6 +110,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     }
 
     function queryTokenId(uint256 _invoiceId) external view returns (uint256) {
+        require(invoiceList[_invoiceId].inited == true, "No token found");
         return invoiceIdtoTokenId[_invoiceId];
     }
 
@@ -314,7 +316,8 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
             _anchorName,
             _supplierAddr,
             _anchorAddr,
-            _tolist
+            _tolist,
+            false
         );
         invoiceCount = invoiceCount + 1;
         invoiceList.push(newInvoice);
@@ -347,7 +350,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         require(address(tempTokenFactory) > address(0), "TokenFactory empty");
         require(invoiceList[_invoiceId].anchorConfirmTime > 0, "Anchor hasn't confirm");
         // Should call TokenFactory contract to use createToken function
-        require(invoiceList[_invoiceId].tokenId == 0, "Token already created");
+        require(invoiceList[_invoiceId].inited == false, "Token already created");
 
         uint256 tokenId = tempTokenFactory.createTokenWithRecording(
             invoiceList[_invoiceId].txAmount,
@@ -357,7 +360,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
             trustAddress,
             false
         );
-        invoiceList[_invoiceId].tokenId = tokenId;
+        invoiceList[_invoiceId].inited = true;
         tempTokenFactory.setTimeInterval(
             tokenId, 
             invoiceList[_invoiceId].invoiceTime,
