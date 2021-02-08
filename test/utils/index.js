@@ -1,4 +1,7 @@
 const { ethers, web3 } = require('hardhat')
+require('dotenv').config()
+
+const mnemonic = process.env.MNEMONIC || 'test test test test test test test test test test test junk'
 
 async function getTransactionTimestamp (tx) {
   const block = await ethers.provider.getBlock(tx.blockNumber)
@@ -18,31 +21,31 @@ async function increaseTime (timestamp) {
   return ethers.provider.send('evm_increaseTime', [timestamp])
 }
 
-const getWallet = (mnemonic, index = 0) => {
+const getWallet = (index = 0) => {
   return ethers.Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/${index}`)
 }
 
-async function getNextContractAddress(address, prev=false) {
+async function getNextContractAddress (address, prev = false) {
   let nonce = await ethers.provider.getTransactionCount(address)
   if (prev)
     nonce -= 1
-  const newAddress = ethers.utils.getContractAddress({from: address, nonce})
+  const newAddress = ethers.utils.getContractAddress({ from: address, nonce })
   return newAddress
 }
 
 const adminSign = async (txAmount, time, interest, pdfhash, numberhash, anchorName, supplier, anchor, list) => {
-  const [ admin ] = await ethers.getSigners()
+  const [admin] = await ethers.getSigners()
   const soliditySha3Expect = web3.utils.soliditySha3(
-      { type: 'bytes4' , value: 'a18b7c27' },
-      { type: 'uint256', value: txAmount },
-      { type: 'uint256', value: time },
-      { type: 'bytes32', value: ethers.utils.formatBytes32String(interest) },
-      { type: 'bytes32', value: ethers.utils.formatBytes32String(pdfhash) },
-      { type: 'bytes32', value: ethers.utils.formatBytes32String(numberhash) },
-      { type: 'bytes32', value: ethers.utils.formatBytes32String(anchorName) },
-      { type: 'address', value: supplier },
-      { type: 'address', value: anchor },
-      { type: 'bool'   , value: list}
+    { type: 'bytes4', value: 'a18b7c27' },
+    { type: 'uint256', value: txAmount },
+    { type: 'uint256', value: time },
+    { type: 'bytes32', value: ethers.utils.formatBytes32String(interest) },
+    { type: 'bytes32', value: ethers.utils.formatBytes32String(pdfhash) },
+    { type: 'bytes32', value: ethers.utils.formatBytes32String(numberhash) },
+    { type: 'bytes32', value: ethers.utils.formatBytes32String(anchorName) },
+    { type: 'address', value: supplier },
+    { type: 'address', value: anchor },
+    { type: 'bool', value: list }
   )
   let sigHashBytes = await ethers.utils.arrayify(soliditySha3Expect)
   let sigEJS = await admin.signMessage(sigHashBytes)
@@ -57,5 +60,5 @@ module.exports = {
   increaseTime,
   getWallet,
   getNextContractAddress,
-  adminSign 
+  adminSign
 }
