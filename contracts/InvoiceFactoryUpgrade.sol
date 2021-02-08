@@ -3,11 +3,11 @@ pragma solidity 0.8.0;
 
 import "./interfaces/IWhitelist.sol";
 import "./interfaces/ITokenFactory.sol";
-import "./upgradeable/GSN/ContextUpgradeable.sol";
-import "./upgradeable/access/AccessControlUpgradeable.sol";
+import "./libraries/utils/ECDSA.sol";
+import "./upgradeable/GSN/ContextUpgradeable.sol"; import "./upgradeable/access/AccessControlUpgradeable.sol";
 import "./GSN/BaseRelayRecipient.sol";
 
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, AccessControlUpgradeable {
 
@@ -18,19 +18,20 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         uint256 anchorConfirmTime;      //anchor verify time
         uint128 invoiceTime;            //發票時間
         uint128 dueDate;                //發票回款時間
-        bytes32 annualRate;             //利率
-        bytes32 invoicePdfhash;         //發票pdf   hash
+        bytes32 interestRate;             //利率
+        bytes32 invoicePdfHash;         //發票pdf   hash
         bytes32 invoiceNumberHash;      //發票編號  hash
         bytes32 anchorHash;             //anchor address hash
-        address Supplier;               //supplier address
-        address Anchor;                 //anchor address
+        address supplier;               //supplier address
+        address anchor;                 //anchor address
         bool    toList;                 //to list or not
     }
+    
+    using ECDSA for bytes32;
 
-    uint256 public InvoiceCount;
-    uint8 public FIXED_DECIMAL;
-    address public TRUST_ADDRESS;
-    address public TokenFactoryAddress;
+    uint256 public invoiceCount;
+    uint8   public FIXED_DECIMAL;
+    address public trustAddress;
     bytes32 public constant SUPPLIER_ROLE = keccak256("SUPPLIER_ROLE");
     bytes32 public constant ANCHOR_ROLE = keccak256("ANCHOR_ROLE");    
     
@@ -39,7 +40,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     mapping(address => uint256) internal verifiedAnchor;
     mapping(address => uint256) internal verifiedSupplier;
     
-    Invoice[] internal InvoiceList;
+    Invoice[] internal invoiceList;
     ITokenFactory public tempTokenFactory;
     IWhitelist public tempWhitelist;
 
@@ -62,13 +63,18 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     }
     
     modifier checkWhitelist() {
-        require(address(tempWhitelist) != address(0), "Whitelist not initialized yet.");
+        require(address(tempWhitelist) > address(0), "Whitelist not initialized yet.");
+        _;
+    }
+
+    modifier onlyModifier() {
+        require(_msgSender() == trustAddress, "Restricted to only trust by verify");
         _;
     }
     
     modifier checkVerify(address _anchor, address _supplier) {
-        require(verifiedAnchor[_anchor] != 0, "Anchor not verified by trust.");
-        require(verifiedSupplier[_supplier] != 0, "Supplier not verified by trust.");
+        require(verifiedAnchor[_anchor] > 0, "Anchor not verified by trust.");
+        require(verifiedSupplier[_supplier] > 0, "Supplier not verified by trust.");
         _;
     }
     
@@ -83,7 +89,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         initializer
     {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        TRUST_ADDRESS = _trustAddress;
+        trustAddress = _trustAddress;
         trustedForwarder = _trustedForwarder;
         FIXED_DECIMAL = decimal;
     }
@@ -122,13 +128,13 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
                   bytes32)
     {
         return (
-            InvoiceList[_invoiceId].invoiceId,
-            InvoiceList[_invoiceId].invoiceTime,
-            InvoiceList[_invoiceId].txAmount,
-            InvoiceList[_invoiceId].dueDate,
-            InvoiceList[_invoiceId].invoicePdfhash,
-            InvoiceList[_invoiceId].invoiceNumberHash,
-            InvoiceList[_invoiceId].anchorHash
+            invoiceList[_invoiceId].invoiceId,
+            invoiceList[_invoiceId].invoiceTime,
+            invoiceList[_invoiceId].txAmount,
+            invoiceList[_invoiceId].dueDate,
+            invoiceList[_invoiceId].invoicePdfHash,
+            invoiceList[_invoiceId].invoiceNumberHash,
+            invoiceList[_invoiceId].anchorHash
         );
     }
 
@@ -139,12 +145,12 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
                   address, address, bool)
     {
         return (
-            InvoiceList[_invoiceId].tokenId,
-            InvoiceList[_invoiceId].anchorConfirmTime,
-            InvoiceList[_invoiceId].annualRate,
-            InvoiceList[_invoiceId].Supplier,
-            InvoiceList[_invoiceId].Anchor,
-            InvoiceList[_invoiceId].toList
+            invoiceList[_invoiceId].tokenId,
+            invoiceList[_invoiceId].anchorConfirmTime,
+            invoiceList[_invoiceId].interestRate,
+            invoiceList[_invoiceId].supplier,
+            invoiceList[_invoiceId].anchor,
+            invoiceList[_invoiceId].toList
         );
     }
 
@@ -170,7 +176,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         public
         onlyAdmin
     {
-        TRUST_ADDRESS = _newTrust;
+        trustAddress = _newTrust;
     }
     
     function updateTokenFactory(address _newTokenFactory)
@@ -213,28 +219,28 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         grantRole(SUPPLIER_ROLE, _newSupplier);
     }
    
-    function anchorVerify(uint256 _invoiceId, bytes32 _adminSigature)
+    function anchorVerify(uint256 _invoiceId)
         public
         onlyAnchor
-        checkVerify(_msgSender(), InvoiceList[_invoiceId].Supplier)
+        checkVerify(_msgSender(), invoiceList[_invoiceId].supplier)
     {
-        require(verifiedAnchor[_msgSender()] != 0, "You have't been verified yet");
-        require(InvoiceList[_invoiceId].Anchor == _msgSender(), "You don't own this invoice");
-        InvoiceList[_invoiceId].anchorConfirmTime = block.timestamp;
+        require(verifiedAnchor[_msgSender()] > 0, "You have't been verified yet");
+        require(invoiceList[_invoiceId].anchor == _msgSender(), "You don't own this invoice");
+        invoiceList[_invoiceId].anchorConfirmTime = block.timestamp;
     }
     
     ///////////////////////////////////  TRUST ONLY FUNCTIONS ///////////////////////////////////////////
     function trustVerifyAnchor(address _anchor)
         public
+        onlyModifier() 
     {
-        require(_msgSender() == TRUST_ADDRESS, "Restricted to only trust by verify");
         verifiedAnchor[_anchor] = block.timestamp;
     }
     
     function trustVerifySupplier(address _supplier)
         public
+        onlyModifier() 
     {
-        require(_msgSender() == TRUST_ADDRESS, "Restricted to only trust by verify");
         verifiedSupplier[_supplier] = block.timestamp;
     }
 
@@ -242,27 +248,40 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
 
     function uploadInvoice(
         uint256 _txAmount,
-        uint128 _invoiceTime,
-        uint128 _dueDate,
-        bytes32 _annualRate,
-        bytes32 _invoicePdfhash,
+        uint256 _time,
+        bytes32 _interestRate,
+        bytes32 _invoicePdfHash,
         bytes32 _invoiceNumberHash,
+        bytes32 _anchorName,
         address _anchorAddr,
-        bool _tolist
+        bool    _tolist,
+        bytes   calldata _signature
     ) 
         public
         onlySupplier
         checkVerify(_anchorAddr, _msgSender())
     {
-        require(verifiedSupplier[_msgSender()] != 0, "Restricted to verified supplier");
-        require(address(tempTokenFactory) != address(0), "TokenFactory not inited");
+        require(address(tempTokenFactory) > address(0), "TokenFactory not inited");
+        bytes32 hashedParams = uploadPreSignedHash(
+            _txAmount,
+            _time,
+            _interestRate,
+            _invoicePdfHash,
+            _invoiceNumberHash,
+            _anchorName,
+            _msgSender(),
+            _anchorAddr,
+            _tolist
+        );
+        address from = hashedParams.toEthSignedMessageHash().recover(_signature);
+        require(hasRole(DEFAULT_ADMIN_ROLE, from), "Not authorized by admin");
         _uploadInvoice(
             _txAmount,
-            _invoiceTime,
-            _dueDate,
-            _annualRate,
-            _invoicePdfhash,
+            _time,
+            _interestRate,
+            _invoicePdfHash,
             _invoiceNumberHash,
+            _anchorName,
             _msgSender(),
             _anchorAddr,
             _tolist
@@ -271,62 +290,82 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     
     function _uploadInvoice(
         uint256 _txAmount,
-        uint128 _invoiceTime,
-        uint128 _dueDate,
-        bytes32 _annualRate,
-        bytes32 _invoicePdfhash,
+        uint256 _time,
+        bytes32 _interestRate,
+        bytes32 _invoicePdfHash,
         bytes32 _invoiceNumberHash,
+        bytes32 _anchorName,
         address _supplierAddr,
         address _anchorAddr,
-        bool _tolist
+        bool    _tolist
     )
         internal
     {
         Invoice memory newInvoice = Invoice(
-            InvoiceCount,
+            invoiceCount,
             0,
             _txAmount,
             0,
-            _invoiceTime,
-            _dueDate,
-            _annualRate,
-            _invoicePdfhash,
+            uint128(_time >> 128),
+            uint128(_time),
+            _interestRate,
+            _invoicePdfHash,
             _invoiceNumberHash,
-            "",
+            _anchorName,
             _supplierAddr,
             _anchorAddr,
             _tolist
         );
-        InvoiceCount = InvoiceCount + 1;
-        InvoiceList.push(newInvoice);
+        invoiceCount = invoiceCount + 1;
+        invoiceList.push(newInvoice);
+    }
+
+    function uploadPreSignedHash(
+        uint256 _txAmount,
+        uint256 _time,
+        bytes32 _interestRate,
+        bytes32 _invoicePdfHash,
+        bytes32 _invoiceNumberHash,
+        bytes32 _anchorName,
+        address _supplierAddr,
+        address _anchorAddr,
+        bool    _tolist
+    )
+        public
+        pure
+        returns (bytes32)
+    {
+        /*"a18b7c27": uploadPreSignedHash(uint256,uint256,bytes32,bytes32,bytes32,bytes32,address,address,bool)*/
+        return keccak256(abi.encodePacked(bytes4(0xa18b7c27), _txAmount, _time, _interestRate, 
+                         _invoicePdfHash, _invoiceNumberHash, _anchorName , _supplierAddr, _anchorAddr, _tolist));
     }
     
     function invoiceToToken(
-        uint _invoiceId,
+        uint   _invoiceId,
         string memory _name,
         string memory _symbol)
         public
         onlyAdmin
     {
-        require(address(tempTokenFactory) != address(0), "TokenFactory empty");
-        require(InvoiceList[_invoiceId].anchorConfirmTime != 0, "Anchor hasn't confirm");
+        require(address(tempTokenFactory) > address(0), "TokenFactory empty");
+        require(invoiceList[_invoiceId].anchorConfirmTime > 0, "Anchor hasn't confirm");
         /*
         Should call TokenFactory contract to use createToken function
         */
-        require(InvoiceList[_invoiceId].tokenId == 0, "Token already created");
+        require(invoiceList[_invoiceId].tokenId == 0, "Token already created");
         uint256 tokenId = tempTokenFactory.createTokenWithRecording(
-            InvoiceList[_invoiceId].txAmount,
-            TRUST_ADDRESS,
+            invoiceList[_invoiceId].txAmount,
+            trustAddress,
             _contractAddress(),
             false,
-            TRUST_ADDRESS,
+            trustAddress,
             ""
         );
-        InvoiceList[_invoiceId].tokenId = tokenId;
+        invoiceList[_invoiceId].tokenId = tokenId;
         tempTokenFactory.setTimeInterval(
             tokenId, 
-            (InvoiceList[_invoiceId].invoiceTime),
-            InvoiceList[_invoiceId].dueDate);
+            invoiceList[_invoiceId].invoiceTime,
+            invoiceList[_invoiceId].dueDate);
         tempTokenFactory.createERC20Adapter(
             tokenId,
             _name,
