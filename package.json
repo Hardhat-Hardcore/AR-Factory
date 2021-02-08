@@ -39,5 +39,7 @@
     "solidity-coverage": "^0.7.14",
     "web3-provider-engine": "^16.0.1"
   },
-  "dependencies": {}
+  "dependencies": {
+    "big-integer": "^1.6.48"
+  }
 }
