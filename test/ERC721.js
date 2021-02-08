@@ -8,7 +8,7 @@ const expect = chai.expect
 chai.use(ChaiAsPromised)
 
 describe("ERC721", () => {
-  const createToken = "createToken(uint256,address,address,bool)"
+  const createToken = "createToken(uint256,address,address,bool,bool)"
   const balanceOf = "balanceOf(address)"
   const safeTransferFrom = "safeTransferFrom(address,address,uint256,bytes)"
 
@@ -29,9 +29,9 @@ describe("ERC721", () => {
 
   describe("Getter functions", () => {
     it("balanceOf() should return correct balance for quried address", async () => {
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
-      await tokenFactory[createToken](1, receiver.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
+      await tokenFactory[createToken](1, receiver.address, ZERO_ADDRESS, false, false)
 
       const ownerBalance = await tokenFactory[balanceOf](owner.address)
       expect(ownerBalance).to.be.eql(BigNumber.from(2))
@@ -42,7 +42,7 @@ describe("ERC721", () => {
     })
 
     it("ownerOf() should return correct token owner address", async () => {
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
       const tokenId = IS_NFT
       const tokenOwner = await tokenFactory.ownerOf(tokenId)
       expect(tokenOwner).to.be.eql(owner.address)
@@ -66,7 +66,7 @@ describe("ERC721", () => {
     let receiverContract
 
     beforeEach(async () => {
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
       const ReceiverContract = await ethers.getContractFactory("ERC721ReceiverMock")
       receiverContract = await ReceiverContract.deploy()
       await receiverContract.deployed()
@@ -211,7 +211,7 @@ describe("ERC721", () => {
     let receiverContract
 
     beforeEach(async () => {
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
       const ReceiverContract = await ethers.getContractFactory("ERC721ReceiverMock")
       receiverContract = await ReceiverContract.deploy()
       await receiverContract.deployed()
@@ -239,7 +239,7 @@ describe("ERC721", () => {
 
   describe("approve()", () => {
     beforeEach(async () => {
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
     })
 
     it("should update token's approved operator", async () => {

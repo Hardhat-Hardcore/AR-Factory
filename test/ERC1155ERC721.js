@@ -7,7 +7,7 @@ const expect = chai.expect
 chai.use(ChaiAsPromised)
 
 describe("ERC1155ERC721", () => {
-  const createToken = "createToken(uint256,address,address,bool)"
+  const createToken = "createToken(uint256,address,address,bool,bool)"
   const safeTransferFromERC1155 = "safeTransferFrom(address,address,uint256,uint256,bytes)"
   const safeTransferFromERC721 = "safeTransferFrom(address,address,uint256,bytes)"
   const balanceOfERC1155 = "balanceOf(address,uint256)"
@@ -27,7 +27,7 @@ describe("ERC1155ERC721", () => {
 
   describe("balanceOf()", () => {
     it("should return the same nft balance from both erc1155 and erc721", async () => {
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
       const tokenId = IS_NFT
       const balance1155 = await tokenFactory[balanceOfERC1155](owner.address, tokenId)
       const balance721 = await tokenFactory[balanceOfERC721](owner.address)
@@ -37,14 +37,14 @@ describe("ERC1155ERC721", () => {
     })
 
     it("should only return nft balance through erc721", async () => {
-      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false, false)
       const tokenId = 0
       const balance = await tokenFactory[balanceOfERC721](owner.address)
       expect(balance).to.be.eql(BigNumber.from(0))
     })
 
     it("should return zero if not nft owner through erc1155", async () => {
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
       const tokenId = IS_NFT
       const balance = await tokenFactory[balanceOfERC1155](receiver.address, tokenId)
 
@@ -54,8 +54,8 @@ describe("ERC1155ERC721", () => {
 
   describe("balanceOfBatch()", () => {
     it("should return correct balance for nft", async () => {
-      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false)
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
       const ftId = BigNumber.from(0)
       const nftId = IS_NFT.add(1)
       const balances = await tokenFactory.balanceOfBatch(
@@ -68,7 +68,7 @@ describe("ERC1155ERC721", () => {
 
   describe("safeTransferFrom()", () => {
     it("should be able to transfer nft through erc1155", async () => {
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
       const tokenId = IS_NFT
       const tx = tokenFactory[safeTransferFromERC1155](
         owner.address, receiver.address, tokenId, 1, [])
@@ -81,7 +81,7 @@ describe("ERC1155ERC721", () => {
     })
 
     it("should revert if transfer nft with value more than one through erc1155", async () => {
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
       const tokenId = IS_NFT
       const tx = tokenFactory[safeTransferFromERC1155](
         owner.address, receiver.address, tokenId, 2, [])
@@ -90,7 +90,7 @@ describe("ERC1155ERC721", () => {
     })
 
     it("should be able to transfer nft with zero value through erc1155", async () => {
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
       const tokenId = IS_NFT
       const tx = tokenFactory[safeTransferFromERC1155](
         owner.address, receiver.address, tokenId, 0, [])
@@ -99,7 +99,7 @@ describe("ERC1155ERC721", () => {
     })
 
     it("should update nft balance and owner correctly through erc1155", async () => {
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
       const tokenId = IS_NFT
       await tokenFactory[safeTransferFromERC1155](
         owner.address, receiver.address, tokenId, 1, [])
@@ -113,7 +113,7 @@ describe("ERC1155ERC721", () => {
     })
 
     it("should revert if _from is not nft owner through erc1155", async () => {
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
       const tokenId = IS_NFT
       const tx = tokenFactory[safeTransferFromERC1155](
         operator.address, receiver.address, tokenId, 1, [])
@@ -122,7 +122,7 @@ describe("ERC1155ERC721", () => {
     })
 
     it("should revert if not sent by authorized operator through erc1155", async () => {
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
       const tokenId = IS_NFT
       const rejectTx = tokenFactory.connect(operator)[safeTransferFromERC1155](
         owner.address, receiver.address, tokenId, 1, [])
@@ -140,7 +140,7 @@ describe("ERC1155ERC721", () => {
     })
 
     it("should emit Transfer and TransferSingle event when transfer nft through erc1155", async () => {
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
       const tokenId = IS_NFT
       const tx = tokenFactory[safeTransferFromERC1155](owner.address, receiver.address, tokenId, 1, [])
 
@@ -152,7 +152,7 @@ describe("ERC1155ERC721", () => {
     })
 
     it("should revert if transfer non nft through erc721", async () => {
-      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false, false)
       const tokenId = 0
       const tx = tokenFactory[safeTransferFromERC721](owner.address, receiver.address, tokenId, [])
 
@@ -177,7 +177,7 @@ describe("ERC1155ERC721", () => {
       })
 
       it("should be able to transfer nft to erc1155 receiver contract through erc1155", async () => {
-        await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+        await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
         const tokenId = IS_NFT
         const tx = tokenFactory[safeTransferFromERC1155](owner.address, erc1155Receiver.address, tokenId, 1, [])
 
@@ -186,7 +186,7 @@ describe("ERC1155ERC721", () => {
       })
 
       it("should be able to transfer nft to erc721 receiver contract through erc1155", async () => {
-        await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+        await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
         const tokenId = IS_NFT
         const tx = tokenFactory[safeTransferFromERC1155](owner.address, erc721Receiver.address, tokenId, 1, [])
 
@@ -195,7 +195,7 @@ describe("ERC1155ERC721", () => {
       })
 
       it("should be able to transfer nft to erc1155erc721 receiver contract through erc721", async () => {
-        await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+        await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
         const tokenId = IS_NFT
         const tx = tokenFactory[safeTransferFromERC721](owner.address, hybridReceiver.address, tokenId, [])
         const filter = {
@@ -214,7 +214,7 @@ describe("ERC1155ERC721", () => {
         const empty = await EmptyFactory.deploy()
         await empty.deployed()
 
-        await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+        await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
         const tokenId = IS_NFT
         const tx = tokenFactory[safeTransferFromERC721](owner.address, empty.address, tokenId, [])
 
@@ -222,7 +222,7 @@ describe("ERC1155ERC721", () => {
       })
 
       it("should revert if transfer nft to non receiver contract through erc1155", async () => {
-        await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+        await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
         const tokenId = IS_NFT
         const tx = tokenFactory[safeTransferFromERC1155](owner.address, tokenFactory.address, tokenId, 1, [])
 
@@ -230,7 +230,7 @@ describe("ERC1155ERC721", () => {
       })
 
       it("should revert if transfer non nft to erc721 receiver contract through erc1155", async () => {
-        await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false)
+        await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false, false)
         const tokenId = 0
         const tx = tokenFactory[safeTransferFromERC1155](owner.address, erc721Receiver.address, tokenId, 1, [])
 
@@ -244,8 +244,8 @@ describe("ERC1155ERC721", () => {
     let nftId
 
     beforeEach(async () => {
-      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false)
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
       ftId = BigNumber.from(0)
       nftId = IS_NFT.add(1)
     })
@@ -299,7 +299,7 @@ describe("ERC1155ERC721", () => {
 
   describe("transferFrom()", () => {
     it("should revert if transfer non nft", async () => {
-      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false, false)
       const tokenId = 0
       const tx = tokenFactory.transferFrom(owner.address, receiver.address, tokenId)
 
@@ -309,7 +309,7 @@ describe("ERC1155ERC721", () => {
 
   describe("ownerOf()", () => {
     it("should revert if is not nft", async () => {
-      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false, false)
       const tokenId = 0
       const tx = tokenFactory.ownerOf(tokenId)
 
@@ -319,7 +319,7 @@ describe("ERC1155ERC721", () => {
 
   describe("approve()", () => {
     it("should revert if is not nft", async () => {
-      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false, false)
       const tokenId = 0
       const tx = tokenFactory.approve(operator.address, tokenId)
 
@@ -329,7 +329,7 @@ describe("ERC1155ERC721", () => {
 
   describe("getApproved()", () => {
     it("should revert if is not nft", async () => {
-      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false, false)
       const tokenId = 0
       const tx = tokenFactory.getApproved(tokenId)
 

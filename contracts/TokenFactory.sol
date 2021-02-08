@@ -27,100 +27,6 @@ contract TokenFactory is
         return super.supportsInterface(_interfaceId);
     }
 
-    function createToken(
-        uint256 _supply,
-        address _receiver,
-        address _settingOperator,
-        bool _needTime
-    )
-        public 
-        override
-        returns (uint256)
-    {
-        uint256 tokenId = _mint(_supply, _receiver, _settingOperator, _needTime, "");
-        return tokenId;
-    }
-    
-    function createToken(
-        uint256 _supply,
-        address _receiver,
-        address _settingOperator,
-        bool _needTime,
-        string calldata _uri
-    )
-        external
-        override
-        returns (uint256)
-    {
-        uint256 tokenId = createToken(_supply, _receiver, _settingOperator, _needTime);
-        _setTokenURI(tokenId, _uri);
-        return tokenId;
-    }
-
-    function createTokenWithRecording(
-        uint256 _supply,
-        address _receiver,
-        address _settingOperator,
-        bool _needTime,
-        address _recordingOperator
-    )
-        public
-        override
-        returns (uint256)
-    {
-        uint256 tokenId = createToken(_supply, _receiver, _settingOperator, _needTime);
-        _mintCopy(tokenId, _supply, _recordingOperator);
-        return tokenId;
-    }
-
-    function createTokenWithRecording(
-        uint256 _supply,
-        address _receiver,
-        address _settingOperator,
-        bool _needTime,
-        address _recordingOperator,
-        string calldata _uri
-    )
-        external
-        override
-        returns (uint256)
-    {
-        uint256 tokenId = createToken(_supply, _receiver, _settingOperator, _needTime);
-        _mintCopy(tokenId, _supply, _recordingOperator);
-        _setTokenURI(tokenId, _uri);
-        _uri;
-        return 0;
-    }
-    
-    function setTimeInterval(
-        uint256 _tokenId,
-        uint128 _startTime,
-        uint128 _endTime
-    )
-        external
-        override
-    {
-        require(_msgSender() == _settingOperators[_tokenId], "Not authorized");
-        require(_startTime >= block.timestamp, "Time smaller than now");
-        require(_endTime > _startTime, "End greater than start");
-
-        _setTime(_tokenId, _startTime, _endTime);
-        return;
-    }
-
-    function createERC20Adapter(
-        uint256 _tokenId,
-        string memory _name,
-        string memory _symbol,
-        uint8 _decimals
-    )
-        external
-        override
-    {
-        require(_msgSender() == _settingOperators[_tokenId], "Not authorized");
-        _createAdapter(_tokenId, _name, _symbol, _decimals);
-    }
-
     function holdingTimeOf(
         address _owner,
         uint256 _tokenId
@@ -146,7 +52,113 @@ contract TokenFactory is
     {
         return _recordingHoldingTime[_owner][_tokenId] + _calcRecordingHoldingTime(_owner, _tokenId);
     }
+
+    function createToken(
+        uint256 _supply,
+        address _receiver,
+        address _settingOperator,
+        bool _needTime,
+        bool _erc20
+    )
+        public 
+        override
+        returns (uint256)
+    {
+        uint256 tokenId = _mint(_supply, _receiver, _settingOperator, _needTime, "");
+        if (_erc20)
+            _createAdapter(tokenId);
+        return tokenId;
+    }
     
+    function createToken(
+        uint256 _supply,
+        address _receiver,
+        address _settingOperator,
+        bool _needTime,
+        string calldata _uri,
+        bool _erc20
+    )
+        external
+        override
+        returns (uint256)
+    {
+        uint256 tokenId = createToken(_supply, _receiver, _settingOperator, _needTime, _erc20);
+        if (_erc20)
+            _createAdapter(tokenId);
+        _setTokenURI(tokenId, _uri);
+        return tokenId;
+    }
+
+    function createTokenWithRecording(
+        uint256 _supply,
+        address _receiver,
+        address _settingOperator,
+        bool _needTime,
+        address _recordingOperator,
+        bool _erc20
+    )
+        public
+        override
+        returns (uint256)
+    {
+        uint256 tokenId = createToken(_supply, _receiver, _settingOperator, _needTime, _erc20);
+        if (_erc20)
+            _createAdapter(tokenId);
+        _mintCopy(tokenId, _supply, _recordingOperator);
+        return tokenId;
+    }
+
+    function createTokenWithRecording(
+        uint256 _supply,
+        address _receiver,
+        address _settingOperator,
+        bool _needTime,
+        address _recordingOperator,
+        string calldata _uri,
+        bool _erc20
+    )
+        external
+        override
+        returns (uint256)
+    {
+        uint256 tokenId = createToken(_supply, _receiver, _settingOperator, _needTime, _erc20);
+        if (_erc20)
+            _createAdapter(tokenId);
+        _mintCopy(tokenId, _supply, _recordingOperator);
+        _setTokenURI(tokenId, _uri);
+        return 0;
+    }
+    
+    function setTimeInterval(
+        uint256 _tokenId,
+        uint128 _startTime,
+        uint128 _endTime
+    )
+        external
+        override
+    {
+        require(_msgSender() == _settingOperators[_tokenId], "Not authorized");
+        require(_startTime >= block.timestamp, "Time smaller than now");
+        require(_endTime > _startTime, "End greater than start");
+
+        _setTime(_tokenId, _startTime, _endTime);
+        return;
+    }
+    
+    function setERC20Attribute(
+        uint256 _tokenId,
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals
+    )
+        external
+        override
+    {
+        require(_msgSender() == _settingOperators[_tokenId], "Not authorized");
+
+        _setERC20Attribute(_tokenId, _name, _symbol, _decimals);
+    }
+
     function versionRecipient()
         external
         override

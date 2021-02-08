@@ -30,7 +30,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     using ECDSA for bytes32;
 
     uint256 public invoiceCount;
-    uint8   public FIXED_DECIMAL;
+    uint8   public decimals;
     address public trustAddress;
     bytes32 public constant SUPPLIER_ROLE = keccak256("SUPPLIER_ROLE");
     bytes32 public constant ANCHOR_ROLE = keccak256("ANCHOR_ROLE");    
@@ -81,7 +81,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     ///////////////////////////////////  CONSTRUCTOR //////////////////////////////////////////    
     
     function __initialize(
-        uint8   decimal,
+        uint8   _decimals,
         address _trustAddress,
         address _trustedForwarder
     ) 
@@ -91,7 +91,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         trustAddress = _trustAddress;
         trustedForwarder = _trustedForwarder;
-        FIXED_DECIMAL = decimal;
+        decimals = _decimals;
     }
 
     ///////////////////////////////////    EVENTS    //////////////////////////////////////////
@@ -340,37 +340,29 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
                          _invoicePdfHash, _invoiceNumberHash, _anchorName , _supplierAddr, _anchorAddr, _tolist));
     }
     
-    function invoiceToToken(
-        uint   _invoiceId,
-        string memory _name,
-        string memory _symbol)
-        public
+    function invoiceToToken(uint _invoiceId)
+        external
         onlyAdmin
     {
         require(address(tempTokenFactory) > address(0), "TokenFactory empty");
         require(invoiceList[_invoiceId].anchorConfirmTime > 0, "Anchor hasn't confirm");
-        /*
-        Should call TokenFactory contract to use createToken function
-        */
+        // Should call TokenFactory contract to use createToken function
         require(invoiceList[_invoiceId].tokenId == 0, "Token already created");
+
         uint256 tokenId = tempTokenFactory.createTokenWithRecording(
             invoiceList[_invoiceId].txAmount,
             trustAddress,
-            _contractAddress(),
+            address(this),
             false,
             trustAddress,
-            ""
+            false
         );
         invoiceList[_invoiceId].tokenId = tokenId;
         tempTokenFactory.setTimeInterval(
             tokenId, 
             invoiceList[_invoiceId].invoiceTime,
-            invoiceList[_invoiceId].dueDate);
-        tempTokenFactory.createERC20Adapter(
-            tokenId,
-            _name,
-            _symbol,
-            FIXED_DECIMAL);
+            invoiceList[_invoiceId].dueDate
+        );
     }
     
     ///////////////////////////////////  RESTORE FUNCTIONS ///////////////////////////////////////////
@@ -388,10 +380,6 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         }
         tempWhitelist.addWhitelist(_newAddress);
     }
-
-    function _contractAddress() internal view returns(address) {
-        return address(this);
-    } 
 
     function _msgSender()
         internal 

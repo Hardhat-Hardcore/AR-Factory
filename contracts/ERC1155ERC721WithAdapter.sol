@@ -60,7 +60,7 @@ contract ERC1155ERC721WithAdapter is
         }
     }
 
-    function _createAdapter(
+    function _setERC20Attribute(
         uint256 _tokenId,
         string memory _name,
         string memory _symbol,
@@ -68,8 +68,15 @@ contract ERC1155ERC721WithAdapter is
     )
         internal
     {
+        address adapter = _adapters[_tokenId];
+        ERC20Adapter(adapter).setAttribute(_name, _symbol, _decimals);
+    }
+
+    function _createAdapter(uint256 _tokenId)
+        internal
+    {
         address adapter = _createClone(template);
-        ERC20Adapter(adapter).initialize(_tokenId, _name, _symbol, _decimals);
+        ERC20Adapter(adapter).initialize(_tokenId);
         _adapters[_tokenId] = adapter;
         emit NewAdapter(_tokenId, adapter);
     }
@@ -98,22 +105,26 @@ contract ERC20Adapter is IERC20 {
     uint256 public tokenId;
     ERC1155ERC721WithAdapter public entity;
 
-    function initialize(
-        uint256 _tokenId,
-        string memory _name,
-        string memory _symbol,
-        uint8 _decimals
-    )
+    function initialize(uint256 _tokenId)
        external
     {
         require(address(entity) == address(0), "Already initialized");
         entity = ERC1155ERC721WithAdapter(msg.sender);
         tokenId = _tokenId;
+    }
+
+    function setAttribute(
+        string calldata _name,
+        string calldata _symbol,
+        uint8 _decimals
+    )
+        external
+    {
+        require(msg.sender == address(entity), "Not entity");
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
     }
-
     function totalSupply()
        external
        view
@@ -165,8 +176,7 @@ contract ERC20Adapter is IERC20 {
         override
         returns (bool)
     {
-        _approve(_from, msg.sender, _allowances[_from][msg.sender] - _value);
-        _transfer(_from, _to, _value);
+        _approve(_from, msg.sender, _allowances[_from][msg.sender] - _value); _transfer(_from, _to, _value);
         return true;
     }
 

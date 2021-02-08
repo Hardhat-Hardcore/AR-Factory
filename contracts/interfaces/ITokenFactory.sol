@@ -7,7 +7,8 @@ interface ITokenFactory {
         uint256 _supply,
         address _receiver,
         address _settingOperator,
-        bool _needTime
+        bool _needTime,
+        bool _erc20
     ) external returns(uint256);
     
     function createToken(
@@ -15,15 +16,8 @@ interface ITokenFactory {
         address _receiver,
         address _settingOperator,
         bool _needTime,
-        string calldata _uri
-    ) external returns(uint256);
-
-    function createTokenWithRecording(
-        uint256 _supply,
-        address _receiver,
-        address _settingOperator,
-        bool _needTime,
-        address _recordingOperator
+        string calldata _uri,
+        bool _erc20
     ) external returns(uint256);
 
     function createTokenWithRecording(
@@ -32,7 +26,17 @@ interface ITokenFactory {
         address _settingOperator,
         bool _needTime,
         address _recordingOperator,
-        string calldata _uri
+        bool _erc20
+    ) external returns(uint256);
+
+    function createTokenWithRecording(
+        uint256 _supply,
+        address _receiver,
+        address _settingOperator,
+        bool _needTime,
+        address _recordingOperator,
+        string calldata _uri,
+        bool _erc20
     ) external returns(uint256);
     
     function setTimeInterval(
@@ -51,10 +55,10 @@ interface ITokenFactory {
         uint256 _tokenId
     ) external view returns(uint256);
 
-    function createERC20Adapter(
+    function setERC20Attribute(
         uint256 _tokenId,
         string memory _name,
         string memory _symbol,
-        uint8 _decimals
+        uint8 decimals
     ) external;
 }

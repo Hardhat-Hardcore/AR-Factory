@@ -2,16 +2,20 @@
 
 pragma solidity 0.8.0;
 
-import "../InvoiceFactory.sol";
+import "../InvoiceFactoryUpgrade.sol";
 
-contract InvoiceFactoryMock is InvoiceFactory {
+contract InvoiceFactoryMock is InvoiceFactoryUpgrade {
     
     event MsgSender(address indexed _msgSender, address indexed _realSender);
     event MsgData(bytes indexed _data);
     event RelayCall(address indexed _sender);
 
 
-    constructor (address _trustAddress, address _trustedForwarder) InvoiceFactory (_trustAddress, _trustedForwarder) {
+    constructor(
+        address _trustAddress,
+        address _trustedForwarder
+    ) {
+       InvoiceFactoryUpgrade.__initialize(3, _trustAddress, _trustedForwarder); 
     }
 
     function msgSender() external returns (address payable) {

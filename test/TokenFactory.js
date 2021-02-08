@@ -8,8 +8,9 @@ const expect = chai.expect
 chai.use(ChaiAsPromised)
 
 describe("TokenFactory", () => {
-  const createToken = "createToken(uint256,address,address,bool)"
-  const createTokenWithRecording = "createTokenWithRecording(uint256,address,address,bool,address)"
+  const createToken = "createToken(uint256,address,address,bool,bool)"
+  const createTokenWithRecording = 
+    "createTokenWithRecording(uint256,address,address,bool,address,bool)"
   const balanceOf = "balanceOf(address,uint256)"
   const safeTransferFrom = "safeTransferFrom(address,address,uint256,uint256,bytes)"
 
@@ -34,13 +35,13 @@ describe("TokenFactory", () => {
   describe("createToken()", () => {
     it("should create token with correct token ID", async () => {
       // ft
-      await tokenFactory[createToken](100, owner.address, operator.address, false)
+      await tokenFactory[createToken](100, owner.address, operator.address, false, false)
       // nft
-      await tokenFactory[createToken](1, owner.address, operator.address, false)
+      await tokenFactory[createToken](1, owner.address, operator.address, false, false)
       // ft + need time
-      await tokenFactory[createToken](100, owner.address, operator.address, true)
+      await tokenFactory[createToken](100, owner.address, operator.address, true, false)
       // nft + need time
-      await tokenFactory[createToken](1, owner.address, operator.address, true)
+      await tokenFactory[createToken](1, owner.address, operator.address, true, false)
       
       const filter = tokenFactory.filters.TransferSingle()
       const events = await tokenFactory.queryFilter(filter)
@@ -58,7 +59,7 @@ describe("TokenFactory", () => {
       expect(preSettingOperator).to.be.eql(ZERO_ADDRESS)
       expect(preRecordingOperator).to.be.eql(ZERO_ADDRESS)
 
-      await tokenFactory[createToken](100, owner.address, operator.address, false)
+      await tokenFactory[createToken](100, owner.address, operator.address, false, false)
       const postSettingOperator = await tokenFactory.settingOperatorOf(0)
       const postRecordingOperator = await tokenFactory.recordingOperatorOf(0)
       expect(postSettingOperator).to.be.eql(operator.address)
@@ -66,7 +67,7 @@ describe("TokenFactory", () => {
     })
 
     it("should emit TransferSingle event when creating ft token", async () => {
-      const tx = await tokenFactory[createToken](100, owner.address, ZERO_ADDRESS, false)
+      const tx = await tokenFactory[createToken](100, owner.address, ZERO_ADDRESS, false, false)
       const receipt = await tx.wait(1)
       const events = receipt.events
       
@@ -81,7 +82,7 @@ describe("TokenFactory", () => {
 
     it("should emit TransferSingle and Transfer event when creating nft", async () => {
       const tokenId = IS_NFT
-      const tx = await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+      const tx = await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
       const receipt = await tx.wait(1)
       const events = receipt.events
       
@@ -103,8 +104,8 @@ describe("TokenFactory", () => {
     it("should create correct amount of token", async () => {
       const ftId = 0
       const nftId = IS_NFT.add(1)
-      await tokenFactory[createToken](100, owner.address, ZERO_ADDRESS, false)
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](100, owner.address, ZERO_ADDRESS, false, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
 
       const ftBalance = await tokenFactory[balanceOf](owner.address, ftId)
       const nftBalance = await tokenFactory[balanceOf](owner.address, nftId)
@@ -113,7 +114,7 @@ describe("TokenFactory", () => {
     })
 
     it("should set nft owner correctly", async () => {
-      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false)
+      await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
       const tokenOwner = await tokenFactory.ownerOf(IS_NFT)
       expect(tokenOwner).to.be.eql(owner.address)
     })
@@ -122,10 +123,14 @@ describe("TokenFactory", () => {
       const ReceiverFactory = await ethers.getContractFactory("ERC1155ReceiverMock")
       const receiverContract = await ReceiverFactory.deploy()
       await receiverContract.deployed()
-      const nonReceiverTx = tokenFactory[createToken](100, tokenFactory.address, ZERO_ADDRESS, false)
+      const nonReceiverTx = tokenFactory[createToken](
+        100, tokenFactory.address, ZERO_ADDRESS, false, false
+      )
       await expect(nonReceiverTx).to.be.reverted
 
-      const tx = tokenFactory[createToken](100, receiverContract.address, ZERO_ADDRESS, false)
+      const tx = tokenFactory[createToken](
+        100, receiverContract.address, ZERO_ADDRESS, false, false
+      )
       await expect(tx).to.be.fulfilled.and
         .to.emit(receiverContract, "TransferSingleReceiver")
     })
@@ -139,7 +144,9 @@ describe("TokenFactory", () => {
       expect(preSettingOperator).to.be.eql(ZERO_ADDRESS)
       expect(preRecordingOperator).to.be.eql(ZERO_ADDRESS)
 
-      await tokenFactory[createTokenWithRecording](100, owner.address, operator.address, true, owner.address)
+      await tokenFactory[createTokenWithRecording](
+        100, owner.address, operator.address, true, owner.address, false
+      )
       const postSettingOperator = await tokenFactory.settingOperatorOf(tokenId)
       const postRecordingOperator = await tokenFactory.recordingOperatorOf(tokenId)
       expect(postSettingOperator).to.be.eql(operator.address)
@@ -149,8 +156,12 @@ describe("TokenFactory", () => {
     it("should generate recording ft token", async () => {
       const ftId = 0
       const nftId = IS_NFT.add(1)
-      await tokenFactory[createTokenWithRecording](100, owner.address, ZERO_ADDRESS, false, receiver.address)
-      await tokenFactory[createTokenWithRecording](1, owner.address, ZERO_ADDRESS, false, receiver.address)
+      await tokenFactory[createTokenWithRecording](
+        100, owner.address, ZERO_ADDRESS, false, receiver.address, false
+      )
+      await tokenFactory[createTokenWithRecording](
+        1, owner.address, ZERO_ADDRESS, false, receiver.address, false
+      )
 
       const ftRecordingBalance = await tokenFactory.recordingBalanceOf(receiver.address, ftId)
       const nftRecordingBalance = await tokenFactory.recordingBalanceOf(receiver.address, nftId)
@@ -160,7 +171,9 @@ describe("TokenFactory", () => {
 
     it("should generate RecordingTransferSingle event", async () => {
       const tokenId = 0
-      const tx = tokenFactory[createTokenWithRecording](100, owner.address, ZERO_ADDRESS, false, receiver.address)
+      const tx = tokenFactory[createTokenWithRecording](
+        100, owner.address, ZERO_ADDRESS, false, receiver.address, false
+      )
 
       await expect(tx).to.be.fulfilled.and
         .to.emit(tokenFactory, "RecordingTransferSingle")
@@ -171,7 +184,9 @@ describe("TokenFactory", () => {
 
   describe("setTimeInterval()", () => {
     it("should set time correctly", async () => {
-      const tx = await tokenFactory[createTokenWithRecording](100, owner.address, operator.address, true, owner.address)
+      const tx = await tokenFactory[createTokenWithRecording](
+        100, owner.address, operator.address, true, owner.address, false
+      )
       const tokenId = NEED_TIME
       const now = await utils.getTransactionTimestamp(tx)
       await tokenFactory.connect(operator).setTimeInterval(tokenId, now + 100, now + 1000)
@@ -182,7 +197,9 @@ describe("TokenFactory", () => {
     })
     
     it("should revert if start time is smaller than now", async () => {
-      const createTx = await tokenFactory[createTokenWithRecording](100, owner.address, operator.address, true, owner.address)
+      const createTx = await tokenFactory[createTokenWithRecording](
+        100, owner.address, operator.address, true, owner.address, false
+      )
       const tokenId = NEED_TIME
       const now = await utils.getTransactionTimestamp(createTx)
       const tx = tokenFactory.connect(operator).setTimeInterval(tokenId, 0, now + 100)
@@ -191,7 +208,9 @@ describe("TokenFactory", () => {
     })
 
     it("should revert if start time greater than end time", async () => {
-      const createTx = await tokenFactory[createTokenWithRecording](100, owner.address, operator.address, true, owner.address)
+      const createTx = await tokenFactory[createTokenWithRecording](
+        100, owner.address, operator.address, true, owner.address, false
+      )
       const tokenId = NEED_TIME
       const now = await utils.getTransactionTimestamp(createTx)
       const tx = tokenFactory.connect(operator).setTimeInterval(tokenId, now + 1000, now + 100)
@@ -200,7 +219,9 @@ describe("TokenFactory", () => {
     })
 
     it("should be able to set time even not recording token", async () => {
-      const createTx = await tokenFactory[createTokenWithRecording](100, owner.address, operator.address, false, owner.address)
+      const createTx = await tokenFactory[createTokenWithRecording](
+        100, owner.address, operator.address, false, owner.address, false
+      )
       const tokenId = 0
       const now = await utils.getTransactionTimestamp(createTx)
       const tx = tokenFactory.connect(operator).setTimeInterval(tokenId, now + 100, now + 1000)
@@ -219,7 +240,9 @@ describe("TokenFactory", () => {
   describe("Recording Token", () => {
     it("should revert if not recording token operator", async () => {
       const tokenId = 0
-      await tokenFactory[createTokenWithRecording](100, owner.address, ZERO_ADDRESS, false, receiver.address)
+      await tokenFactory[createTokenWithRecording](
+        100, owner.address, ZERO_ADDRESS, false, receiver.address, false
+      )
       
       const rejectTx = tokenFactory.recordingTransferFrom(receiver.address, owner.address, tokenId, 1)
       await expect(rejectTx).to.be.revertedWith("Not authorized")
@@ -232,7 +255,9 @@ describe("TokenFactory", () => {
 
     it("should revert if insufficient balance", async () => {
       const tokenId = 0
-      await tokenFactory[createTokenWithRecording](100, owner.address, ZERO_ADDRESS, false, receiver.address)
+      await tokenFactory[createTokenWithRecording](
+        100, owner.address, ZERO_ADDRESS, false, receiver.address, false
+      )
       
       const tx = tokenFactory.recordingTransferFrom(receiver.address, owner.address, tokenId, 101)
       await expect(tx).to.be.reverted
@@ -240,7 +265,9 @@ describe("TokenFactory", () => {
 
     it("should update balance correctly", async () => {
       const tokenId = 0
-      await tokenFactory[createTokenWithRecording](100, owner.address, ZERO_ADDRESS, false, owner.address)
+      await tokenFactory[createTokenWithRecording](
+        100, owner.address, ZERO_ADDRESS, false, owner.address, false
+      )
       
       await tokenFactory.recordingTransferFrom(owner.address, receiver.address, tokenId, 42)
       const receiverBalance =  await tokenFactory.recordingBalanceOf(receiver.address, tokenId)
@@ -252,7 +279,9 @@ describe("TokenFactory", () => {
 
     it("should emit RecordingTransferSingle when transfer", async () => {
       const tokenId = 0
-      await tokenFactory[createTokenWithRecording](100, owner.address, ZERO_ADDRESS, false, owner.address)
+      await tokenFactory[createTokenWithRecording](
+        100, owner.address, ZERO_ADDRESS, false, owner.address, false
+      )
       
       const tx = tokenFactory.recordingTransferFrom(owner.address, receiver.address, tokenId, 42)
       
@@ -266,7 +295,9 @@ describe("TokenFactory", () => {
     describe("Recording Token", () => {
       it("should return zero if not started yet", async () => {
         const tokenId = 0
-        const tx = await tokenFactory[createTokenWithRecording](100, owner.address, operator.address, false, owner.address)
+        const tx = await tokenFactory[createTokenWithRecording](
+          100, owner.address, operator.address, false, owner.address, false
+        )
         const now = await utils.getTransactionTimestamp(tx)
              
         await tokenFactory.connect(operator).setTimeInterval(tokenId, now + 100, now + 1000)
@@ -276,7 +307,9 @@ describe("TokenFactory", () => {
 
       it("should return zero if not set time yet", async () => {
         const tokenId = 0
-        await tokenFactory[createTokenWithRecording](100, owner.address, operator.address, false, owner.address)
+        await tokenFactory[createTokenWithRecording](
+          100, owner.address, operator.address, false, owner.address, false
+        )
              
         const time = await tokenFactory.recordingHoldingTimeOf(owner.address, tokenId)
         expect(time).to.be.eql(BigNumber.from(0))
@@ -284,7 +317,9 @@ describe("TokenFactory", () => {
 
       it("should return correct holding time", async () => {
         const tokenId = 0
-        const tx = await tokenFactory[createTokenWithRecording](100, owner.address, operator.address, false, owner.address)
+        const tx = await tokenFactory[createTokenWithRecording](
+          100, owner.address, operator.address, false, owner.address, false
+        )
         const timestamp = await utils.getTransactionTimestamp(tx)
         await tokenFactory.connect(operator).setTimeInterval(tokenId, timestamp + 100, timestamp + 1000) 
 
@@ -338,8 +373,12 @@ describe("TokenFactory", () => {
 
     describe("Normal Token", () => {
       it("should return zero if not started yet", async () => {
-        const ftTx = await tokenFactory[createToken](100, owner.address, operator.address, true)
-        const nftTx = await tokenFactory[createToken](1, owner.address, operator.address, true)
+        const ftTx = await tokenFactory[createToken](
+          100, owner.address, operator.address, true, false
+        )
+        const nftTx = await tokenFactory[createToken](
+          1, owner.address, operator.address, true, false
+        )
         const ftId = NEED_TIME 
         const nftId = NEED_TIME.add(1).add(IS_NFT)
         const now = await utils.getTransactionTimestamp(ftTx)
@@ -353,8 +392,11 @@ describe("TokenFactory", () => {
       })
 
       it("should revert if not a need time token", async () => {
-        const ftTx = await tokenFactory[createToken](100, owner.address, operator.address, false)
-        const nftTx = await tokenFactory[createToken](1, owner.address, operator.address, false)
+        const ftTx = await tokenFactory[createToken](
+          100, owner.address, operator.address, false, false)
+        const nftTx = await tokenFactory[createToken](
+          1, owner.address, operator.address, false, false
+        )
         const ftId = 0
         const nftId = IS_NFT.add(1)
 
@@ -370,8 +412,12 @@ describe("TokenFactory", () => {
       })
       
       it("should return zero if not set time yet", async () => {
-        await tokenFactory[createToken](100, owner.address, operator.address, true)
-        await tokenFactory[createToken](1, owner.address, operator.address, true)
+        await tokenFactory[createToken](
+          100, owner.address, operator.address, true, false
+        )
+        await tokenFactory[createToken](
+          1, owner.address, operator.address, true, false
+        )
         const ftId = NEED_TIME
         const nftId = IS_NFT.add(1).add(NEED_TIME)
              
@@ -383,7 +429,9 @@ describe("TokenFactory", () => {
 
       it("should return correct holding time for ft token", async () => {
         const tokenId = NEED_TIME
-        const tx = await tokenFactory[createToken](100, owner.address, operator.address, true)
+        const tx = await tokenFactory[createToken](
+          100, owner.address, operator.address, true, false
+        )
         const timestamp = await utils.getTransactionTimestamp(tx)
         await tokenFactory.connect(operator).setTimeInterval(tokenId, timestamp + 100, timestamp + 1000)
 
@@ -458,7 +506,9 @@ describe("TokenFactory", () => {
 
       it("should return correct holding time for nft token", async () => {
         const tokenId = NEED_TIME.add(IS_NFT)
-        const tx = await tokenFactory[createToken](1, owner.address, operator.address, true)
+        const tx = await tokenFactory[createToken](
+          1, owner.address, operator.address, true, false
+        )
         const timestamp = await utils.getTransactionTimestamp(tx)
         await tokenFactory.connect(operator).setTimeInterval(tokenId, timestamp + 100, timestamp + 1000)
 
@@ -556,14 +606,18 @@ describe("TokenFactory", () => {
 
   describe("createERC20Adapter()", () => {
     beforeEach(async () => {
-      await tokenFactory[createToken](100, owner.address, operator.address, false)
+      await tokenFactory[createToken](
+        100, owner.address, operator.address, false, false
+      )
     })
 
-    it("should set token property correctly", async () => {
+    it("should revert if try to create erc20 adapter not by setting operator", async () => {
       const tokenId = 0
-      await tokenFactory.connect(operator).createERC20Adapter(
-        tokenId, NAME, SYMBOL, DECIMALS)
+      await tokenFactory[createToken](100, owner.address, operator.address, false, true)
+      const tx = tokenFactory.setERC20Attribute(tokenId, NAME, SYMBOL, DECIMALS)
 
+      await expect(tx).to.be.revertedWith("Not authorized")
     })
+
   })
 })

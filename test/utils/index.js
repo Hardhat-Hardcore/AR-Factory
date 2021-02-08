@@ -22,8 +22,10 @@ const getWallet = (mnemonic, index = 0) => {
   return ethers.Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/${index}`)
 }
 
-async function getNextContractAddress(address) {
-  const nonce = await ethers.provider.getTransactionCount(address)
+async function getNextContractAddress(address, prev=false) {
+  let nonce = await ethers.provider.getTransactionCount(address)
+  if (prev)
+    nonce -= 1
   const newAddress = ethers.utils.getContractAddress({from: address, nonce})
   return newAddress
 }
