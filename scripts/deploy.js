@@ -1,4 +1,4 @@
-const { ethers } = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 require('dotenv').config()
 
 const relayHubAddress = process.env.RELAYHUB
@@ -12,23 +12,28 @@ async function main () {
   await whitelist.deployed()
   await whitelist.setRelayHub(relayHubAddress)
   await whitelist.setTrustedForwarder(forwarderAddress)
-  await whitelist.addWhitelist(admin.address)
 
   const tokenF = await ethers.getContractFactory('TokenFactory', admin)
   tokenFactory = await tokenF.deploy(forwarderAddress)
   await tokenFactory.deployed()
 
-  const invoiceF = await ethers.getContractFactory('InvoiceFactory', admin)
-  invoiceFactory = await invoiceF.deploy(admin.address, forwarderAddress)
+  const initData = [3, admin.address , forwarderAddress]
+  const invoiceF = await ethers.getContractFactory('InvoiceFactoryUpgrade', admin)
+  //invoiceFactory = await invoiceF.deploy(3, admin.address, forwarderAddress)
+  invoiceFactory = await upgrades.deployProxy(
+      invoiceF,
+      initData,
+      { initializer: '__initialize'}
+  )
   await invoiceFactory.deployed()
 
-  const tokenFM = await ethers.getContractFactory('TokenFactoryMock', admin)
+/*  const tokenFM = await ethers.getContractFactory('TokenFactoryMock', admin)
   tokenFactory = await tokenFM.deploy(forwarderAddress)
   await tokenFactory.deployed()
 
   const invoiceFM = await ethers.getContractFactory('InvoiceFactoryMock', admin)
   invoiceFactory = await invoiceFM.deploy(admin.address, forwarderAddress)
-  await invoiceFactory.deployed()
+  await invoiceFactory.deployed()*/
 
   const tx = await admin.sendTransaction({
     from: admin.address,
@@ -37,6 +42,11 @@ async function main () {
   })
   await tx.wait(1)
 
+  console.log("Whitelist address: ", whitelist.address) 
+  console.log("TokenFactory address: ", tokenFactory.address)
+  console.log("InvoiceFactory proxy address: ", invoiceFactory.address)
+  //console.log("TokenFactoryMock address: ", tokenFM.address)
+  //console.log("InvoiceFacotryMock address ", invoiceFM.address)
 }
 
 main()
