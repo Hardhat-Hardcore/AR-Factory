@@ -19,7 +19,8 @@ module.exports = {
       accounts: {
         mnemonic: mnemonic,
         path: "m/44'/60'/0'/0",
-      }
+      },
+      chainId: 1337
     },
     bsc_testnet: {
       url: "https://data-seed-prebsc-2-s1.binance.org:8545",
@@ -33,7 +34,7 @@ module.exports = {
     forking: {
       url: "https://eth-mainnet.alchemyapi.io/v2/wOanzc8-3oDY4oNTJxmbwuijaJ6QILFH",
     },
-    ropsten:  {
+    ropsten: {
       url: "https://ropsten.infura.io/v3/5891425d7ae8410f8c2ec2dc8e3238c4",
       accounts: ["3a286a3762e61a28536ed3ae3f1ce0a46f9b036127e7b952c09f7c99bede1a56"],
     }
