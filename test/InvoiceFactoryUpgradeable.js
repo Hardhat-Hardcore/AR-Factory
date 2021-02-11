@@ -1,5 +1,4 @@
 const { ethers, web3 } = require("hardhat")
-const bigInt = require("big-integer")
 const chai = require("chai")
 const expect = chai.expect
 const ChaiAsPromised = require("chai-as-promised")
