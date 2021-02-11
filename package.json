@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint": "solhint -f table \"contracts/**/*.sol\""
+    "lint": "solhint -f table \"contracts/**/*.sol\" && eslint --fix \"./**\""
   },
   "repository": {
     "type": "git",
@@ -27,6 +27,7 @@
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "dotenv": "^8.2.0",
+    "eslint": "^7.19.0",
     "ethereum-waffle": "^3.2.1",
     "ethers": "^5.0.26",
     "hardhat": "^2.0.8",

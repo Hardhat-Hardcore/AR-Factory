@@ -5,8 +5,8 @@ const { getWallet } = require('../test/utils')
 const Web3HttpProvider = require('web3-providers-http')
 const bscTestnetRpc = process.env.BSCTESTNETRPC
 
-const paymasterAddr = ""
-const contractAddr = ""
+const paymasterAddr = ''
+const contractAddr = ''
 const contractAbi = []
 
 /**
@@ -43,6 +43,6 @@ async function main () {
 main()
   .then(() => process.exit(0))
   .catch(error => {
-    console.error(error);
-    process.exit(1);
+    console.error(error)
+    process.exit(1)
   })

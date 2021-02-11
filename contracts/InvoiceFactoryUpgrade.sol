@@ -68,7 +68,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         _;
     }
 
-    modifier onlyModifier() {
+    modifier onlyTrust() {
         require(_msgSender() == trustAddress, "Restricted to only trust by verify");
         _;
     }
@@ -101,7 +101,10 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     event EnrollSupplier(address _account);
     event TrustVerifyAnchor(address _account);
     event TrustVerifySupplier(address _account);
-    event AnchorVerify(address _account);
+    event AnchorVerify(address _anchor, uint256 _invoiceId);
+    event UploadInvoice(uint256 _invoiceId, address _supplier, address _anchor, bytes32 _anchorName, bool _tolist);
+    event RestoreAccount(address _originAddress, address _newAddress);
+    event CreateTokenFromInvoice(uint256 _invoiceId, uint256 _tokenId);
 
     ///////////////////////////////////  GETTER FUNCTIONS ///////////////////////////////////////////
    
@@ -207,6 +210,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
             tempWhitelist.addWhitelist(_newAnchor);
         }
         grantRole(ANCHOR_ROLE, _newAnchor);
+        emit EnrollAnchor(_newAnchor);
     }
     
     function enrollSupplier(address _newSupplier)
@@ -219,6 +223,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
             tempWhitelist.addWhitelist(_newSupplier);
         }
         grantRole(SUPPLIER_ROLE, _newSupplier);
+        emit EnrollSupplier(_newSupplier);
     }
    
     function anchorVerify(uint256 _invoiceId)
@@ -229,21 +234,24 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         require(verifiedAnchor[_msgSender()] > 0, "You have't been verified yet");
         require(invoiceList[_invoiceId].anchor == _msgSender(), "You don't own this invoice");
         invoiceList[_invoiceId].anchorConfirmTime = block.timestamp;
+        emit AnchorVerify(_msgSender(), _invoiceId);
     }
     
     ///////////////////////////////////  TRUST ONLY FUNCTIONS ///////////////////////////////////////////
     function trustVerifyAnchor(address _anchor)
         public
-        onlyModifier() 
+        onlyTrust() 
     {
         verifiedAnchor[_anchor] = block.timestamp;
+        emit TrustVerifyAnchor(_anchor);
     }
     
     function trustVerifySupplier(address _supplier)
         public
-        onlyModifier() 
+        onlyTrust() 
     {
         verifiedSupplier[_supplier] = block.timestamp;
+        emit TrustVerifySupplier(_supplier);
     }
 
     ///////////////////////////////////  INVOICE UPDATE FUNCTIONS ///////////////////////////////////////////
@@ -321,6 +329,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         );
         invoiceCount = invoiceCount + 1;
         invoiceList.push(newInvoice);
+        emit UploadInvoice(invoiceCount - 1, _supplierAddr, _anchorAddr, _anchorName, _tolist);
     }
 
     function uploadPreSignedHash(
@@ -366,6 +375,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
             invoiceList[_invoiceId].invoiceTime,
             invoiceList[_invoiceId].dueDate
         );
+        emit CreateTokenFromInvoice(_invoiceId, tokenId);
     }
     
     ///////////////////////////////////  RESTORE FUNCTIONS ///////////////////////////////////////////
@@ -382,6 +392,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
             verifiedAnchor[_newAddress] = block.timestamp;
         }
         tempWhitelist.addWhitelist(_newAddress);
+        emit RestoreAccount(_originAddress, _newAddress);
     }
 
     function _msgSender()

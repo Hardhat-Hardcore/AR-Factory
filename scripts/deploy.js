@@ -1,4 +1,4 @@
-const { ethers, upgrades } = require("hardhat");
+const { ethers, upgrades } = require('hardhat')
 require('dotenv').config()
 
 const relayHubAddress = process.env.RELAYHUB
@@ -8,26 +8,26 @@ async function main () {
   const [admin] = await ethers.getSigners()
 
   const whitelistF = await ethers.getContractFactory('Whitelist', admin)
-  whitelist = await whitelistF.deploy(admin.address)
+  let whitelist = await whitelistF.deploy(admin.address)
   await whitelist.deployed()
   await whitelist.setRelayHub(relayHubAddress)
   await whitelist.setTrustedForwarder(forwarderAddress)
 
   const tokenF = await ethers.getContractFactory('TokenFactory', admin)
-  tokenFactory = await tokenF.deploy(forwarderAddress)
+  let tokenFactory = await tokenF.deploy(forwarderAddress)
   await tokenFactory.deployed()
 
   const initData = [3, admin.address , forwarderAddress]
   const invoiceF = await ethers.getContractFactory('InvoiceFactoryUpgrade', admin)
   //invoiceFactory = await invoiceF.deploy(3, admin.address, forwarderAddress)
-  invoiceFactory = await upgrades.deployProxy(
-      invoiceF,
-      initData,
-      { initializer: '__initialize'}
+  let invoiceFactory = await upgrades.deployProxy(
+    invoiceF,
+    initData,
+    { initializer: '__initialize'}
   )
   await invoiceFactory.deployed()
 
-/*  const tokenFM = await ethers.getContractFactory('TokenFactoryMock', admin)
+  /*  const tokenFM = await ethers.getContractFactory('TokenFactoryMock', admin)
   tokenFactory = await tokenFM.deploy(forwarderAddress)
   await tokenFactory.deployed()
 
@@ -42,9 +42,9 @@ async function main () {
   })
   await tx.wait(1)
 
-  console.log("Whitelist address: ", whitelist.address) 
-  console.log("TokenFactory address: ", tokenFactory.address)
-  console.log("InvoiceFactory proxy address: ", invoiceFactory.address)
+  console.log('Whitelist address: ', whitelist.address) 
+  console.log('TokenFactory address: ', tokenFactory.address)
+  console.log('InvoiceFactory proxy address: ', invoiceFactory.address)
   //console.log("TokenFactoryMock address: ", tokenFM.address)
   //console.log("InvoiceFacotryMock address ", invoiceFM.address)
 }
@@ -52,6 +52,6 @@ async function main () {
 main()
   .then(() => process.exit(0))
   .catch(error => {
-    console.error(error);
-    process.exit(1);
+    console.error(error)
+    process.exit(1)
   })
