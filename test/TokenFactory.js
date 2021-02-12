@@ -604,13 +604,6 @@ describe('TokenFactory', () => {
     })
   })
 
-  describe('createERC20Adapter()', () => {
-    beforeEach(async () => {
-      await tokenFactory[createToken](
-        100, owner.address, operator.address, false, false
-      )
-    })
-
   describe("setERC20Attribute", () => {
     it("should revert if try to create erc20 adapter not by setting operator", async () => {
       const tokenId = 0

@@ -86,5 +86,96 @@ describe('ERC1155ERC721WithAdapter', () => {
     const tx = erc20.initialize(tokenId)
     await expect(tx).to.be.revertedWith('Already initialized')
   })
+
+  describe("when there is no erc20 adapter", () => {
+    const ftId = 0
+    const nftId = IS_NFT.add(1)
+    beforeEach(async () => {
+      await tokenFactory[createToken](100, owner.address, operator.address, false, false)
+      await tokenFactory[createToken](1, owner.address, operator.address, false, false)
+    })
+
+    describe("transfer through erc1155", () => {
+      it("does not emit erc20 Transfer", async () => {
+        const tx = tokenFactory[safeTransferFromERC1155](
+          owner.address, receiver.address, ftId, 10, []
+        )
+        
+        const adapter = await tokenFactory.getAdapter(ftId)
+        const erc20 = await ethers.getContractAt("ERC20Adapter", adapter)
+        await expect(tx).not.to.emit(erc20, "Transfer")
+      })
+    })
+
+    describe("transfer through erc721", () => {
+      it("does not emit erc20 Transfer", async () => {
+        const tx = tokenFactory[safeTransferFromERC721](
+          owner.address, receiver.address, nftId, []
+        )
+        
+        const adapter = await tokenFactory.getAdapter(nftId)
+        const erc20 = await ethers.getContractAt("ERC20Adapter", adapter)
+        await expect(tx).not.to.emit(erc20, "Transfer")
+      })
+    })
+  })
+
+  describe("when there is a erc20 adapter", () => {
+    const ftId = 0
+    const nftId = IS_NFT.add(1)
+    beforeEach(async () => {
+      await tokenFactory[createToken](100, owner.address, operator.address, false, true)
+      await tokenFactory[createToken](1, owner.address, operator.address, false, true)
+    })
+
+    describe("transfer through erc1155", () => {
+      it("emits an erc20 transfer event", async () => {
+        const tx = tokenFactory[safeTransferFromERC1155](
+          owner.address, receiver.address, ftId, 10, []
+        )
+        
+        const adapter = await tokenFactory.getAdapter(ftId)
+        const erc20 = await ethers.getContractAt("ERC20Adapter", adapter)
+        await expect(tx).to.emit(erc20, "Transfer")
+          .withArgs(owner.address, receiver.address, 10)
+      })
+
+      it("changes the erc20 balance", async () => {
+        await tokenFactory[safeTransferFromERC1155](
+          owner.address, receiver.address, ftId, 10, []
+        )
+        
+        const adapter = await tokenFactory.getAdapter(ftId)
+        const erc20 = await ethers.getContractAt("ERC20Adapter", adapter)
+
+        expect(await erc20.balanceOf(owner.address)).to.be.equal(90)
+        expect(await erc20.balanceOf(receiver.address)).to.be.equal(10)
+      })
+    })
+    describe("transfer through erc721", () => {
+      it("emits erc20 Transfer", async () => {
+        const tx = tokenFactory[safeTransferFromERC721](
+          owner.address, receiver.address, nftId, []
+        )
+        
+        const adapter = await tokenFactory.getAdapter(nftId)
+        const erc20 = await ethers.getContractAt("ERC20Adapter", adapter)
+        await expect(tx).to.emit(erc20, "Transfer")
+          .withArgs(owner.address, receiver.address, 1)
+      })
+
+      it("changes the erc20 balance", async () => {
+        await tokenFactory[safeTransferFromERC721](
+          owner.address, receiver.address, nftId, []
+        )
+        
+        const adapter = await tokenFactory.getAdapter(nftId)
+        const erc20 = await ethers.getContractAt("ERC20Adapter", adapter)
+
+        expect(await erc20.balanceOf(owner.address)).to.be.equal(0)
+        expect(await erc20.balanceOf(receiver.address)).to.be.equal(1)
+      })
+    })
+  })
 })
 
