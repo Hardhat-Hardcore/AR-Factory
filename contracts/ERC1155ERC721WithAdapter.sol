@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.0;
 
-import "./interfaces/IERC20.sol";
+import "./interfaces/IERC20Adapter.sol";
 import "./libraries/utils/Address.sol";
 import "./ERC1155ERC721.sol";
 
@@ -60,6 +60,23 @@ contract ERC1155ERC721WithAdapter is
         }
     }
 
+    function _transferFrom(
+        address _from,
+        address _to,
+        uint256 _tokenId,
+        uint256 _value
+    )
+        internal
+        virtual
+        override
+    {
+        super._transferFrom(_from, _to, _tokenId, _value);
+        address adapter = _adapters[_tokenId];
+        if (adapter != address(0))
+            ERC20Adapter(adapter).emitTransfer(_from, _to, _value);
+    }
+
+
     function _setERC20Attribute(
         uint256 _tokenId,
         string memory _name,
@@ -96,7 +113,7 @@ contract ERC1155ERC721WithAdapter is
     }
 }
 
-contract ERC20Adapter is IERC20 {
+contract ERC20Adapter is IERC20Adapter {
     mapping(address => mapping(address => uint256)) private _allowances;
 
     string public name;
@@ -163,8 +180,9 @@ contract ERC20Adapter is IERC20 {
         override
         returns (bool)
     {
-       _approve(msg.sender, _spender, _value); 
-       return true;
+        require(_spender != address(0), "Approve to zero address"); 
+        _approve(msg.sender, _spender, _value); 
+        return true;
     }
 
     function transferFrom(
@@ -176,9 +194,11 @@ contract ERC20Adapter is IERC20 {
         override
         returns (bool)
     {
-        _approve(_from, msg.sender, _allowances[_from][msg.sender] - _value); _transfer(_from, _to, _value);
+        _approve(_from, msg.sender, _allowances[_from][msg.sender] - _value);
+        _transfer(_from, _to, _value);
         return true;
     }
+
 
     function transfer(
         address _to,
@@ -188,10 +208,24 @@ contract ERC20Adapter is IERC20 {
         override
         returns (bool)
     {
+        require(_to != address(0), "_to must be non-zero");
         _transfer(msg.sender, _to, _value);
         return true;
     }
 
+    function emitTransfer(
+        address _from,
+        address _to,
+        uint256 _value
+    )
+        external
+        override
+    {
+        require(msg.sender == address(entity), "Not entity");
+
+        emit Transfer(_from, _to, _value);
+    }
+    
     function _approve(
         address _owner,
         address _spender,

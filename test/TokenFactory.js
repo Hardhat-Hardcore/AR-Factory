@@ -611,13 +611,13 @@ describe('TokenFactory', () => {
       )
     })
 
-    it('should revert if try to create erc20 adapter not by setting operator', async () => {
+  describe("setERC20Attribute", () => {
+    it("should revert if try to create erc20 adapter not by setting operator", async () => {
       const tokenId = 0
       await tokenFactory[createToken](100, owner.address, operator.address, false, true)
       const tx = tokenFactory.setERC20Attribute(tokenId, NAME, SYMBOL, DECIMALS)
 
       await expect(tx).to.be.revertedWith('Not authorized')
     })
-
   })
 })

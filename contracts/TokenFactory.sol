@@ -159,6 +159,18 @@ contract TokenFactory is
         _setERC20Attribute(_tokenId, _name, _symbol, _decimals);
     }
 
+    function _transferFrom(
+        address _from,
+        address _to,
+        uint256 _tokenId,
+        uint256 _value
+    )
+        internal
+        override(ERC1155ERC721, ERC1155ERC721WithAdapter)
+    {
+        super._transferFrom(_from, _to, _tokenId, _value);
+    }
+
     function versionRecipient()
         external
         override
