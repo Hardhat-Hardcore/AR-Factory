@@ -38,7 +38,7 @@ describe('ERC1155ERC721WithAdapter', () => {
   })
 
   it('should be able to create erc20 adapter', async () => {
-    const tokenId = 0
+    const tokenId = 1
     const addr = await utils.getNextContractAddress(tokenFactory.address)
     const tx = tokenFactory[createToken](100, owner.address, operator.address, false, true)
 
@@ -48,7 +48,7 @@ describe('ERC1155ERC721WithAdapter', () => {
   })
 
   it('erc20 adapter should have correct attributes', async () => {
-    const tokenId = 0
+    const tokenId = 1
     const addr = await utils.getNextContractAddress(tokenFactory.address)
     await tokenFactory[createToken](100, owner.address, operator.address, false, true)
     await tokenFactory.connect(operator).setERC20Attribute(
@@ -76,7 +76,7 @@ describe('ERC1155ERC721WithAdapter', () => {
   })
 
   it('should revert if try to initialize erc20 adapter again', async () => {
-    const tokenId = 0
+    const tokenId = 1
     const addr = await utils.getNextContractAddress(tokenFactory.address)
     await tokenFactory[createToken](100, owner.address, operator.address, false, true)
     await tokenFactory.connect(operator).setERC20Attribute(
@@ -88,8 +88,8 @@ describe('ERC1155ERC721WithAdapter', () => {
   })
 
   describe("when there is no erc20 adapter", () => {
-    const ftId = 0
-    const nftId = IS_NFT.add(1)
+    const ftId = 1
+    const nftId = IS_NFT.add(2)
     beforeEach(async () => {
       await tokenFactory[createToken](100, owner.address, operator.address, false, false)
       await tokenFactory[createToken](1, owner.address, operator.address, false, false)
@@ -121,8 +121,8 @@ describe('ERC1155ERC721WithAdapter', () => {
   })
 
   describe("when there is a erc20 adapter", () => {
-    const ftId = 0
-    const nftId = IS_NFT.add(1)
+    const ftId = 1
+    const nftId = IS_NFT.add(2)
     beforeEach(async () => {
       await tokenFactory[createToken](100, owner.address, operator.address, false, true)
       await tokenFactory[createToken](1, owner.address, operator.address, false, true)

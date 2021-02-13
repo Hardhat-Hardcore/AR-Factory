@@ -596,7 +596,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         internal
         returns (uint256)
     {
-        uint256 tokenId = idNonce++;
+        uint256 tokenId = ++idNonce;
         if (_needTime)
             tokenId |= NEED_TIME;
 

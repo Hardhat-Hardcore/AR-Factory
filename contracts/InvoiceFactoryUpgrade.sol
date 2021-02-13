@@ -118,7 +118,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     }
 
     function queryTokenId(uint256 _invoiceId) external view returns (uint256) {
-        require(invoiceIdToTokenId[_invoiceId] > 0, "No token found");
+        require(_invoiceIdToTokenId[_invoiceId] > 0, "No token found");
         return _invoiceIdToTokenId[_invoiceId];
     }
 
@@ -403,10 +403,10 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     {
         require(_invoiceList[_invoiceId].tokenId > 0, "No token found");
         tokenFactory.setTimeInterval(
-            __invoiceList[_invoiceId].tokenId,
+            _invoiceList[_invoiceId].tokenId,
             _startTime,
             _endTime
-        )
+        );
     }
     
     ///////////////////////////////////  RESTORE FUNCTIONS ///////////////////////////////////////////

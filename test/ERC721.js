@@ -43,7 +43,7 @@ describe('ERC721', () => {
 
     it('ownerOf() should return correct token owner address', async () => {
       await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
-      const tokenId = IS_NFT
+      const tokenId = IS_NFT.add(1)
       const tokenOwner = await tokenFactory.ownerOf(tokenId)
       expect(tokenOwner).to.be.eql(owner.address)
 
@@ -64,16 +64,17 @@ describe('ERC721', () => {
 
   describe('safeTransferFrom()', () => {
     let receiverContract
+    let tokenId
 
     beforeEach(async () => {
       await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
+      tokenId = IS_NFT.add(1)
       const ReceiverContract = await ethers.getContractFactory('ERC721ReceiverMock')
       receiverContract = await ReceiverContract.deploy()
       await receiverContract.deployed()
     })
 
     it('shoud update balance correctly', async () => {
-      const tokenId = IS_NFT
       await tokenFactory[safeTransferFrom](owner.address, receiver.address, tokenId, [])
       const ownerBalance = await tokenFactory[balanceOf](owner.address)
       const receiverBalance = await tokenFactory[balanceOf](receiver.address)
@@ -83,7 +84,6 @@ describe('ERC721', () => {
     })
 
     it('should update ownership correctly', async () => {
-      const tokenId = IS_NFT
       await tokenFactory[safeTransferFrom](owner.address, receiver.address, tokenId, [])
       const tokenOwner = await tokenFactory.ownerOf(tokenId)
       expect(tokenOwner).to.be.eql(receiver.address)
@@ -91,14 +91,12 @@ describe('ERC721', () => {
 
     it('should revert if _from is not token owner', async () => {
       const user = (await ethers.getSigners())[3]
-      const tokenId = IS_NFT
       const tx = tokenFactory[safeTransferFrom](user.address, receiver.address, tokenId, [])
       await expect(tx).to.be.revertedWith('Not authorized')
     })
 
     it('should revert if not authorized operator', async () => {
       const user = (await ethers.getSigners())[3]
-      const tokenId = IS_NFT
       const tx = tokenFactory.connect(user)[safeTransferFrom](owner.address, receiver.address, tokenId, [])
       await expect(tx).to.be.revertedWith('Not authorized')
     })
@@ -106,14 +104,12 @@ describe('ERC721', () => {
     it('should revert if _from is not token owner but sent by authorized operator', async () => {
       const user = (await ethers.getSigners())[3]
       await tokenFactory.connect(user).setApprovalForAll(operator.address, true)
-      const tokenId = IS_NFT
       const tx = tokenFactory.connect(operator)[safeTransferFrom](user.address, receiver.address, tokenId, [])
       await expect(tx).to.be.revertedWith('Not owner or it\'s not nft')
     })
 
     it('should be able to transfer if is auhtorized operator', async () => {
       await tokenFactory.setApprovalForAll(operator.address, true)
-      const tokenId = IS_NFT
       const tx = tokenFactory.connect(operator)[safeTransferFrom](owner.address, receiver.address, tokenId, [])
       await expect(tx).to.be.fulfilled
 
@@ -126,13 +122,11 @@ describe('ERC721', () => {
     })
 
     it('should revert if _to is not a receiver contract', async () => {
-      const tokenId = IS_NFT
       const tx = tokenFactory[safeTransferFrom](owner.address, tokenFactory.address, tokenId, [])
       expect(tx).to.be.reverted
     })
 
     it('should be able to transfer if _to is a receiver contract', async () => {
-      const tokenId = IS_NFT
       const tx = tokenFactory[safeTransferFrom](owner.address, receiverContract.address, tokenId, [])
       await expect(tx).to.be.fulfilled
 
@@ -145,14 +139,12 @@ describe('ERC721', () => {
     })
 
     it('should revert if receiver contract reject', async () => {
-      const tokenId = IS_NFT
       await receiverContract.setShouldReject(true)
       const tx = tokenFactory[safeTransferFrom](owner.address, receiverContract.address, tokenId, [])
       await expect(tx).to.be.revertedWith('Transfer rejected')
     })
 
     it('should be able to transfer to receiver contract with data', async () => {
-      const tokenId = IS_NFT
       const rejectData = ethers.utils.toUtf8Bytes('Hello')
       const rejectTx = tokenFactory[safeTransferFrom](owner.address, receiverContract.address, tokenId, rejectData)
       await expect(rejectTx).to.be.reverted
@@ -163,7 +155,6 @@ describe('ERC721', () => {
     })
 
     it('should have balances and ownership updated before external call', async () => {
-      const tokenId = IS_NFT
       const ownerBalance = await tokenFactory[balanceOf](owner.address)
       const receiverBalance = await tokenFactory[balanceOf](receiver.address)
       const filter = receiverContract.filters.TransferReceiver()
@@ -179,7 +170,6 @@ describe('ERC721', () => {
     })
 
     it('should emit Transfer event', async () => {
-      const tokenId = IS_NFT
       const filter = tokenFactory.filters.Transfer()
       const tx = await tokenFactory[safeTransferFrom](owner.address, receiver.address, tokenId, [])
       const events = await tokenFactory.queryFilter(filter, tx.blockNumber)
@@ -187,11 +177,10 @@ describe('ERC721', () => {
       expect(events.length).to.be.eql(1)
       expect(events[0].args._from).to.be.eql(owner.address)
       expect(events[0].args._to).be.to.eql(receiver.address)
-      expect(events[0].args._tokenId).to.be.eql(IS_NFT)
+      expect(events[0].args._tokenId).to.be.eql(tokenId)
     })
 
     it('should reset nft operator after a transfer', async () => {
-      const tokenId = IS_NFT
       await tokenFactory.approve(operator.address, tokenId)
       await tokenFactory[safeTransferFrom](owner.address, receiver.address, tokenId, [])
 
@@ -200,8 +189,9 @@ describe('ERC721', () => {
     })
 
     it('should be able to transfer without data', async () => {
-      const tokenId = IS_NFT
-      const tx = tokenFactory['safeTransferFrom(address,address,uint256)'](owner.address, receiver.address, IS_NFT)
+      const tx = tokenFactory['safeTransferFrom(address,address,uint256)'](
+        owner.address, receiver.address, tokenId
+      )
 
       await expect(tx).to.be.fulfilled
     })
@@ -209,16 +199,17 @@ describe('ERC721', () => {
 
   describe('transferFrom()', () => {
     let receiverContract
+    let tokenId
 
     beforeEach(async () => {
       await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
+      tokenId = IS_NFT.add(1)
       const ReceiverContract = await ethers.getContractFactory('ERC721ReceiverMock')
       receiverContract = await ReceiverContract.deploy()
       await receiverContract.deployed()
     })
     
     it('should be able to transfer with balances updated', async () => {
-      const tokenId = IS_NFT
       const tx = tokenFactory.transferFrom(owner.address, receiver.address, tokenId)
       
       await expect(tx).to.be.fulfilled
@@ -230,7 +221,6 @@ describe('ERC721', () => {
     })
 
     it('should not call receiver contract\'s onReceived function', async () => {
-      const tokenId = IS_NFT
       const tx = tokenFactory.transferFrom(owner.address, receiverContract.address, tokenId)
       
       await expect(tx).not.to.emit(receiverContract, 'TransferReceiver')
@@ -238,12 +228,14 @@ describe('ERC721', () => {
   })
 
   describe('approve()', () => {
+    let tokenId
+
     beforeEach(async () => {
       await tokenFactory[createToken](1, owner.address, ZERO_ADDRESS, false, false)
+      tokenId = IS_NFT.add(1)
     })
 
     it('should update token\'s approved operator', async () => {
-      const tokenId = IS_NFT
       const defaultOperator = await tokenFactory.getApproved(tokenId)
       expect(defaultOperator).to.be.eql(ZERO_ADDRESS)
 
@@ -253,7 +245,6 @@ describe('ERC721', () => {
     })
 
     it('should revert if not sent by token owner or authorized operator', async () => {
-      const tokenId = IS_NFT
       const notAuthorizedTx = tokenFactory.connect(receiver).approve(operator.address, tokenId)
       await expect(notAuthorizedTx).to.be.revertedWith('Not authorized or not a nft')
 
@@ -268,7 +259,6 @@ describe('ERC721', () => {
     })
 
     it('should emit Approval event', async () => {
-      const tokenId = IS_NFT
       const tx = tokenFactory.approve(operator.address, tokenId)
       await expect(tx).to.emit(tokenFactory, 'Approval')
         .withArgs(owner.address, operator.address, tokenId)

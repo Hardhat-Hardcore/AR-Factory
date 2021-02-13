@@ -13,9 +13,17 @@ contract InvoiceFactoryMock is InvoiceFactoryUpgrade {
 
     constructor(
         address _trustAddress,
-        address _trustedForwarder
+        address _trustedForwarder,
+        address _tokenFactory,
+        address _whitelist
     ) {
-       InvoiceFactoryUpgrade.__initialize(3, _trustAddress, _trustedForwarder); 
+       InvoiceFactoryUpgrade.__initialize(
+           3,
+           _trustAddress,
+           _trustedForwarder,
+           _tokenFactory,
+           _whitelist 
+       );
     }
 
     function msgSender() external returns (address payable) {

@@ -54,21 +54,21 @@ describe('ERC1155ERC721Metadata', () => {
 
     it('should revert if not a nft', async () => {
       await tokenFactory[createToken](100, owner.address, operator.address, false, false)
-      const tokenId = 0
+      const tokenId = 1
       const tx = tokenFactory.tokenURI(tokenId)
       await expect(tx).to.be.revertedWith('Nft not exist')
     })
 
     it('should return empty string if metadata is not set', async () => {
       await tokenFactory[createToken](1, owner.address, operator.address, false, false)
-      const tokenId = IS_NFT
+      const tokenId = IS_NFT.add(1)
       const uri = await tokenFactory.tokenURI(tokenId)
       await expect(uri).to.be.eql('')
     })
 
     it('should return correct uri if metadata is set through createToken', async () => {
       await tokenFactory[createTokenURI](1, owner.address, operator.address, false, URI, false)
-      const tokenId = IS_NFT
+      const tokenId = IS_NFT.add(1)
       const uri = await tokenFactory.tokenURI(tokenId)
       await expect(uri).to.be.eql(URI)
     })
@@ -76,7 +76,7 @@ describe('ERC1155ERC721Metadata', () => {
     it('should return correct uri if metadata is set through createTokenWithRecording', async () => {
       await tokenFactory[createTokenWithRecordingURI](
         1, owner.address, operator.address, false, owner.address, URI, false)
-      const tokenId = IS_NFT
+      const tokenId = IS_NFT.add(1)
       const uri = await tokenFactory.tokenURI(tokenId)
       await expect(uri).to.be.eql(URI)
     })
@@ -84,8 +84,8 @@ describe('ERC1155ERC721Metadata', () => {
 
   describe('ERC1155 Metadata', () => {
     it('should return empty string if metadata is not set', async () => {
-      const ftId = 0
-      const nftId = IS_NFT.add(1)
+      const ftId = 1
+      const nftId = IS_NFT.add(2)
       await tokenFactory[createToken](100, owner.address, operator.address, false, false)
       await tokenFactory[createToken](1, owner.address, operator.address, false, false)
       const ftURI = await tokenFactory.uri(ftId)
@@ -95,8 +95,8 @@ describe('ERC1155ERC721Metadata', () => {
     })
 
     it('should return correct uri if metadata is set through createToken', async () => {
-      const ftId = 0
-      const nftId = IS_NFT.add(1)
+      const ftId = 1
+      const nftId = IS_NFT.add(2)
       await tokenFactory[createTokenURI](100, owner.address, operator.address, false, URI, false)
       await tokenFactory[createTokenURI](1, owner.address, operator.address, false, URI, false)
       const ftURI = await tokenFactory.uri(ftId)
@@ -106,8 +106,8 @@ describe('ERC1155ERC721Metadata', () => {
     })
     
     it('should return correct uri if metadata is set through createTokenWithRecording', async () => {
-      const ftId = 0
-      const nftId = IS_NFT.add(1)
+      const ftId = 1
+      const nftId = IS_NFT.add(2)
       await tokenFactory[createTokenWithRecordingURI](
         100, owner.address, operator.address, false, owner.address, URI, false)
       await tokenFactory[createTokenWithRecordingURI](
