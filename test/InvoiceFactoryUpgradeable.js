@@ -10,9 +10,8 @@ chai.use(ChaiAsPromised)
 describe('InvoiceFactoryUpgrade', () => {
 
   let admin, trust, trust2, user1, user2, user3, trustF
-  let whitelist
-  let Whitelist
-  let tokenFactory
+  let whitelist, Whitelist
+  let tokenFactory, TokenFactory
   let invoiceFactoryUpgrade 
 
   beforeEach(async () => {
@@ -23,11 +22,11 @@ describe('InvoiceFactoryUpgrade', () => {
     whitelist = await Whitelist.deploy(trust.address)
     await whitelist.deployed()
 
-    const TokenFactory = await ethers.getContractFactory('TokenFactory')
-    tokenFactory = await TokenFactory.deploy(user2.address)
+    TokenFactory = await ethers.getContractFactory('TokenFactory')
+    tokenFactory = await TokenFactory.deploy(trustF.address)
     await tokenFactory.deployed()
 
-    const initData = [3, trust.address, trustF.address]
+    const initData = [3, trust.address, trustF.address, tokenFactory.address, whitelist.address]
     const InvoiceFactoryUpgrade = await ethers.getContractFactory('InvoiceFactoryUpgrade')
     invoiceFactoryUpgrade = await upgrades.deployProxy(
       InvoiceFactoryUpgrade,
@@ -46,7 +45,7 @@ describe('InvoiceFactoryUpgrade', () => {
     })
 
     it('Should not be able to initialize more than once', async () => { 
-      const tx = invoiceFactoryUpgrade.__initialize(3, trust2.address, trustF.address)
+      const tx = invoiceFactoryUpgrade.__initialize(3, trust2.address, trustF.address, tokenFactory.address, whitelist.address)
       await expect(tx).to.be.revertedWith('Initializable: contract is already initialized')
     })
 
@@ -141,18 +140,18 @@ describe('InvoiceFactoryUpgrade', () => {
         )
       })
 
-      /*it.only("queryInvoiceId() should return correct invoiceId", async () => {
-                const ret = await invoiceFactoryUpgrade.queryInvoiceId(0)
-                expect(ret).to.be.eql(0)
-            })
+      it("queryInvoiceId() should return correct invoiceId", async () => {
+        const ret = await invoiceFactoryUpgrade.queryInvoiceId(0)
+        expect(ret).to.be.eql(BigNumber.from(0))
+      })
         
-            it.only("queryTokenId() should return correct invoiceId", async () => { 
-                const ret = await invoiceFactoryUpgrade.queryInvoiceId(0)
-                expect(ret).to.be.eql(BigNumber.from(0))
-            })*/
+      it("queryTokenId() should return correct invoiceId", async () => { 
+        const ret = await invoiceFactoryUpgrade.queryInvoiceId(0)
+        expect(ret).to.be.eql(BigNumber.from(0))
+      })
 
-      it('queryInvoiceInform() should return correct invoiceId', async () => {
-        const ret = await invoiceFactoryUpgrade.queryInvoiceInform(0)
+      it('queryInvoice() should return correct invoiceId', async () => {
+        const ret = await invoiceFactoryUpgrade.queryInvoice(0)
         expect(ret[4]).to.be.eql(EthUtils.formatBytes32String('Invoice pdf hash'))
         expect(ret[5]).to.be.eql(EthUtils.formatBytes32String('Invoice number hash'))
         expect(ret[6]).to.be.eql(EthUtils.formatBytes32String('anchor'))
@@ -229,19 +228,21 @@ describe('InvoiceFactoryUpgrade', () => {
     })
 
     it('updateTokenFactory should be able to update address to a new ITokenFactory', async () => {
-      let curUpdateTokenFactory = await invoiceFactoryUpgrade.tempTokenFactory()
-      expect(curUpdateTokenFactory).to.be.eql('0x0000000000000000000000000000000000000000')
-      await invoiceFactoryUpgrade.updateTokenFactory(tokenFactory.address)
-      let nxtTokenFactoryAddress = await invoiceFactoryUpgrade.tempTokenFactory()
-      expect(nxtTokenFactoryAddress).to.be.eql(tokenFactory.address)
+      let curUpdateTokenFactory = await invoiceFactoryUpgrade.tokenFactory()
+      expect(curUpdateTokenFactory).to.be.eql(tokenFactory.address)
+      const newTokenFactory = await TokenFactory.deploy(user2.address)
+      await invoiceFactoryUpgrade.updateTokenFactory(newTokenFactory.address)
+      let nxtTokenFactoryAddress = await invoiceFactoryUpgrade.tokenFactory()
+      expect(nxtTokenFactoryAddress).to.be.eql(newTokenFactory.address)
     })
 
     it('updateWhitelist() should be able to update address to a new IWhitelist', async () => {
-      let curWhitelistAddress = await invoiceFactoryUpgrade.tempWhitelist()
-      expect(curWhitelistAddress).to.be.eql('0x0000000000000000000000000000000000000000')
-      await invoiceFactoryUpgrade.updateWhitelist(whitelist.address)
-      let nxtWhitelistAddress = await invoiceFactoryUpgrade.tempWhitelist()
-      expect(nxtWhitelistAddress).to.be.eql(whitelist.address)
+      let curWhitelistAddress = await invoiceFactoryUpgrade.whitelist()
+      expect(curWhitelistAddress).to.be.eql(whitelist.address)
+      const newWhitelist = await Whitelist.deploy(user2.address)
+      await invoiceFactoryUpgrade.updateWhitelist(newWhitelist.address)
+      let nxtWhitelistAddress = await invoiceFactoryUpgrade.whitelist()
+      expect(nxtWhitelistAddress).to.be.eql(newWhitelist.address)
     })
 
   })
@@ -256,7 +257,7 @@ describe('InvoiceFactoryUpgrade', () => {
 
     it('should check if whitelist was initialized.', async () => {
       const tx1 = invoiceFactoryUpgrade.enrollAnchor(user2.address)
-      expect(tx1).to.be.revertedWith('Whitelist not initialized yet.')
+      expect(tx1).to.be.revertedWith('Restricted to admins.')
       await invoiceFactoryUpgrade.updateWhitelist(whitelist.address)
       await whitelist.addAdmin(invoiceFactoryUpgrade.address)
       const tx2 = invoiceFactoryUpgrade.enrollAnchor(user2.address)
@@ -268,7 +269,7 @@ describe('InvoiceFactoryUpgrade', () => {
       await whitelist.addAdmin(invoiceFactoryUpgrade.address)
       await invoiceFactoryUpgrade.enrollAnchor(user2.address)
       const tx2 = invoiceFactoryUpgrade.enrollAnchor(user2.address)
-      expect(tx2).to.be.revertedWith('Duplicated enroll on anchor')
+      expect(tx2).to.be.revertedWith('Duplicated enrollment')
     })
 
     it('should add into if the user hasn\'t been add into whitelist.', async () => {
@@ -299,7 +300,7 @@ describe('InvoiceFactoryUpgrade', () => {
 
     it('should check if whitelist was initialized.', async () => {
       const tx1 = invoiceFactoryUpgrade.enrollSupplier(user2.address)
-      expect(tx1).to.be.revertedWith('Whitelist not initialized yet.')
+      expect(tx1).to.be.revertedWith('Restricted to admins.')
       await invoiceFactoryUpgrade.updateWhitelist(whitelist.address)
       await whitelist.addAdmin(invoiceFactoryUpgrade.address)
       const tx2 = invoiceFactoryUpgrade.enrollSupplier(user2.address)
@@ -311,7 +312,7 @@ describe('InvoiceFactoryUpgrade', () => {
       await whitelist.addAdmin(invoiceFactoryUpgrade.address)
       await invoiceFactoryUpgrade.enrollSupplier(user2.address)
       const tx2 = invoiceFactoryUpgrade.enrollSupplier(user2.address)
-      expect(tx2).to.be.revertedWith('Duplicated enroll on supplier')
+      expect(tx2).to.be.revertedWith('Duplicated enrollment')
     })
 
     it('should add into if the user hasn\'t been add into whitelist.', async () => {
@@ -367,7 +368,7 @@ describe('InvoiceFactoryUpgrade', () => {
 
     it('should not be able to restore if the address isn\'t ernoll to anything.', async () => {
       const ret = invoiceFactoryUpgrade.restoreAccount(user3.address, admin.address)
-      await expect(ret).to.be.revertedWith('You hadn\'t enroll yet')
+      await expect(ret).to.be.revertedWith('Not enrolled yet')
     })
 
     it('should be able to restore account if the address had been enroll in anchor.', async () => {
@@ -576,12 +577,12 @@ describe('InvoiceFactoryUpgrade', () => {
     })
 
     it('should not be execute if anchor wasn\'t verified.', async () => {
-      const ret = invoiceFactoryUpgrade.connect(user3).anchorVerify(0)
+      const ret = invoiceFactoryUpgrade.connect(user3).anchorVerifyInvoice(0)
       expect(ret).to.be.revertedWith('Restricted to anchors.')
     })
 
     it('should be able to execute correctly.', async () => {
-      const ret = invoiceFactoryUpgrade.connect(user1).anchorVerify(0)
+      const ret = invoiceFactoryUpgrade.connect(user1).anchorVerifyInvoice(0)
       expect(ret).to.be.fulfilled
     })
   })
@@ -631,14 +632,14 @@ describe('InvoiceFactoryUpgrade', () => {
     })
 
     it('should revert if it already been tranfer to token.', async () => {
-      await invoiceFactoryUpgrade.connect(user1).anchorVerify(0)
+      await invoiceFactoryUpgrade.connect(user1).anchorVerifyInvoice(0)
       await invoiceFactoryUpgrade.invoiceToToken(0)
       const ret = invoiceFactoryUpgrade.invoiceToToken(0)
       expect(ret).to.be.revertedWith('Token already created')
     })
 
     it('should be able fullfill', async () => {
-      await invoiceFactoryUpgrade.connect(user1).anchorVerify(0)
+      await invoiceFactoryUpgrade.connect(user1).anchorVerifyInvoice(0)
       const ret = invoiceFactoryUpgrade.invoiceToToken(0)
       expect(ret).to.be.fulfilled
     })
@@ -689,7 +690,7 @@ describe('InvoiceFactoryUpgrade', () => {
         sigEJS
       )
       // anchor verify invoice
-      await invoiceFactoryUpgrade.connect(user1).anchorVerify(0)
+      await invoiceFactoryUpgrade.connect(user1).anchorVerifyInvoice(0)
       await invoiceFactoryUpgrade.invoiceToToken(0) 
     })
 
