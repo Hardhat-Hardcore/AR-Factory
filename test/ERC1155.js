@@ -1,7 +1,6 @@
 const { ethers } = require('hardhat')
 const chai = require('chai')
 const ChaiAsPromised = require('chai-as-promised')
-const utils = require('./utils')
 const BigNumber = ethers.BigNumber
 const expect = chai.expect
 
@@ -304,13 +303,18 @@ describe('ERC1155', () => {
       await expect(tx).to.be.revertedWith('BatchTransfer rejected')
     })
 
-    it('should be able to transfer with data is not null', async () => {
-      const data = ethers.utils.toUtf8Bytes('Hello from the other side')
-      const tx = tokenFactory.safeBatchTransferFrom(owner.address, receiverContract.address, tokenIds, values, data)
-      await expect(tx).to.be.fulfilled
+    it.only('should be able to transfer with data is not null', async () => {
       const wrongData = ethers.utils.toUtf8Bytes('Hello')
-      const revertTx = tokenFactory.safeBatchTransferFrom(owner.address, receiverContract.address, tokenIds, values, data)
+      const revertTx = tokenFactory.safeBatchTransferFrom(
+        owner.address, receiverContract.address, tokenIds, values, wrongData
+      )
       await expect(revertTx).to.be.reverted
+
+      const data = ethers.utils.toUtf8Bytes('Hello from the other side')
+      const tx = tokenFactory.safeBatchTransferFrom(
+        owner.address, receiverContract.address, tokenIds, values, data
+      )
+      await expect(tx).to.be.fulfilled
     })
 
     it('should have balances updated before external call', async () => {

@@ -22,7 +22,7 @@ module.exports = {
       },
       chainId: 1337
     },
-    bsc_testnet: {
+    bscTestnet: {
       url: 'https://data-seed-prebsc-2-s1.binance.org:8545',
       chainId: 97,
       gasPrice: 20000000000,

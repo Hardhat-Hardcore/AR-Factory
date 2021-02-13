@@ -92,22 +92,25 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         public
         initializer
     {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         trustAddress = _trustAddress;
         trustedForwarder = _trustedForwarder;
         decimals = _decimals;
         tokenFactory = ITokenFactory(_tokenFactory);
         whitelist = IWhitelist(_whitelist);
+        if (whitelist.inWhitelist(_msgSender()) == false)
+            whitelist.addWhitelist(_msgSender());
     }
 
     ///////////////////////////////////    EVENTS    //////////////////////////////////////////
     
-    event EnrollAnchor(address indexed _account);
-    event EnrollSupplier(address indexed _account);
-    event TrustVerifyAnchor(address indexed _account);
-    event TrustVerifySupplier(address indexed _account);
+    event EnrollAnchor(address indexed _anchor);
+    event EnrollSupplier(address indexed _supplier);
+    event EnrollAdmin(address indexed _admin);
+    event TrustVerifyAnchor(address indexed _anchor);
+    event TrustVerifySupplier(address indexed _supplier);
     event AnchorVerify(address indexed _anchor, uint256 indexed _invoiceId);
-    event UploadInvoice(uint256 indexed _invoiceId, address indexed _supplier, address indexed _anchor, bytes32 _anchorName, bool _tolist);
+    event UploadInvoice(uint256 indexed _invoiceId, address indexed _supplier, address indexed _anchor);
     event RestoreAccount(address indexed _originAddress, address indexed _newAddress);
     event CreateTokenFromInvoice(uint256 indexed _invoiceId, uint256 indexed _tokenId);
 
@@ -232,8 +235,21 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         grantRole(SUPPLIER_ROLE, _newSupplier);
         emit EnrollSupplier(_newSupplier);
     }
+
+    function enrollAdmin(address _newAdmin)
+        external
+        onlyAdmin
+    {
+        require(hasRole(DEFAULT_ADMIN_ROLE, _newAdmin) == false, "Duplicated enrollment");
+
+        if (whitelist.inWhitelist(_newAdmin) == false)
+            whitelist.addWhitelist(_newAdmin);
+        grantRole(DEFAULT_ADMIN_ROLE, _newAdmin);
+        emit EnrollAdmin(_newAdmin);
+    }
+
    
-    function anchorVerify(uint256 _invoiceId)
+    function anchorVerifyInvoice(uint256 _invoiceId)
         external
         onlyAnchor
         checkTrustVerified(_msgSender(), _invoiceList[_invoiceId].supplier)
@@ -337,7 +353,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         );
         invoiceCount = invoiceCount + 1;
         _invoiceList.push(newInvoice);
-        emit UploadInvoice(invoiceCount - 1, _supplierAddr, _anchorAddr, _anchorName, _tolist);
+        emit UploadInvoice(invoiceCount - 1, _supplierAddr, _anchorAddr);
     }
 
     function uploadPreSignedHash(
@@ -372,11 +388,11 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         );
     }
     
-    function invoiceToToken(uint _invoiceId)
+    function invoiceToToken(uint256 _invoiceId)
         external
         onlyAdmin
     {
-        require(_invoiceList[_invoiceId].anchorConfirmTime > 0, "Anchor hasn't confirm");
+        require(_invoiceList[_invoiceId].anchorConfirmTime > 0, "Anchor hasn't confirmed");
         require(_invoiceList[_invoiceId].tokenId == 0, "Token already created");
 
         uint256 tokenId = tokenFactory.createTokenWithRecording(
@@ -388,6 +404,8 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
             false
         );
 
+        _invoiceIdToTokenId[_invoiceId] = tokenId;
+        _tokenIdToInvoiceId[tokenId] = _invoiceId;
         _invoiceList[_invoiceId].tokenId = tokenId;
 
         emit CreateTokenFromInvoice(_invoiceId, tokenId);
@@ -427,7 +445,8 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         if (_anchorVerified[_originAddress] > 0)
             _anchorVerified[_newAddress] = block.timestamp;
 
-        whitelist.addWhitelist(_newAddress);
+        if (whitelist.inWhitelist(_newAddress) == false)
+            whitelist.addWhitelist(_newAddress);
         emit RestoreAccount(_originAddress, _newAddress);
     }
 

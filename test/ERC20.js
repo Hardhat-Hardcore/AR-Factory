@@ -1,24 +1,24 @@
-const { ethers } = require("hardhat")
-const utils = require("./utils")
-const chai = require("chai")
-const ChaiAsPromised = require("chai-as-promised")
+const { ethers } = require('hardhat')
+const utils = require('./utils')
+const chai = require('chai')
+const ChaiAsPromised = require('chai-as-promised')
 const BigNumber = ethers.BigNumber
 const expect = chai.expect
 
 chai.use(ChaiAsPromised)
 
-describe("ERC20", () => {
-  const createToken = "createToken(uint256,address,address,bool,bool)"
-  const safeTransferFromERC1155 = "safeTransferFrom(address,address,uint256,uint256,bytes)"
-  const safeTransferFromERC721 = "safeTransferFrom(address,address,uint256,bytes)"
-  const balanceOfERC1155 = "balanceOf(address,uint256)"
-  const balanceOfERC721 = "balanceOf(address)"
+describe('ERC20', () => {
+  const createToken = 'createToken(uint256,address,address,bool,bool)'
+  const safeTransferFromERC1155 = 'safeTransferFrom(address,address,uint256,uint256,bytes)'
+  const safeTransferFromERC721 = 'safeTransferFrom(address,address,uint256,bytes)'
+  const balanceOfERC1155 = 'balanceOf(address,uint256)'
+  const balanceOfERC721 = 'balanceOf(address)'
 
   const IS_NFT = BigNumber.from(2).pow(255)
-  const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
-  const TRUST_FORWARDER = "0x0000000000000000000000000000000000000001"
-  const NAME = "TOKEN"
-  const SYMBOL = "TOKEN"
+  const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+  const TRUST_FORWARDER = '0x0000000000000000000000000000000000000001'
+  const NAME = 'TOKEN'
+  const SYMBOL = 'TOKEN'
   const DECIMALS = 3
 
   let owner, receiver, operator
@@ -27,92 +27,92 @@ describe("ERC20", () => {
 
   beforeEach(async () => {
     [owner, receiver, operator] = await ethers.getSigners()
-    const TokenFactory = await ethers.getContractFactory("TokenFactory")
+    const TokenFactory = await ethers.getContractFactory('TokenFactory')
     tokenFactory = await TokenFactory.deploy(TRUST_FORWARDER)
     await tokenFactory.deployed()
-    await tokenFactory[createToken](100, owner.address, operator.address, false, true);
-    await tokenFactory.connect(operator).setERC20Attribute(0, NAME, SYMBOL, DECIMALS);
-    let adapter = await tokenFactory.getAdapter(0)
-    erc20 = await ethers.getContractAt("ERC20Adapter", adapter)
+    await tokenFactory[createToken](100, owner.address, operator.address, false, true)
+    await tokenFactory.connect(operator).setERC20Attribute(1, NAME, SYMBOL, DECIMALS)
+    let adapter = await tokenFactory.getAdapter(1)
+    erc20 = await ethers.getContractAt('ERC20Adapter', adapter)
   })
 
-  describe("totalSupply", () => {
-    it("returns the total amount of tokens", async () => {
+  describe('totalSupply', () => {
+    it('returns the total amount of tokens', async () => {
       expect(await erc20.totalSupply()).to.be.equal(100)
     })
   })
 
-  describe("balanceOf", () => {
-    describe("when account has no token", () => {
-      it("returns zero", async () => {
+  describe('balanceOf', () => {
+    describe('when account has no token', () => {
+      it('returns zero', async () => {
         expect(await erc20.balanceOf(receiver.address)).to.be.equal(0)
       })
     })
 
-    describe("when account has token", () => {
-      it("returns initial amount", async () => {
+    describe('when account has token', () => {
+      it('returns initial amount', async () => {
         expect(await erc20.balanceOf(owner.address)).to.be.equal(100)
       })
     })
   })
 
-  describe("transfer", () => {
-    describe("when recipient is zero address", () => {
-      it("reverts", async () => {
+  describe('transfer', () => {
+    describe('when recipient is zero address', () => {
+      it('reverts', async () => {
         const tx = erc20.transfer(ZERO_ADDRESS, 1)
 
-        await expect(tx).to.be.revertedWith("_to must be non-zero")
+        await expect(tx).to.be.revertedWith('_to must be non-zero')
       })
     })
 
-    describe("when recipient is not zero address", () => {
-      describe("when sender does not have enough balance", () => {
+    describe('when recipient is not zero address', () => {
+      describe('when sender does not have enough balance', () => {
         const amount = 101
-        it("reverts", async () => {
+        it('reverts', async () => {
           const tx = erc20.transfer(receiver.address, amount)
 
           await expect(tx).to.be.reverted
         })
       })
 
-      describe("when sender have enough balance", () => {
+      describe('when sender have enough balance', () => {
         const amount = 10
-        it("transfers the requested amount", async () => {
+        it('transfers the requested amount', async () => {
           await erc20.transfer(receiver.address, amount)
 
           expect(await erc20.balanceOf(owner.address)).to.be.equal(90)
           expect(await erc20.balanceOf(receiver.address)).to.be.equal(10)
         })
 
-        it("emits a transfer event", async () => {
+        it('emits a transfer event', async () => {
           const tx = erc20.transfer(receiver.address, amount)
 
-          await expect(tx).to.emit(erc20, "Transfer")
+          await expect(tx).to.emit(erc20, 'Transfer')
             .withArgs(owner.address, receiver.address, amount)
         })
       })
     })
   })
 
-  describe("approve", () => {
-    describe("when spender is zero address", () => {
-      it("reverts", async () => {
+  describe('approve', () => {
+    describe('when spender is zero address', () => {
+      it('reverts', async () => {
         const tx = erc20.approve(ZERO_ADDRESS, 10)
 
-        await expect(tx).to.be.revertedWith("Approve to zero address")
+        await expect(tx).to.be.revertedWith('Approve to zero address')
       })
     })
 
-    describe("when spender is not zero address", () => {
-      it("emits an approval event", async () => {
+    describe('when spender is not zero address', () => {
+      it('emits an approval event', async () => {
         const tx = erc20.approve(operator.address, 10)
 
-        await expect(tx).to.emit(erc20, "Approval")
+        await expect(tx).to.emit(erc20, 'Approval')
           .withArgs(owner.address, operator.address, 10)
       })
 
-      describe("when there was no approved history before", () => {
-        it("approves the requested amount", async () => {
+      describe('when there was no approved history before', () => {
+        it('approves the requested amount', async () => {
           await erc20.approve(operator.address, 10)
           
           const allowance = await erc20.allowance(owner.address, operator.address)
@@ -120,12 +120,12 @@ describe("ERC20", () => {
         })
       })
 
-      describe("when spender had an approved history", () => {
+      describe('when spender had an approved history', () => {
         beforeEach(async () => {
           await erc20.approve(operator.address, 10)
         })
 
-        it("approves the requested amount and replaces the previous history", async () => {
+        it('approves the requested amount and replaces the previous history', async () => {
           await erc20.approve(operator.address, 20)
 
           const allowance = await erc20.allowance(owner.address, operator.address)
