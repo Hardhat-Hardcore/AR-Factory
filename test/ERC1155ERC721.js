@@ -38,7 +38,6 @@ describe('ERC1155ERC721', () => {
 
     it('should only return nft balance through erc721', async () => {
       await tokenFactory[createToken](2, owner.address, ZERO_ADDRESS, false, false)
-      const tokenId = 1
       const balance = await tokenFactory[balanceOfERC721](owner.address)
       expect(balance).to.be.eql(BigNumber.from(0))
     })

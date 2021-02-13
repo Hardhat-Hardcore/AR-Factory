@@ -376,7 +376,7 @@ describe('TokenFactory', () => {
         const ftTx = await tokenFactory[createToken](
           100, owner.address, operator.address, true, false
         )
-        const nftTx = await tokenFactory[createToken](
+        await tokenFactory[createToken](
           1, owner.address, operator.address, true, false
         )
         const ftId = NEED_TIME.add(1)
@@ -392,13 +392,13 @@ describe('TokenFactory', () => {
       })
 
       it('should revert if not a need time token', async () => {
-        const ftTx = await tokenFactory[createToken](
+        await tokenFactory[createToken](
           100, owner.address, operator.address, false, false)
-        const nftTx = await tokenFactory[createToken](
+        await tokenFactory[createToken](
           1, owner.address, operator.address, false, false
         )
-        const ftId = 0
-        const nftId = IS_NFT.add(1)
+        const ftId = 1
+        const nftId = IS_NFT.add(2)
 
         const ftHoldingTimeTx = tokenFactory.holdingTimeOf(owner.address, ftId)
         const nftHoldingTimeTx = tokenFactory.holdingTimeOf(owner.address, nftId)
@@ -418,8 +418,8 @@ describe('TokenFactory', () => {
         await tokenFactory[createToken](
           1, owner.address, operator.address, true, false
         )
-        const ftId = NEED_TIME
-        const nftId = IS_NFT.add(1).add(NEED_TIME)
+        const ftId = NEED_TIME.add(1)
+        const nftId = IS_NFT.add(2).add(NEED_TIME)
              
         const ftTime = await tokenFactory.holdingTimeOf(owner.address, ftId)
         const nftTime = await tokenFactory.holdingTimeOf(owner.address, nftId)

@@ -1,7 +1,6 @@
 const { ethers } = require('hardhat')
 const chai = require('chai')
 const ChaiAsPromised = require('chai-as-promised')
-const utils = require('./utils')
 const BigNumber = ethers.BigNumber
 const expect = chai.expect
 
@@ -14,7 +13,6 @@ describe('ERC721', () => {
 
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
   const TRUST_FORWARDER = '0x0000000000000000000000000000000000000001'
-  const MAX_VAL = BigNumber.from(2).pow(256).sub(1)
   const IS_NFT = BigNumber.from(2).pow(255)
 
   let tokenFactory

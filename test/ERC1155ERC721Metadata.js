@@ -9,8 +9,6 @@ chai.use(ChaiAsPromised)
 describe('ERC1155ERC721Metadata', () => {
   const createToken = 'createToken(uint256,address,address,bool,bool)'
   const createTokenURI = 'createToken(uint256,address,address,bool,string,bool)'
-  const createTokenWithRecording =
-    'createTokenWithRecording(uint256,address,address,bool,address,bool)'
   const createTokenWithRecordingURI = 
     'createTokenWithRecording(uint256,address,address,bool,address,string,bool)'
 
@@ -20,8 +18,11 @@ describe('ERC1155ERC721Metadata', () => {
   const SYMBOL = 'TOKEN'
   const URI = 'http://metadata.io/metadata.json'
 
+  let owner, operator
+  let tokenFactory
+
   beforeEach(async () => {
-    [owner, receiver, operator] = await ethers.getSigners()
+    [owner, operator] = await ethers.getSigners()
     const TokenFactory = await ethers.getContractFactory('TokenFactory')
     tokenFactory = await TokenFactory.deploy(TRUST_FORWARDER)
     await tokenFactory.deployed()

@@ -11,11 +11,8 @@ describe('ERC1155ERC721WithAdapter', () => {
   const createToken = 'createToken(uint256,address,address,bool,bool)'
   const safeTransferFromERC1155 = 'safeTransferFrom(address,address,uint256,uint256,bytes)'
   const safeTransferFromERC721 = 'safeTransferFrom(address,address,uint256,bytes)'
-  const balanceOfERC1155 = 'balanceOf(address,uint256)'
-  const balanceOfERC721 = 'balanceOf(address)'
 
   const IS_NFT = BigNumber.from(2).pow(255)
-  const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
   const TRUST_FORWARDER = '0x0000000000000000000000000000000000000001'
   const NAME = 'TOKEN'
   const SYMBOL = 'TOKEN'

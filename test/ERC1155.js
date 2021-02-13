@@ -318,11 +318,6 @@ describe('ERC1155', () => {
     })
 
     it('should have balances updated before external call', async () => {
-      const ownerAddresses = Array(tokenIds.length).fill(owner.address)
-      const receiverAddresses = Array(tokenIds.length).fill(receiverContract.address)
-      const ownerBalances = await tokenFactory.balanceOfBatch(ownerAddresses, tokenIds)
-      const receiverBalances = await tokenFactory.balanceOfBatch(receiverAddresses, tokenIds)
-
       const filter = receiverContract.filters.TransferBatchReceiver()
       await tokenFactory.safeBatchTransferFrom(owner.address, receiverContract.address, tokenIds, values, [])
       const events = await receiverContract.queryFilter(filter)
@@ -367,8 +362,10 @@ describe('ERC1155', () => {
   })
 
   describe('setApprovalForAll() function', () => {
+    let owner, operator
+
     beforeEach(async () => {
-      [owner, receiver, operator] = await ethers.getSigners()
+      [owner, operator] = await ethers.getSigners()
     })
 
     it('should emit ApprovalForAll event', async () => {
