@@ -70,45 +70,57 @@ describe('InvoiceFactoryUpgrade', () => {
       expect(ret).to.be.eql(false)
     })
         
-    // TODO: check if return value equal to timestamp
+    // TODO: check if return value equal to timestamp -> check
     it('queryAnchorVerified() should return true if the account is verified', async () => {
-      await invoiceFactoryUpgrade.connect(trust).trustVerifyAnchor(user1.address)
+      const tx = await invoiceFactoryUpgrade.connect(trust).trustVerifyAnchor(user1.address)
+      const blockNumber = (await tx.wait()).blockNumber
+      const timestamp = (await ethers.provider.getBlock(blockNumber)).timestamp
       const ret = await invoiceFactoryUpgrade.queryAnchorVerified(user1.address)
-      expect(ret).to.be.eql(true)
+      expect(ret).to.be.eql(BigNumber.from(timestamp))
     })
         
-    // TODO: check if return value equal to 0
+    // TODO: check if return value equal to 0 -> check
     it('queryAnchorVerified() should return false if the account is verified', async () => {
       const ret = await invoiceFactoryUpgrade.queryAnchorVerified(user1.address)
-      expect(ret).to.be.eql(false)
+      expect(ret).to.be.eql(BigNumber.from(0))
     })
 
-    // TODO: check if return value equal to timestamp
+    // TODO: check if return value equal to timestamp -> check
     it('querySupplierVerified() should return true if the account is verified', async () => {
-      await invoiceFactoryUpgrade.connect(trust).trustVerifySupplier(user1.address)
+      const tx = await invoiceFactoryUpgrade.connect(trust).trustVerifySupplier(user1.address)
+      const blockNumber = (await tx.wait()).blockNumber
+      const timestamp = (await ethers.provider.getBlock(blockNumber)).timestamp
       const ret = await invoiceFactoryUpgrade.querySupplierVerified(user1.address)
-      expect(ret).to.be.eql(true)
+      expect(ret).to.be.eql(BigNumber.from(timestamp))
     })
         
-    // TODO: check if return value equal to 0
+    // TODO: check if return value equal to 0 -> check
     it('queryAnchorVerified() should return false if the account is verified', async () => {
       const ret = await invoiceFactoryUpgrade.querySupplierVerified(user1.address)
-      expect(ret).to.be.eql(false)
+      expect(ret).to.be.eql(BigNumber.from(0))
     })
 
     // TODO: Rename describe
-    describe('This need lot to init', () => {
-      beforeEach(async () => { 
+    describe('Functions for Invoice information', () => {
+
+      let time
+      let invoiceTime
+      let dueTime
+      let anchorVerifyTime
+
+      beforeEach(async () => {
         await invoiceFactoryUpgrade.enrollAnchor(user1.address)
         await invoiceFactoryUpgrade.enrollSupplier(user2.address)
         await invoiceFactoryUpgrade.connect(trust).trustVerifyAnchor(user1.address)
         await invoiceFactoryUpgrade.connect(trust).trustVerifySupplier(user2.address)
-        let now = BigNumber.from(parseInt(Date.now() / 1000))
+        let now = BigNumber.from(Date.now())
         let two = BigNumber.from(2)
-        let time = now.mul(two.pow(128)).add(now).add(1000000)
+        invoiceTime = now
+        dueTime = now.add(1000000)
+        time = now.mul(two.pow(128)).add(now).add(1000000)
 
         const sig = await utils.signInvoice(
-          user1,
+          admin,
           100000,
           time,
           '0.05',
@@ -119,6 +131,7 @@ describe('InvoiceFactoryUpgrade', () => {
           user1.address,
           true
         )
+        
         await invoiceFactoryUpgrade.connect(user2).uploadInvoice(
           100000,
           time,
@@ -130,31 +143,42 @@ describe('InvoiceFactoryUpgrade', () => {
           true,
           sig
         )
+
+        const tx = await invoiceFactoryUpgrade.connect(user1).anchorVerifyInvoice(0)
+        const blockNumber = (await tx.wait()).blockNumber
+        anchorVerifyTime = (await ethers.provider.getBlock(blockNumber)).timestamp
+        await invoiceFactoryUpgrade.invoiceToToken(0)
       })
 
-      // TODO: It hasn't generate token yet
+      // TODO: It hasn't generate token yet -> check
       it("queryInvoiceId() should return correct invoiceId", async () => {
-        const ret = await invoiceFactoryUpgrade.queryInvoiceId(0)
+        const ret = await invoiceFactoryUpgrade.queryInvoiceId(1)
         expect(ret).to.be.eql(BigNumber.from(0))
       })
         
-      // TODO: It hasn't generate token yet
+      // TODO: It hasn't generate token yet -> check
       it("queryTokenId() should return correct invoiceId", async () => { 
-        const ret = await invoiceFactoryUpgrade.queryInvoiceId(0)
-        expect(ret).to.be.eql(BigNumber.from(0))
+        const ret = await invoiceFactoryUpgrade.queryTokenId(0)
+        expect(ret).to.be.eql(BigNumber.from(1))
       })
 
-      // TODO: ret[0 ~ 3]
+      // TODO: ret[0 ~ 3] -> check
       it('queryInvoice() should return correct invoice information', async () => {
         const ret = await invoiceFactoryUpgrade.queryInvoice(0)
+        expect(ret[0]).to.be.eql(BigNumber.from(0))
+        expect(ret[1]).to.be.eql(invoiceTime)
+        expect(ret[2]).to.be.eql(BigNumber.from(100000))
+        expect(ret[3]).to.be.eql(dueTime)
         expect(ret[4]).to.be.eql(EthUtils.formatBytes32String('Invoice pdf hash'))
         expect(ret[5]).to.be.eql(EthUtils.formatBytes32String('Invoice number hash'))
-        expect(ret[6]).to.be.eql(EthUtils.formatBytes32String('anchor'))
+        expect(ret[6]).to.be.eql(EthUtils.formatBytes32String('anchor hash'))
       })
 
-      // TODO: ret[0 ~ 1]
+      // TODO: ret[0 ~ 1] -> check
       it('queryInvoiceData() should return correct invoice data', async () => {
         const ret = await invoiceFactoryUpgrade.queryInvoiceData(0)
+        expect(ret[0]).to.be.eql(BigNumber.from(1))
+        expect(ret[1]).to.be.eql(BigNumber.from(anchorVerifyTime))
         expect(ret[2]).to.be.eql(EthUtils.formatBytes32String('0.05'))
         expect(ret[3]).to.be.eql(user2.address)
         expect(ret[4]).to.be.eql(user1.address)
@@ -189,8 +213,16 @@ describe('InvoiceFactoryUpgrade', () => {
       await expect(tx).to.be.revertedWith('Restricted to admins.')
     })
 
-    // TODO: enrollAdmin
-    // TODO: removeAdmin
+    // TODO: enrollAdmin -> check
+    it('enrollAdmin() should revert if the operator isn\'t admin', async () => {
+      const tx = invoiceFactoryUpgrade.connect(user1).enrollAdmin(trust2.address)
+      await expect(tx).to.be.revertedWith('Restricted to admins.')
+    })
+    // TODO: removeAdmin -> check
+    it('removeAdmin() should revert if the operator isn\'t admin', async () => {
+      const tx = invoiceFactoryUpgrade.connect(user1).enrollSupplier(trust2.address)
+      await expect(tx).to.be.revertedWith('Restricted to admins.')
+    })
 
     it('trustVerifyAnchor() should revert if the operator isn\'t trust', async () => {
       const tx = invoiceFactoryUpgrade.connect(user1).trustVerifyAnchor(trust2.address)
@@ -208,7 +240,7 @@ describe('InvoiceFactoryUpgrade', () => {
     })
 
     it("anchorVerifyInvoice() should revert if the operator isn't anchor",  async () => {
-        const tx = invoiceFactory.connect(user1).anchorVerifyTrust(0)
+        const tx = invoiceFactoryUpgrade.connect(user1).anchorVerifyInvoice(0)
         await expect(tx).to.be.revertedWith("Restricted to anchor.")
     })
   })
@@ -242,15 +274,6 @@ describe('InvoiceFactoryUpgrade', () => {
   })
 
   describe('Enroll Anchor', () => {
-    // TODO: Not sure what is being tested
-    it('should check if whitelist was initialized', async () => {
-      const tx1 = invoiceFactoryUpgrade.enrollAnchor(user2.address)
-      expect(tx1).to.be.revertedWith('Restricted to admins.')
-      await invoiceFactoryUpgrade.updateWhitelist(whitelist.address)
-      await whitelist.addAdmin(invoiceFactoryUpgrade.address)
-      const tx2 = invoiceFactoryUpgrade.enrollAnchor(user2.address)
-      expect(tx2).to.be.fulfilled
-    })
 
     it('should revert if the new anchor have already been added to Anchor role', async () => {
       await invoiceFactoryUpgrade.enrollAnchor(user2.address)
@@ -271,16 +294,7 @@ describe('InvoiceFactoryUpgrade', () => {
     })
   })
 
-  // TODO: same as above
   describe('Enroll Supplier', () => {
-    it('should check if whitelist was initialized', async () => {
-      const tx1 = invoiceFactoryUpgrade.enrollSupplier(user2.address)
-      expect(tx1).to.be.revertedWith('Restricted to admins.')
-      await invoiceFactoryUpgrade.updateWhitelist(whitelist.address)
-      await whitelist.addAdmin(invoiceFactoryUpgrade.address)
-      const tx2 = invoiceFactoryUpgrade.enrollSupplier(user2.address)
-      expect(tx2).to.be.fulfilled
-    })
 
     it('should revert if the new anchor had already been add to Supplier role', async () => {
       await invoiceFactoryUpgrade.updateWhitelist(whitelist.address)
@@ -307,30 +321,6 @@ describe('InvoiceFactoryUpgrade', () => {
     })
   })
 
-
-  // TODO: Duplicate of test starting at line 74?
-  describe('Trust verfiy anchor and supplier', () => {
-    it('should be zero before verified by TRUST', async () => {
-      const ret1 = await invoiceFactoryUpgrade.queryAnchorVerified(user2.address)
-      expect(ret1).to.be.equal(0)
-      const ret2 = await invoiceFactoryUpgrade.queryAnchorVerified(user2.address)
-      expect(ret2).to.be.equal(0)
-    })
-
-    
-    it('should be able to verify anchor by TRUST', async () => {
-      await invoiceFactoryUpgrade.connect(trust).trustVerifyAnchor(user2.address)
-      const ret = await invoiceFactoryUpgrade.queryAnchorVerified(user2.address)
-      expect(ret).to.be.eql(true)
-    })
-
-    it('should be able to verify supplier by TRUST', async () => {
-      await invoiceFactoryUpgrade.connect(trust).trustVerifyAnchor(user2.address)
-      const ret = await invoiceFactoryUpgrade.queryAnchorVerified(user2.address)
-      expect(ret).to.be.eql(true)
-    })
-  })
-
   describe('RestoreAccount', () => {
     beforeEach(async () => {
       await invoiceFactoryUpgrade.connect(trust).trustVerifyAnchor(user1.address)
@@ -344,11 +334,13 @@ describe('InvoiceFactoryUpgrade', () => {
 
     it('should be able to restore account if the address has been enrolled in anchor', async () => {
       const retBefore = await invoiceFactoryUpgrade.queryAnchorVerified(user3.address)
-      expect(retBefore).to.equal(0)
-      await invoiceFactoryUpgrade.restoreAccount(user1.address, user3.address)
+      expect(retBefore).to.equal(BigNumber.from(0))
+      const tx = await invoiceFactoryUpgrade.restoreAccount(user1.address, user3.address)
+      const blockNumber = (await tx.wait()).blockNumber
+      const timestamp = (await ethers.provider.getBlock(blockNumber)).timestamp
       const ret = await invoiceFactoryUpgrade.queryAnchorVerified(user3.address)
-      // TODO: tx timestamp
-      expect(ret).to.eql(true)
+      // TODO: tx timestamp -> check
+      expect(ret).to.eql(BigNumber.from(timestamp))
     })
 
     it('should be add to whitelist as the same time', async () => {
@@ -360,10 +352,12 @@ describe('InvoiceFactoryUpgrade', () => {
     it('should be able to restore account if the address has been enrolled in supplier', async () => {
       const retBefore = await invoiceFactoryUpgrade.querySupplierVerified(user3.address)
       expect(retBefore).to.equal(0)
-      await invoiceFactoryUpgrade.restoreAccount(user2.address, user3.address)
+      const tx = await invoiceFactoryUpgrade.restoreAccount(user2.address, user3.address)
+      const blockNumber = (await tx.wait()).blockNumber
+      const timestamp = (await ethers.provider.getBlock(blockNumber)).timestamp
       const ret = await invoiceFactoryUpgrade.querySupplierVerified(user3.address)
-      // TODO: tx timestamp
-      expect(ret).to.eql(true)
+      // TODO: tx timestamp -> check
+      expect(ret).to.eql(BigNumber.from(timestamp))
     })
   })
     
@@ -384,20 +378,20 @@ describe('InvoiceFactoryUpgrade', () => {
         user2.address,
         true
       )
-      const solidityKeccak256 = EthUtils.solidityKeccak256(
-        { type: 'bytes4' , value: 'a18b7c27'},
-        { type: 'uint256', value: '100000' },
-        { type: 'uint256', value: time },
-        { type: 'bytes32', value: EthUtils.formatBytes32String('0.05')},
-        { type: 'bytes32', value: EthUtils.formatBytes32String('Invoice pdf hash')},
-        { type: 'bytes32', value: EthUtils.formatBytes32String('Invoice number hash')},
-        { type: 'bytes32', value: EthUtils.formatBytes32String('anchor')},
-        { type: 'address', value: user1.address},
-        { type: 'address', value: user2.address},
-        { type: 'bool'   , value: true}
+      const solidityKeccak256 = EthUtils.solidityKeccak256([
+        'bytes4', 'uint256', 'uint256',
+        'bytes32', 'bytes32', 'bytes32',
+        'bytes32', 'address', 'address',
+        'bool'], [
+        '0xa18b7c27', '100000', time,
+        EthUtils.formatBytes32String('0.05'), 
+        EthUtils.formatBytes32String('Invoice pdf hash'),
+        EthUtils.formatBytes32String('Invoice number hash'),
+        EthUtils.formatBytes32String('anchor hash'),
+        user1.address, user2.address, true]
       )
 
-      expect(ret).to.be.eql(soliditySha3Expect)
+      expect(ret).to.be.eql(solidityKeccak256)
     })
   })
 
@@ -413,7 +407,7 @@ describe('InvoiceFactoryUpgrade', () => {
       let two = BigNumber.from(2)
       let time = now.mul(two.pow(128)).add(now).add(1000000)
 
-      const sig = await utils.signMessage(
+      const sig = await utils.signInvoice(
         admin,
         100000,
         time,
@@ -446,7 +440,7 @@ describe('InvoiceFactoryUpgrade', () => {
       let two = BigNumber.from(2)
       let time = now.mul(two.pow(128)).add(now).add(1000000)
 
-      const sig = await utils.signMessage(
+      const sig = await utils.signInvoice(
         admin,
         100000,
         time,
@@ -480,7 +474,7 @@ describe('InvoiceFactoryUpgrade', () => {
       let two = BigNumber.from(2)
       let time = now.mul(two.pow(128)).add(now).add(1000000)
 
-      const sig = await utils.signMessage(
+      const sig = await utils.signInvoice(
         admin,
         100000,
         time,
@@ -522,7 +516,7 @@ describe('InvoiceFactoryUpgrade', () => {
       let two = BigNumber.from(2)
       let time = now.mul(two.pow(128)).add(now).add(1000000)
 
-      const sig = await utils.signMessage(
+      const sig = await utils.signInvoice(
         admin,
         100000,
         time,
@@ -562,9 +556,12 @@ describe('InvoiceFactoryUpgrade', () => {
     })
 
     it('should be able to verify by correct anchor', async () => {
-      const tx = invoiceFactoryUpgrade.connect(user1).anchorVerifyInvoice(0)
-      expect(ret).to.be.fulfilled
-      // TODO: Check anchorConfirmTime and event
+      const tx = await invoiceFactoryUpgrade.connect(user1).anchorVerifyInvoice(0)
+      const blockNumber = (await tx.wait()).blockNumber
+      const timestamp = (await ethers.provider.getBlock(blockNumber)).timestamp
+      const ret = await invoiceFactoryUpgrade.queryInvoiceData(0)
+      expect(ret[1]).to.be.eql(BigNumber.from(timestamp))
+      // TODO: Check anchorConfirmTime and event -> check
     })
   })
 
@@ -579,7 +576,7 @@ describe('InvoiceFactoryUpgrade', () => {
       let two = BigNumber.from(2)
       let time = now.mul(two.pow(128)).add(now).add(1000000)
 
-      const sig = await utils.signMessage(
+      const sig = await utils.signInvoice(
         admin,
         100000,
         time,
@@ -612,10 +609,21 @@ describe('InvoiceFactoryUpgrade', () => {
     it('should be able create token after verified by anchor', async () => {
       await invoiceFactoryUpgrade.connect(user1).anchorVerifyInvoice(0)
       const tx = invoiceFactoryUpgrade.invoiceToToken(0)
-      expect(ret).to.be.fulfilled
-      // TODO: Check invoiceId to tokenId and vice versa
-      // TODO: Check tokenId field in invoice
+      // TODO: Check invoiceId to tokenId and vice versa -> check
+      const queryInvoiceId = await invoiceFactoryUpgrade.queryInvoiceId(1)
+      expect(queryInvoiceId).to.be.eql(BigNumber.from(0))
+      const queryTokenId = await invoiceFactoryUpgrade.queryTokenId(0)
+      expect(queryTokenId).to.be.eql(BigNumber.from(1))
+      // TODO: Check tokenId field in invoice -> check
+      const queryInvoiceData = await invoiceFactoryUpgrade.queryInvoiceData(0)
+      expect(queryInvoiceData[0]).to.be.eql(BigNumber.from(1))
       // TODO: Check event
+      const filter = invoiceFactoryUpgrade.filters.CreateTokenFromInvoice()
+      const events = await invoiceFactoryUpgrade.queryFilter(filter)
+      
+      expect(events[0].args.length).to.be.eql(2)
+      expect(events[0].args._invoiceId).to.be.eql(BigNumber.from(0))
+      expect(events[0].args._tokenId).to.be.eql(BigNumber.from(1))
     })
 
     it('should revert if token has already been created', async () => {
@@ -627,6 +635,71 @@ describe('InvoiceFactoryUpgrade', () => {
   })
 
   // TODO: add test for set time
+
+  describe('setTimeInterval() function', () => {
+
+    beforeEach(async () => {
+      await invoiceFactoryUpgrade.enrollAnchor(user1.address)
+      await invoiceFactoryUpgrade.enrollSupplier(user2.address)
+      await invoiceFactoryUpgrade.connect(trust).trustVerifyAnchor(user1.address)
+      await invoiceFactoryUpgrade.connect(trust).trustVerifySupplier(user2.address)
+
+      let now = BigNumber.from(parseInt(Date.now() / 1000))
+      let two = BigNumber.from(2)
+      let time = now.mul(two.pow(128)).add(now).add(1000000)
+
+      const sig = await utils.signInvoice(
+        admin,
+        100000,
+        time,
+        '0.05',
+        'Invoice pdf hash',
+        'Invoice number hash',
+        'anchor hash',
+        user2.address,
+        user1.address,
+        true
+      )
+      await invoiceFactoryUpgrade.connect(user2).uploadInvoice(
+        100000,
+        time,
+        EthUtils.formatBytes32String('0.05'),
+        EthUtils.formatBytes32String('Invoice pdf hash'),
+        EthUtils.formatBytes32String('Invoice number hash'),
+        EthUtils.formatBytes32String('anchor hash'),
+        user1.address,
+        true,
+        sig
+      )
+    })
+    it('should revert if executer isn\'t trust.', async () => {
+      let now = BigNumber.from(Date.now())
+      let two = BigNumber.from(2)
+      let invoiceTime = now
+      let dueTime = now.add(1000000)
+      const res = invoiceFactoryUpgrade.setTimeInterval(0, invoiceTime, dueTime)
+      expect(res).to.be.revertedWith('Restricted to only trust by verify')
+    })
+    it('should not be execute if tokenId equals to 0.', async () => {
+      let now = BigNumber.from(Date.now())
+      let two = BigNumber.from(2)
+      let invoiceTime = now
+      let dueTime = now.add(1000000)
+      const res = invoiceFactoryUpgrade.connect(trust).setTimeInterval(0, invoiceTime, dueTime)
+      expect(res).to.be.revertedWith('No token found');
+    })
+    it('should revert if the time interval had been set.', async () => {
+      let now = BigNumber.from(Date.now())
+      let two = BigNumber.from(2)
+      let invoiceTime = now
+      let dueTime = now.add(1000000)
+      await invoiceFactoryUpgrade.connect(user1).anchorVerifyInvoice(0)
+      await invoiceFactoryUpgrade.invoiceToToken(0)
+      await invoiceFactoryUpgrade.connect(trust).setTimeInterval(0, invoiceTime, dueTime)
+      const res = invoiceFactoryUpgrade.connect(trust).setTimeInterval(0, invoiceTime, dueTime)
+      expect(res).to.be.revertedWith('abc')
+    })
+  })
 
   describe('Business logic workflow', () => {
     it('It should follow the correct logic', async () => {
@@ -641,8 +714,10 @@ describe('InvoiceFactoryUpgrade', () => {
       let two = BigNumber.from(2)
       let time = now.mul(two.pow(128)).add(now).add(1000000)
 
+      let invoiceTime = now
+      let dueTime = now.add(1000000)
       const sig = await utils.signInvoice(
-        user1,
+        admin,
         100000,
         time,
         '0.05',
@@ -671,7 +746,8 @@ describe('InvoiceFactoryUpgrade', () => {
 
       await invoiceFactoryUpgrade.invoiceToToken(0) 
 
-      // TODO: Set time interval
+      // TODO: Set time interval -> check
+      await invoiceFactoryUpgrade.connect(trust).setTimeInterval(0, invoiceTime + 1000, dueTime + 10000000)
     })
   })
 })
