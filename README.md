@@ -20,3 +20,6 @@
 
 ### To see test coverage
 `npx hardhat coverage`
+
+### To generate solidity document
+`npx hardhat docgen`
