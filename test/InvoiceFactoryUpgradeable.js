@@ -1,4 +1,4 @@
-const { ethers, web3, upgrades } = require('hardhat')
+const { ethers, upgrades } = require('hardhat')
 const chai = require('chai')
 const ChaiAsPromised = require('chai-as-promised')
 const utils = require('./utils')
@@ -151,13 +151,13 @@ describe('InvoiceFactoryUpgrade', () => {
       })
 
       // TODO: It hasn't generate token yet -> check
-      it("queryInvoiceId() should return correct invoiceId", async () => {
+      it('queryInvoiceId() should return correct invoiceId', async () => {
         const ret = await invoiceFactoryUpgrade.queryInvoiceId(1)
         expect(ret).to.be.eql(BigNumber.from(0))
       })
         
       // TODO: It hasn't generate token yet -> check
-      it("queryTokenId() should return correct invoiceId", async () => { 
+      it('queryTokenId() should return correct invoiceId', async () => { 
         const ret = await invoiceFactoryUpgrade.queryTokenId(0)
         expect(ret).to.be.eql(BigNumber.from(1))
       })
@@ -239,9 +239,9 @@ describe('InvoiceFactoryUpgrade', () => {
       await expect(tx).to.be.revertedWith('Restricted to admins.')
     })
 
-    it("anchorVerifyInvoice() should revert if the operator isn't anchor",  async () => {
-        const tx = invoiceFactoryUpgrade.connect(user1).anchorVerifyInvoice(0)
-        await expect(tx).to.be.revertedWith("Restricted to anchor.")
+    it('anchorVerifyInvoice() should revert if the operator isn\'t anchor',  async () => {
+      const tx = invoiceFactoryUpgrade.connect(user1).anchorVerifyInvoice(0)
+      await expect(tx).to.be.revertedWith('Restricted to anchor.')
     })
   })
 
@@ -499,7 +499,7 @@ describe('InvoiceFactoryUpgrade', () => {
       )
 
       await expect(tx).to.be.fulfilled.and
-        .to.emit(invoiceFactoryUpgrade, "UploadInvoice")
+        .to.emit(invoiceFactoryUpgrade, 'UploadInvoice')
         .withArgs(0, user2.address, user1.address)
       expect(await invoiceFactoryUpgrade.invoiceCount()).to.be.equal(1)
     })    
@@ -552,7 +552,7 @@ describe('InvoiceFactoryUpgrade', () => {
       await invoiceFactoryUpgrade.connect(trust).trustVerifyAnchor(user3.address)
       const tx = invoiceFactoryUpgrade.connect(user3).anchorVerifyInvoice(0)
       
-      expect(tx).to.be.revertedWith("Not authorized")
+      expect(tx).to.be.revertedWith('Not authorized')
     })
 
     it('should be able to verify by correct anchor', async () => {
@@ -608,7 +608,7 @@ describe('InvoiceFactoryUpgrade', () => {
 
     it('should be able create token after verified by anchor', async () => {
       await invoiceFactoryUpgrade.connect(user1).anchorVerifyInvoice(0)
-      const tx = invoiceFactoryUpgrade.invoiceToToken(0)
+      await invoiceFactoryUpgrade.invoiceToToken(0)
       // TODO: Check invoiceId to tokenId and vice versa -> check
       const queryInvoiceId = await invoiceFactoryUpgrade.queryInvoiceId(1)
       expect(queryInvoiceId).to.be.eql(BigNumber.from(0))
@@ -674,7 +674,6 @@ describe('InvoiceFactoryUpgrade', () => {
     })
     it('should revert if executer isn\'t trust.', async () => {
       let now = BigNumber.from(Date.now())
-      let two = BigNumber.from(2)
       let invoiceTime = now
       let dueTime = now.add(1000000)
       const res = invoiceFactoryUpgrade.setTimeInterval(0, invoiceTime, dueTime)
@@ -682,15 +681,13 @@ describe('InvoiceFactoryUpgrade', () => {
     })
     it('should not be execute if tokenId equals to 0.', async () => {
       let now = BigNumber.from(Date.now())
-      let two = BigNumber.from(2)
       let invoiceTime = now
       let dueTime = now.add(1000000)
       const res = invoiceFactoryUpgrade.connect(trust).setTimeInterval(0, invoiceTime, dueTime)
-      expect(res).to.be.revertedWith('No token found');
+      expect(res).to.be.revertedWith('No token found')
     })
     it('should revert if the time interval had been set.', async () => {
       let now = BigNumber.from(Date.now())
-      let two = BigNumber.from(2)
       let invoiceTime = now
       let dueTime = now.add(1000000)
       await invoiceFactoryUpgrade.connect(user1).anchorVerifyInvoice(0)
