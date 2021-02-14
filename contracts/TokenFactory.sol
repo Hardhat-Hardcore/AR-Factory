@@ -186,7 +186,7 @@ contract TokenFactory is
     }
     
     /// @notice Set starting time and ending time for token holding time calculation
-    /// @dev Starting time must be greater than the time at the moment
+    /// @dev Starting time must be greater than time at the moment
     /// @dev To save gas cost, here use uint128 to store time
     /// @param _startTime Starting time in unix time format
     /// @param _endTime Ending time in unix time format
@@ -201,6 +201,7 @@ contract TokenFactory is
         require(_msgSender() == _settingOperators[_tokenId], "Not authorized");
         require(_startTime >= block.timestamp, "Time smaller than now");
         require(_endTime > _startTime, "End greater than start");
+        require(_timeIntervalOf[_tokenId] == 0, "Already set");
 
         _setTime(_tokenId, _startTime, _endTime);
     }
