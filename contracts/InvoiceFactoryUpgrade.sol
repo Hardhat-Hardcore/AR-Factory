@@ -79,6 +79,19 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         require(_supplierVerified[_supplier] > 0, "Supplier not verified by trust.");
         _;
     }
+
+    ///////////////////////////////////    EVENTS    //////////////////////////////////////////
+    
+    event EnrollAnchor(address indexed _anchor);
+    event EnrollSupplier(address indexed _supplier);
+    event EnrollAdmin(address indexed _admin);
+    event RemoveAdmin(address indexed _admin);
+    event TrustVerifyAnchor(address indexed _anchor);
+    event TrustVerifySupplier(address indexed _supplier);
+    event AnchorVerify(address indexed _anchor, uint256 indexed _invoiceId);
+    event UploadInvoice(uint256 indexed _invoiceId, address indexed _supplier, address indexed _anchor);
+    event RestoreAccount(address indexed _originAddress, address indexed _newAddress);
+    event CreateTokenFromInvoice(uint256 indexed _invoiceId, uint256 indexed _tokenId);
     
     ///////////////////////////////////  CONSTRUCTOR //////////////////////////////////////////    
     
@@ -98,21 +111,9 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         decimals = _decimals;
         tokenFactory = ITokenFactory(_tokenFactory);
         whitelist = IWhitelist(_whitelist);
-        if (whitelist.inWhitelist(_msgSender()) == false)
-            whitelist.addWhitelist(_msgSender());
+        if (whitelist.isAdmin(_msgSender()) == false)
+            whitelist.addAdmin(_msgSender());
     }
-
-    ///////////////////////////////////    EVENTS    //////////////////////////////////////////
-    
-    event EnrollAnchor(address indexed _anchor);
-    event EnrollSupplier(address indexed _supplier);
-    event EnrollAdmin(address indexed _admin);
-    event TrustVerifyAnchor(address indexed _anchor);
-    event TrustVerifySupplier(address indexed _supplier);
-    event AnchorVerify(address indexed _anchor, uint256 indexed _invoiceId);
-    event UploadInvoice(uint256 indexed _invoiceId, address indexed _supplier, address indexed _anchor);
-    event RestoreAccount(address indexed _originAddress, address indexed _newAddress);
-    event CreateTokenFromInvoice(uint256 indexed _invoiceId, uint256 indexed _tokenId);
 
     ///////////////////////////////////  GETTER FUNCTIONS ///////////////////////////////////////////
    
@@ -125,12 +126,12 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         return _invoiceIdToTokenId[_invoiceId];
     }
 
-    function queryAnchorVerified(address _anchor) external view returns (bool) {
-        return _anchorVerified[_anchor] > 0;
+    function queryAnchorVerified(address _anchor) external view returns (uint256) {
+        return _anchorVerified[_anchor];
     }
 
-    function querySupplierVerified(address _anchor) external view returns (bool) {
-        return _supplierVerified[_anchor] > 0;
+    function querySupplierVerified(address _anchor) external view returns (uint256) {
+        return _supplierVerified[_anchor];
     }
 
     function queryInvoice(uint256 _invoiceId)
@@ -242,12 +243,22 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     {
         require(hasRole(DEFAULT_ADMIN_ROLE, _newAdmin) == false, "Duplicated enrollment");
 
-        if (whitelist.inWhitelist(_newAdmin) == false)
-            whitelist.addWhitelist(_newAdmin);
+        if (whitelist.isAdmin(_newAdmin) == false)
+            whitelist.addAdmin(_newAdmin);
         grantRole(DEFAULT_ADMIN_ROLE, _newAdmin);
         emit EnrollAdmin(_newAdmin);
     }
 
+    function removeAdmin(address _account)
+        external
+        onlyAdmin
+    {
+        require(hasRole(DEFAULT_ADMIN_ROLE, _account), "Not in admin group");
+        
+        whitelist.removeAdmin(_account);
+        revokeRole(DEFAULT_ADMIN_ROLE, _account);
+        emit RemoveAdmin(_account);
+    }
    
     function anchorVerifyInvoice(uint256 _invoiceId)
         external

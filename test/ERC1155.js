@@ -303,7 +303,7 @@ describe('ERC1155', () => {
       await expect(tx).to.be.revertedWith('BatchTransfer rejected')
     })
 
-    it.only('should be able to transfer with data is not null', async () => {
+    it('should be able to transfer with data is not null', async () => {
       const wrongData = ethers.utils.toUtf8Bytes('Hello')
       const revertTx = tokenFactory.safeBatchTransferFrom(
         owner.address, receiverContract.address, tokenIds, values, wrongData

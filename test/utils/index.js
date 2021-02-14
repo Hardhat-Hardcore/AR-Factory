@@ -1,4 +1,4 @@
-const { ethers, web3 } = require('hardhat')
+const { ethers } = require('hardhat')
 require('dotenv').config()
 
 const mnemonic = process.env.MNEMONIC || 'test test test test test test test test test test test junk'
@@ -33,9 +33,8 @@ async function getNextContractAddress (address, prev = false) {
   return newAddress
 }
 
-const adminSign = async (txAmount, time, interest, pdfhash, numberhash, anchorName, supplier, anchor, list) => {
-  const [admin] = await ethers.getSigners()
-  const soliditySha3Expect = web3.utils.soliditySha3(
+const signInvoice = async (signer, txAmount, time, interest, pdfhash, numberhash, anchorName, supplier, anchor, list) => {
+  const solidityKeccak256 = ethers.utils.solidityKeccak256(
     { type: 'bytes4', value: 'a18b7c27' },
     { type: 'uint256', value: txAmount },
     { type: 'uint256', value: time },
@@ -47,9 +46,9 @@ const adminSign = async (txAmount, time, interest, pdfhash, numberhash, anchorNa
     { type: 'address', value: anchor },
     { type: 'bool', value: list }
   )
-  let sigHashBytes = await ethers.utils.arrayify(soliditySha3Expect)
-  let sigEJS = await admin.signMessage(sigHashBytes)
-  return sigEJS
+  let sigHashBytes = await ethers.utils.arrayify(solidityKeccak256)
+  let sig = await signer.signMessage(sigHashBytes)
+  return sig
 }
 
 
