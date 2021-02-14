@@ -201,7 +201,7 @@ contract TokenFactory is
         require(_msgSender() == _settingOperators[_tokenId], "Not authorized");
         require(_startTime >= block.timestamp, "Time smaller than now");
         require(_endTime > _startTime, "End greater than start");
-        require(_timeIntervalOf[_tokenId] == 0, "Already set");
+        require(_timeInterval[_tokenId] == 0, "Already set");
 
         _setTime(_tokenId, _startTime, _endTime);
     }
