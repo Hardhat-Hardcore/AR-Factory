@@ -7,7 +7,7 @@ import "../TokenFactory.sol";
 contract TokenFactoryMock is TokenFactory {
     
     event MsgSender(address indexed _msgSender, address indexed _realSender);
-    event MsgData(bytes indexed _data);
+    event MsgData(bytes _msgData, bytes _realData);
     event RelayCall(address indexed _sender);
 
 
@@ -18,8 +18,8 @@ contract TokenFactoryMock is TokenFactory {
         emit MsgSender(msg.sender, _msgSender());
     }
 
-    function msgData() external returns (bytes memory) {
-        emit MsgData(_msgData());
+    function msgData() external returns (bytes memory, bytes memory) {
+        emit MsgData(msg.data, _msgData());
     }
 
     function relayCall() external {
