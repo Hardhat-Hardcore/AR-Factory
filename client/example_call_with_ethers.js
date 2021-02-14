@@ -16,7 +16,7 @@ const contractAbi = []
  * - Interacting with contract without paying gas fee
  */
 async function main () {
-  const [_, userInWhitelist] = await ethers.getSigners()
+  const [, userInWhitelist] = await ethers.getSigners()
 
   const web3provider = new Web3HttpProvider(bscTestnetRpc)
   const gsnProvider = await RelayProvider.newProvider({
@@ -31,12 +31,12 @@ async function main () {
   const privateKey = walletInWitelist.privateKey
 
   gsnProvider.addAccount(privateKey)
-  clientProvider = new ethers.providers.Web3Provider(gsnProvider)
+  const clientProvider = new ethers.providers.Web3Provider(gsnProvider)
 
   const contract = new ethers.Contract(contractAddr, contractAbi, clientProvider)
   const contractInstance = contract.connect(clientProvider.getSigner(userInWhitelist.address))
 
-  // await contractInstance.METHOD_NAME(...args)
+  await contractInstance.METHOD_NAME()
 
 }
 

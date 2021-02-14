@@ -1,6 +1,5 @@
 const { RelayProvider } = require('@opengsn/gsn')
 const { GsnTestEnvironment } = require('@opengsn/gsn/dist/GsnTestEnvironment')
-const { expectEvent } = require('openzeppelin-test-helpers');
 const { ethers } = require('hardhat')
 const Web3HttpProvider = require('web3-providers-http')
 const chai = require('chai')
@@ -36,7 +35,7 @@ describe('GSN', () => {
     const web3provider = new Web3HttpProvider('http://localhost:8545')
     deploymentProvider = new ethers.providers.Web3Provider(web3provider)
 
-    const whitelistF = await ethers.getContractFactory('Whitelist', trust)
+    const whitelistF = await ethers.getContractFactory('Whitelist', trust, deploymentProvider.getSigner())
     whitelist = await whitelistF.deploy(trust.address)
     await whitelist.deployed()
     await whitelist.setRelayHub(relayHubAddress)
@@ -60,13 +59,13 @@ describe('GSN', () => {
   })
 
   beforeEach('Deploy baseRelayRecipient contract', async () => {
-    const tokenF = await ethers.getContractFactory('TokenFactoryMock', trust)
+    const tokenF = await ethers.getContractFactory('TokenFactoryMock', trust, deploymentProvider.getSigner())
     tokenFactory = await tokenF.deploy(forwarderAddress)
     await tokenFactory.deployed()
 
 
 
-    const invoiceF = await ethers.getContractFactory('InvoiceFactoryMock', trust)
+    const invoiceF = await ethers.getContractFactory('InvoiceFactoryMock', trust, deploymentProvider.getSigner())
     invoiceFactory = await invoiceF.deploy(
       trust.address,
       forwarderAddress,
@@ -162,7 +161,7 @@ describe('GSN', () => {
       })
     })
 
-    describe.only('_msgData()', () => {
+    describe('_msgData()', () => {
       it('should return msg.data if the call is not from trusted forwarder', async () => {
         const tokenF = tokenFactory.connect(userInWitelist)
         const invoiceF = invoiceFactory.connect(userInWitelist)
@@ -177,26 +176,6 @@ describe('GSN', () => {
 
         expect(eventsToken[0].args._msgData).to.be.eql(eventsToken[0].args._realData)
         expect(eventsInvoice[0].args._msgData).to.be.eql(eventsInvoice[0].args._realData)
-      })
-
-      it('should return original sender if the call is from trusted forwarder', async () => {
-        const walletInWitelist = getWallet(1)
-        const privateKey = walletInWitelist.privateKey
-        const gsnProviderTmp = gsnProvider
-
-        gsnProviderTmp.addAccount(privateKey)
-        clientProvider = new ethers.providers.Web3Provider(gsnProviderTmp)
-
-        const tokenF = tokenFactory.connect(clientProvider.getSigner(userInWitelist.address))
-        const invoiceF = invoiceFactory.connect(clientProvider.getSigner(userInWitelist.address))
-        await tokenF.msgData()
-        await invoiceF.msgData()
-
-        const filterToken = tokenFactory.filters.MsgData()
-        const filterInvoice = invoiceFactory.filters.MsgData()
-        const eventsToken = await tokenFactory.queryFilter(filterToken)
-        const eventsInvoice = await invoiceFactory.queryFilter(filterInvoice)
-        console.log(eventsToken[0].args, eventsInvoice[0].args)
       })
     })
 
