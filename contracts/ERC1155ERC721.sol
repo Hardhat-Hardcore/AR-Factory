@@ -12,24 +12,19 @@ import "./libraries/GSN/Context.sol";
 import "./libraries/utils/Address.sol";
 import "hardhat/console.sol";
 
+/// @title A ERC1155 and ERC721 Implmentation
 contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     using Address for address;
     
     mapping(uint256 => uint256) internal _totalSupply;
-    // Fungible token
     mapping(address => mapping(uint256 => uint256)) internal _ftBalances;
-    // Non fungible tokens
     mapping(address => uint256) internal _nftBalances;
     mapping(uint256 => address) internal _nftOwners;
     mapping(uint256 => address) internal _nftOperators;
-    // Recording token
     mapping(address => mapping(uint256 => uint256)) internal _recordingBalances;
     mapping(uint256 => address) internal _recordingOperators;
-    // Approve all
     mapping(address => mapping(address => bool)) internal _operatorApproval;
-    // Setting operator
     mapping(uint256 => address) internal _settingOperators;
-    // Holding time
     mapping(uint256 => uint256) internal _timeInterval;
     mapping(address => mapping(uint256 => uint256)) internal _lastUpdateAt;
     mapping(address => mapping(uint256 => uint256)) internal _holdingTime;
@@ -50,20 +45,18 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     uint256 internal constant NEED_TIME = 1 << 254;
     uint256 private idNonce;
     
-    /**
-     * @dev Emitted when `tokenId` token is transferred from `from` to `to`.
-     */
+    
+    /// @dev Emitted when `_tokenId` token is transferred from `_from` to `_to`.
+    /// @dev Not included in ERC721 interface because it causes a conflict between ERC1155 and ERC721
     event Transfer(address indexed _from, address indexed _to, uint256 indexed _tokenId);
 
-    /**
-     * @dev Emitted when `owner` enables `approved` to manage the `tokenId` token.
-     */
+    /// @dev Emitted when `_owner` enables `_approved` to manage the `_tokenId` token.
+    /// @dev Not included in ERC721 interface because it causes a conflict between ERC1155 and ERC721
     event Approval(address indexed _owner, address indexed _approved, uint256 indexed _tokenId);
     
-    /**
-     * @dev Emitted when `_tokenId` recording token is transferred from `_from` to `to` by `_operator`.
-     */
-    event RecordingTransferSingle(address indexed _operator, address indexed _from, address indexed _to, uint256 _tokenIds, uint256 _value);
+    /// @dev Emitted when `_value` amount of `_tokenId` recording token is transferred from
+    /// `_from` to `_to` by `_operator`.
+    event RecordingTransferSingle(address _operator, address indexed _from, address indexed _to, uint256 indexed _tokenId, uint256 _value);
     
     modifier AuthorizedTransfer(
         address _operator,
@@ -81,6 +74,9 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
 
     /////////////////////////////////////////// Query //////////////////////////////////////////////
     
+    /// @notice Returns the setting operator of a token
+    /// @param _tokenId Token ID to be queried
+    /// @return The setting operator address
     function settingOperatorOf(uint256 _tokenId)
         external
         view
@@ -89,6 +85,9 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         return _settingOperators[_tokenId];
     }
 
+    /// @notice Returns the recording operator of a token
+    /// @param _tokenId Token ID to be queried
+    /// @return The recording operator address
     function recordingOperatorOf(uint256 _tokenId)
         external
         view
@@ -97,6 +96,11 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         return _recordingOperators[_tokenId];
     }
 
+    /// @notice Returns the starting time and ending time of token holding
+    /// time calculation
+    /// @param _tokenId Token ID to be queried
+    /// @return The starting time in unix time
+    /// @return The ending time in unix time
     function timeIntervalOf(uint256 _tokenId)
         external
         view
@@ -109,6 +113,12 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
 
     /////////////////////////////////////////// ERC165 //////////////////////////////////////////////
     
+    /// @notice Query if a contract implements an interface
+    /// @param _interfaceId The interface identifier, as specified in ERC-165
+    /// @dev Interface identification is specified in ERC-165. This function
+    ///  uses less than 30,000 gas.
+    /// @return `true` if the contract implements `_interfaceId`,
+    ///  `false` otherwise
     function supportsInterface(
         bytes4 _interfaceId
     )
@@ -128,20 +138,18 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     
     /////////////////////////////////////////// ERC1155 //////////////////////////////////////////////
 
-    /**
-        @notice Transfers `_value` amount of an `_tokenId` from the `_from` address to the `_to` address specified (with safety call).
-        @dev Caller must be approved to manage the tokens being transferred out of the `_from` account (see "Approval" section of the standard).
-        MUST revert if `_to` is the zero address.
-        MUST revert if balance of holder for token `_tokenId` is lower than the `_value` sent.
-        MUST revert on any other error.
-        MUST emit the `TransferSingle` event to reflect the balance change (see "Safe Transfer Rules" section of the standard).
-        After the above conditions are met, this function MUST check if `_to` is a smart contract (e.g. code size > 0). If so, it MUST call `onERC1155Received` on `_to` and act appropriately (see "Safe Transfer Rules" section of the standard).
-        @param _from    Source address
-        @param _to      Target address
-        @param _tokenId     ID of the token type
-        @param _value   Transfer amount
-        @param _data    Additional data with no specified format, MUST be sent unaltered in call to `onERC1155Received` on `_to`
-    */
+    /// @notice Transfers `_value` amount of an `_tokenId` from the `_from` address to the `_to` address specified (with safety call).
+    /// @dev Caller must be approved to manage the tokens being transferred out of the `_from` account (see "Approval" section of the standard).
+    /// MUST revert if `_to` is the zero address.
+    /// MUST revert if balance of holder for token `_tokenId` is lower than the `_value` sent.
+    /// MUST revert on any other error.
+    /// MUST emit the `TransferSingle` event to reflect the balance change (see "Safe Transfer Rules" section of the standard).
+    /// After the above conditions are met, this function MUST check if `_to` is a smart contract (e.g. code size > 0). If so, it MUST call `onERC1155Received` on `_to` and act appropriately (see "Safe Transfer Rules" section of the standard).
+    /// @param _from    Source address
+    /// @param _to      Target address
+    /// @param _tokenId     ID of the token type
+    /// @param _value   Transfer amount
+    /// @param _data    Additional data with no specified format, MUST be sent unaltered in call to `onERC1155Received` on `_to`
     function safeTransferFrom(
         address _from,
         address _to,
@@ -163,8 +171,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         }
 
         if (_tokenId & NEED_TIME > 0) {
-            updateHoldingTime(_from, _tokenId);
-            updateHoldingTime(_to, _tokenId);
+           _updateHoldingTime(_from, _tokenId);
+           _updateHoldingTime(_to, _tokenId);
         }
         _transferFrom(_from, _to, _tokenId, _value);
 
@@ -174,22 +182,20 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         }
     }
     
-    /**
-        @notice Transfers `_values` amount(s) of `_tokenIds` from the `_from` address to the `_to` address specified (with safety call).
-        @dev Caller must be approved to manage the tokens being transferred out of the `_from` account (see "Approval" section of the standard).
-        MUST revert if `_to` is the zero address.
-        MUST revert if length of `_tokenIds` is not the same as length of `_values`.
-        MUST revert if any of the balance(s) of the holder(s) for token(s) in `_tokenIds` is lower than the respective amount(s) in `_values` sent to the recipient.
-        MUST revert on any other error.
-        MUST emit `TransferSingle` or `TransferBatch` event(s) such that all the balance changes are reflected (see "Safe Transfer Rules" section of the standard).
-        Balance changes and events MUST follow the ordering of the arrays (_tokenIds[0]/_values[0] before _tokenIds[1]/_values[1], etc).
-        After the above conditions for the transfer(s) in the batch are met, this function MUST check if `_to` is a smart contract (e.g. code size > 0). If so, it MUST call the relevant `ERC1155TokenReceiver` hook(s) on `_to` and act appropriately (see "Safe Transfer Rules" section of the standard).
-        @param _from    Source address
-        @param _to      Target address
-        @param _tokenIds     IDs of each token type (order and length must match _values array)
-        @param _values  Transfer amounts per token type (order and length must match _tokenIds array)
-        @param _data    Additional data with no specified format, MUST be sent unaltered in call to the `ERC1155TokenReceiver` hook(s) on `_to`
-    */
+    /// @notice Transfers `_values` amount(s) of `_tokenIds` from the `_from` address to the `_to` address specified (with safety call).
+    /// @dev Caller must be approved to manage the tokens being transferred out of the `_from` account (see "Approval" section of the standard).
+    /// MUST revert if `_to` is the zero address.
+    /// MUST revert if length of `_tokenIds` is not the same as length of `_values`.
+    /// MUST revert if any of the balance(s) of the holder(s) for token(s) in `_tokenIds` is lower than the respective amount(s) in `_values` sent to the recipient.
+    /// MUST revert on any other error.
+    /// MUST emit `TransferSingle` or `TransferBatch` event(s) such that all the balance changes are reflected (see "Safe Transfer Rules" section of the standard).
+    /// Balance changes and events MUST follow the ordering of the arrays (_tokenIds[0]/_values[0] before _tokenIds[1]/_values[1], etc).
+    /// After the above conditions for the transfer(s) in the batch are met, this function MUST check if `_to` is a smart contract (e.g. code size > 0). If so, it MUST call the relevant `ERC1155TokenReceiver` hook(s) on `_to` and act appropriately (see "Safe Transfer Rules" section of the standard).
+    /// @param _from    Source address
+    /// @param _to      Target address
+    /// @param _tokenIds     IDs of each token type (order and length must match _values array)
+    /// @param _values  Transfer amounts per token type (order and length must match _tokenIds array)
+    /// @param _data    Additional data with no specified format, MUST be sent unaltered in call to the `ERC1155TokenReceiver` hook(s) on `_to`
     function safeBatchTransferFrom(
         address _from,
         address _to,
@@ -204,8 +210,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         require(_tokenIds.length == _values.length, "Array length must match.");
         bool authorized = _from == _msgSender() || _operatorApproval[_from][_msgSender()];
             
-        batchUpdateHoldingTime(_from, _tokenIds);
-        batchUpdateHoldingTime(_to, _tokenIds);
+        _batchUpdateHoldingTime(_from, _tokenIds);
+        _batchUpdateHoldingTime(_to, _tokenIds);
         _batchTransferFrom(_from, _to, _tokenIds, _values, authorized);
         
         if (_to.isContract()) {
@@ -214,12 +220,12 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         }
     }
     
-    /**
-        @notice Get the balance of an account's Tokens.
-        @param _owner  The address of the token holder
-        @param _tokenId     ID of the Token
-        @return        The _owner's balance of the Token type requested
-     */
+    
+    /// @notice Get the balance of an account's Tokens.
+    /// @dev It accept both 
+    /// @param _owner  The address of the token holder
+    /// @param _tokenId     ID of the Token
+    /// @return        The _owner's balance of the Token type requested
     function balanceOf(
         address _owner,
         uint256 _tokenId
@@ -239,12 +245,10 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         return _ftBalances[_owner][_tokenId];
     }
     
-    /**
-        @notice Get the balance of multiple account/token pairs
-        @param _owners The addresses of the token holders
-        @param _tokenIds    ID of the Tokens
-        @return        The _owner's balance of the Token types requested (i.e. balance for each (owner, id) pair)
-     */
+    /// @notice Get the balance of multiple account/token pairs
+    /// @param _owners The addresses of the token holders
+    /// @param _tokenIds    ID of the Tokens
+    /// @return        The _owner's balance of the Token types requested (i.e. balance for each (owner, id) pair)
     function balanceOfBatch(
         address[] calldata _owners,
         uint256[] calldata _tokenIds
@@ -264,12 +268,10 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         return balances_;
     }
 
-    /**
-        @notice Enable or disable approval for a third party ("operator") to manage all of the caller's tokens.
-        @dev MUST emit the ApprovalForAll event on success.
-        @param _operator  Address to add to the set of authorized operators
-        @param _approved  True if the operator is approved, false to revoke approval
-    */
+    /// @notice Enable or disable approval for a third party ("operator") to manage all of the caller's tokens.
+    /// @dev MUST emit the ApprovalForAll event on success.
+    /// @param _operator  Address to add to the set of authorized operators
+    /// @param _approved  True if the operator is approved, false to revoke approval
     function setApprovalForAll(
         address _operator,
         bool _approved
@@ -281,12 +283,10 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         emit ApprovalForAll(_msgSender(), _operator, _approved);
     }
     
-    /**
-        @notice Queries the approval status of an operator for a given owner.
-        @param _owner     The owner of the Tokens
-        @param _operator  Address of authorized operator
-        @return           True if the operator is approved, false if not
-    */
+    /// @notice Queries the approval status of an operator for a given owner.
+    /// @param _owner     The owner of the Tokens
+    /// @param _operator  Address of authorized operator
+    /// @return           True if the operator is approved, false if not
     function isApprovedForAll(
         address _owner,
         address _operator
@@ -301,6 +301,9 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
 
     /////////////////////////////////////////// ERC721 //////////////////////////////////////////////
 
+    /// @notice Count all NFTs assigned to an owner
+    /// @param _owner An address for whom to query the balance
+    /// @return The number of NFTs owned by `_owner`, possibly zero
     function balanceOf(address _owner) 
         external
         view
@@ -310,6 +313,12 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         return _nftBalances[_owner];
     }
     
+
+    /// @notice Find the owner of an NFT
+    /// @dev NFTs assigned to zero address or FT token are considered invalid,
+    ///  and queries about them do throw.
+    /// @param _tokenId The identifier for an NFT
+    /// @return The address of the owner of the NFT
     function ownerOf(uint256 _tokenId)
         external
         view
@@ -320,7 +329,13 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         require(owner != address(0), "Not nft or not exist");
         return owner;
     }
-    
+
+    /// @notice Transfers the ownership of an NFT from one address to another address
+    /// @dev This works identically to the other function with an extra data parameter,
+    ///  except this function just sets data to "".
+    /// @param _from The current owner of the NFT
+    /// @param _to The new owner
+    /// @param _tokenId The NFT to transfer
     function safeTransferFrom(
         address _from,
         address _to,
@@ -332,6 +347,18 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         safeTransferFrom(_from, _to, _tokenId, "");
     }
     
+    /// @notice Transfers the ownership of an NFT from one address to another address
+    /// @dev Throws unless `msg.sender` is the current owner, an authorized
+    ///  operator, or the approved address for this NFT. Throws if `_from` is
+    ///  not the current owner. Throws if `_to` is the zero address. Throws if
+    ///  `_tokenId` is not a valid NFT. When transfer is complete, this function
+    ///  checks if `_to` is a smart contract (code size > 0). If so, it calls
+    ///  `onERC721Received` on `_to` and throws if the return value is not
+    ///  `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`.
+    /// @param _from The current owner of the NFT
+    /// @param _to The new owner
+    /// @param _tokenId The NFT to transfer
+    /// @param _data Additional data with no specified format, sent in call to `_to`
     function safeTransferFrom(
         address _from,
         address _to,
@@ -346,8 +373,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         require(_nftOwners[_tokenId] == _from, "Not owner or it's not nft");
         
         if (_tokenId & NEED_TIME > 0) {
-            updateHoldingTime(_from, _tokenId);
-            updateHoldingTime(_to, _tokenId);
+           _updateHoldingTime(_from, _tokenId);
+           _updateHoldingTime(_to, _tokenId);
         }
         _transferFrom(_from, _to, _tokenId, 1);
         
@@ -357,6 +384,16 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         }
     }
     
+    /// @notice Transfer ownership of an NFT -- THE CALLER IS RESPONSIBLE
+    ///  TO CONFIRM THAT `_to` IS CAPABLE OF RECEIVING NFTS OR ELSE
+    ///  THEY MAY BE PERMANENTLY LOST
+    /// @dev Throws unless `msg.sender` is the current owner, an authorized
+    ///  operator, or the approved address for this NFT. Throws if `_from` is
+    ///  not the current owner. Throws if `_to` is the zero address. Throws if
+    ///  `_tokenId` is not a valid NFT.
+    /// @param _from The current owner of the NFT
+    /// @param _to The new owner
+    /// @param _tokenId The NFT to transfer
     function transferFrom(
         address _from,
         address _to,
@@ -370,8 +407,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         require(_nftOwners[_tokenId] == _from, "Not owner or it's not nft");
                 
         if (_tokenId & NEED_TIME > 0) {
-            updateHoldingTime(_from, _tokenId);
-            updateHoldingTime(_to, _tokenId);
+           _updateHoldingTime(_from, _tokenId);
+           _updateHoldingTime(_to, _tokenId);
         }
         _transferFrom(_from, _to, _tokenId, 1);
 
@@ -381,6 +418,12 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         }
     }
     
+    /// @notice Change or reaffirm the approved address for an NFT
+    /// @dev The zero address indicates there is no approved address.
+    ///  Throws unless `msg.sender` is the current NFT owner, or an authorized
+    ///  operator of the current owner.
+    /// @param _to The new approved NFT controller
+    /// @param _tokenId The NFT to approve
     function approve(
         address _to,
         uint256 _tokenId
@@ -395,6 +438,10 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         emit Approval(owner, _to, _tokenId);
     }
     
+    /// @notice Get the approved address for a single NFT
+    /// @dev Throws if `_tokenId` is not a valid NFT.
+    /// @param _tokenId The NFT to find the approved address for
+    /// @return The approved address for this NFT, or the zero address if there is none
     function getApproved(uint256 _tokenId) 
         external
         view
@@ -407,6 +454,13 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
 
     /////////////////////////////////////////// Recording //////////////////////////////////////////////
     
+    /// @notice Transfer recording token
+    /// @dev If `_to` is zeroaddress or `msg.sender` is not recording operator,
+    ///  it throwsa.
+    /// @param _from Current owner of recording token
+    /// @param _to New owner
+    /// @param _tokenId The token to transfer
+    /// @param _value The amount to transfer
     function recordingTransferFrom(
         address _from,
         address _to,
@@ -418,11 +472,14 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         require(_msgSender() == _recordingOperators[_tokenId], "Not authorized");
         require(_to != address(0), "_to must be non-zero");
 
-        updateRecordingHoldingTime(_from, _tokenId);
-        updateRecordingHoldingTime(_to, _tokenId);
+       _updateRecordingHoldingTime(_from, _tokenId);
+       _updateRecordingHoldingTime(_to, _tokenId);
         _recordingTransferFrom(_from, _to, _tokenId, _value);
     }
     
+    /// @notice Count all recording token assigned to an address
+    /// @param _owner An address for whom to query the balance
+    /// @param _tokenId The token ID to be queried
     function recordingBalanceOf(
         address _owner,
         uint256 _tokenId
@@ -436,11 +493,11 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     
     /////////////////////////////////////////// Holding Time //////////////////////////////////////////////
 
-    function updateHoldingTime(
+    function _updateHoldingTime(
         address _owner,
         uint256 _tokenId
     )
-       public 
+        internal
     {
         require(_tokenId & NEED_TIME > 0, "Doesn't support this token");
 
@@ -448,23 +505,23 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         _lastUpdateAt[_owner][_tokenId] = block.timestamp;
     }
 
-    function batchUpdateHoldingTime(
+    function _batchUpdateHoldingTime(
         address _owner,
         uint256[] memory _tokenIds
     )
-        public 
+        internal
     {
         for (uint256 i = 0; i < _tokenIds.length; i++) {
             if (_tokenIds[i] & NEED_TIME > 0)
-                updateHoldingTime(_owner, _tokenIds[i]);
+               _updateHoldingTime(_owner, _tokenIds[i]);
         }
     }
     
-    function updateRecordingHoldingTime(
+    function _updateRecordingHoldingTime(
         address _owner,
         uint256 _tokenId
     )
-       public 
+        internal
     {
         _recordingHoldingTime[_owner][_tokenId] += _calcRecordingHoldingTime(_owner, _tokenId);
         _recordingLastUpdateAt[_owner][_tokenId] = block.timestamp;
@@ -591,7 +648,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         address _receiver,
         address _settingOperator,
         bool _needTime,
-        bytes memory data
+        bytes memory _data
     )
         internal
         returns (uint256)
@@ -615,7 +672,7 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
         emit TransferSingle(_msgSender(), address(0), _receiver, tokenId, _supply);
         
         if (_receiver.isContract()) {
-            require(_checkReceivable(_msgSender(), address(0), _receiver, tokenId, _supply, data, false, false),
+            require(_checkReceivable(_msgSender(), address(0), _receiver, tokenId, _supply, _data, false, false),
                     "Transfer rejected");
         }
         return tokenId;

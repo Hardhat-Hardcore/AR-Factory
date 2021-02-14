@@ -12,14 +12,19 @@ contract ERC1155ERC721WithAdapter is
     using Address for address;
 
     mapping(uint256 => address) internal _adapters;
+    // @dev The address of the erc20 implementation contract
     address public template;
 
+    /// @dev MUST emit when a new erc20 adapter is created for `_tokenId`
     event NewAdapter(uint256 indexed _tokenId, address indexed _adapter);
 
     constructor() {
         template = address(new ERC20Adapter());
     }
 
+    /// @notice Returns total supply of a token
+    /// @param _tokenId Token ID to be queried
+    /// @return Total supply of a token
     function totalSupply(uint256 _tokenId)
         external
         view
@@ -28,6 +33,10 @@ contract ERC1155ERC721WithAdapter is
         return _totalSupply[_tokenId];
     }
 
+    /// @notice Queries the erc20 adapter contract address for a given token ID
+    /// @dev Returns zero address if does not have a adapter
+    /// @param _tokenId Token ID to be queried
+    /// @return ERC20 adapter contract address
     function getAdapter(uint256 _tokenId)
         external
         view
@@ -36,6 +45,12 @@ contract ERC1155ERC721WithAdapter is
         return _adapters[_tokenId];  
     }
 
+    /// @notice Transfers `_value` amount of `_tokenId` from `_from` to `_to`
+    /// @dev This function should only be called from erc20 adapter
+    /// @param _from    Source address
+    /// @param _to      Target address
+    /// @param _tokenId ID of the token type
+    /// @param _value   Transfer amount
     function transferByAdapter(
         address _from,
         address _to,
@@ -47,8 +62,8 @@ contract ERC1155ERC721WithAdapter is
         require(_adapters[_tokenId] == msg.sender, "Not adapter");
 
         if (_tokenId & NEED_TIME > 0) {
-            updateHoldingTime(_from, _tokenId);
-            updateHoldingTime(_to, _tokenId);
+            _updateHoldingTime(_from, _tokenId);
+            _updateHoldingTime(_to, _tokenId);
         }
         _transferFrom(_from, _to, _tokenId, _value);
 
@@ -98,6 +113,8 @@ contract ERC1155ERC721WithAdapter is
         emit NewAdapter(_tokenId, adapter);
     }
 
+    /// @dev This is a implementation of EIP1167,
+    ///  for reference: https://eips.ethereum.org/EIPS/eip-1167 
     function _createClone(address target)
         internal
         returns (address result)

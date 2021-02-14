@@ -612,5 +612,13 @@ describe('TokenFactory', () => {
 
       await expect(tx).to.be.revertedWith('Not authorized')
     })
+
+    it('should revert if no erc20 adapter', async () => {
+      const tokenId = 1
+      await tokenFactory[createToken](100, owner.address, operator.address, false, false)
+      const tx = tokenFactory.connect(operator).setERC20Attribute(tokenId, NAME, SYMBOL, DECIMALS)
+
+      await expect(tx).to.be.revertedWith('No adapter found')
+    })
   })
 })

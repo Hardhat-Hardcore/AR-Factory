@@ -13,11 +13,16 @@ contract TokenFactory is
     ERC1155ERC721WithAdapter,
     BaseRelayRecipient
 {
-    
     constructor (address _trustedForwarder) {
         trustedForwarder = _trustedForwarder;
     }
 
+    /// @notice Query if a contract implements an interface
+    /// @param _interfaceId The interface identifier, as specified in ERC-165
+    /// @dev Interface identification is specified in ERC-165. This function
+    ///  uses less than 30,000 gas.
+    /// @return `true` if the contract implements `_interfaceId`,
+    ///  `false` otherwise
     function supportsInterface(bytes4 _interfaceId)
         public
         pure
@@ -27,6 +32,12 @@ contract TokenFactory is
         return super.supportsInterface(_interfaceId);
     }
 
+    /// @notice Queries accumulated holding time for a given owner and token
+    /// @dev It throws if it's not a need-time token. The way how holding time is
+    ///  calculated is by suming up (token amount) * (holding time in second)
+    /// @param _owner Address to be queried
+    /// @param _tokenId Token ID of the token to be queried
+    /// @return Holding time
     function holdingTimeOf(
         address _owner,
         uint256 _tokenId
@@ -41,6 +52,13 @@ contract TokenFactory is
         return _holdingTime[_owner][_tokenId] + _calcHoldingTime(_owner, _tokenId);
     }
 
+    /// @notice Queries accumulated holding time for a given owner and recording token
+    /// @dev It throws if it's not a need-time token. The way how holding time is
+    ///  calculated is by suming up (token amount) * (holding time in second)
+    /// @dev It returns zero if it doesn't have a corresponding recording token
+    /// @param _owner Address to be queried
+    /// @param _tokenId Token ID of the token to be queried
+    /// @return Holding time
     function recordingHoldingTimeOf(
         address _owner,
         uint256 _tokenId
@@ -53,6 +71,14 @@ contract TokenFactory is
         return _recordingHoldingTime[_owner][_tokenId] + _calcRecordingHoldingTime(_owner, _tokenId);
     }
 
+    /// @notice Create a token without setting uri
+    /// @param _supply The amount of token to create
+    /// @param _receiver Address that receives minted token
+    /// @param _settingOperator Address that can perform setTimeInterval
+    ///  and set ERC20 Attribute
+    /// @param _needTime Set to `true` if need to query holding time for token
+    /// @param _erc20 Set to `true` to create a erc20 adapter for token
+    /// @return Token ID
     function createToken(
         uint256 _supply,
         address _receiver,
@@ -70,6 +96,15 @@ contract TokenFactory is
         return tokenId;
     }
     
+    /// @notice Create a token with uri
+    /// @param _supply The amount of token to create
+    /// @param _receiver Address that receives minted token
+    /// @param _settingOperator Address that can perform setTimeInterval
+    ///  and set ERC20 Attribute
+    /// @param _needTime Set to `true` if need to query holding time for token
+    /// @param _uri URI that points to token metadata
+    /// @param _erc20 Set to `true` to create a erc20 adapter for token
+    /// @return Token ID
     function createToken(
         uint256 _supply,
         address _receiver,
@@ -89,6 +124,16 @@ contract TokenFactory is
         return tokenId;
     }
 
+    /// @notice Create both normal token and recording token without setting uri
+    /// @dev Recording token shares the same token ID with normal token
+    /// @param _supply The amount of token to create
+    /// @param _receiver Address that receives minted token
+    /// @param _settingOperator Address that can perform setTimeInterval
+    ///  and set ERC20 Attribute
+    /// @param _needTime Set to `true` if need to query holding time for token
+    /// @param _recordingOperator Address that can manage recording token
+    /// @param _erc20 Set to `true` to create a erc20 adapter for token
+    /// @return Token ID
     function createTokenWithRecording(
         uint256 _supply,
         address _receiver,
@@ -108,6 +153,17 @@ contract TokenFactory is
         return tokenId;
     }
 
+    /// @notice Create both normal token and recording token with uri
+    /// @dev Recording token shares the same token ID with normal token
+    /// @param _supply The amount of token to create
+    /// @param _receiver Address that receives minted token
+    /// @param _settingOperator Address that can perform setTimeInterval
+    ///  and set ERC20 Attribute
+    /// @param _needTime Set to `true` if need to query holding time for token
+    /// @param _recordingOperator Address that can manage recording token
+    /// @param _uri URI that points to token metadata
+    /// @param _erc20 Set to `true` to create a erc20 adapter for token
+    /// @return Token ID
     function createTokenWithRecording(
         uint256 _supply,
         address _receiver,
@@ -129,6 +185,11 @@ contract TokenFactory is
         return 0;
     }
     
+    /// @notice Set starting time and ending time for token holding time calculation
+    /// @dev Starting time must be greater than the time at the moment
+    /// @dev To save gas cost, here use uint128 to store time
+    /// @param _startTime Starting time in unix time format
+    /// @param _endTime Ending time in unix time format
     function setTimeInterval(
         uint256 _tokenId,
         uint128 _startTime,
@@ -142,9 +203,14 @@ contract TokenFactory is
         require(_endTime > _startTime, "End greater than start");
 
         _setTime(_tokenId, _startTime, _endTime);
-        return;
     }
     
+    /// @notice Set erc20 token attribute
+    /// @dev Throws if `msg.sender` is not authorized setting operator
+    /// @param _tokenId Corresponding token ID with erc20 adapter
+    /// @param _name Name of the token
+    /// @param _symbol Symbol of the token
+    /// @param _decimals Number of decimals to use
     function setERC20Attribute(
         uint256 _tokenId,
         string memory _name,
@@ -155,6 +221,7 @@ contract TokenFactory is
         override
     {
         require(_msgSender() == _settingOperators[_tokenId], "Not authorized");
+        require(_adapters[_tokenId] != address(0), "No adapter found");
 
         _setERC20Attribute(_tokenId, _name, _symbol, _decimals);
     }
