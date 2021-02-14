@@ -235,6 +235,18 @@ describe('TokenFactory', () => {
 
       await expect(tx).to.be.revertedWith('Not authorized')
     })
+
+    it('should revert if time has already been set', async () => {
+      const createTx = await tokenFactory[createTokenWithRecording](
+        100, owner.address, operator.address, false, owner.address, false
+      )
+      const tokenId = 1
+      const now = await utils.getTransactionTimestamp(createTx)
+      await tokenFactory.connect(operator).setTimeInterval(tokenId, now + 100, now + 1000)
+      const tx = tokenFactory.connect(operator).setTimeInterval(tokenId, now + 100, now + 1000)
+
+      await expect(tx).to.be.revertedWith('Already set')
+    })
   })
 
   describe('Recording Token', () => {
