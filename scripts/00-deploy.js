@@ -1,4 +1,5 @@
 const { ethers, upgrades } = require('hardhat')
+const deployed = require('./build')
 require('dotenv').config()
 
 const relayHubAddress = process.env.RELAYHUB
@@ -8,10 +9,12 @@ async function main () {
   const [admin] = await ethers.getSigners()
 
   const whitelistF = await ethers.getContractFactory('Whitelist', admin)
+
   let whitelist = await whitelistF.deploy(admin.address)
   await whitelist.deployed()
   await whitelist.setRelayHub(relayHubAddress)
   await whitelist.setTrustedForwarder(forwarderAddress)
+  deployed.:
 
   const tokenF = await ethers.getContractFactory('TokenFactory', admin)
   let tokenFactory = await tokenF.deploy(forwarderAddress)
