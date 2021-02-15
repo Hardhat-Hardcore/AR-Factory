@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.0;
+pragma solidity 0.8.1;
 
 import "../InvoiceFactoryUpgrade.sol";
 
@@ -31,7 +31,7 @@ contract InvoiceFactoryMock is InvoiceFactoryUpgrade {
     }
 
     function msgData() external returns (bytes memory, bytes memory) {
-        emit MsgData(msg.data, _msgData());
+        emit MsgData(_msgData(), _msgData());
     }
 
     function relayCall() external {

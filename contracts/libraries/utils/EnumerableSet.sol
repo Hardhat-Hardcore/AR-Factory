@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 /* solhint-disable ordering */
-pragma solidity 0.8.0;
+pragma solidity 0.8.1;
 
 /**
  * @dev Library for managing

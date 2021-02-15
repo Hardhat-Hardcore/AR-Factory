@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.0;
+pragma solidity 0.8.1;
 
 import "./interfaces/IWhitelist.sol";
 import "./interfaces/ITokenFactory.sol";
@@ -8,8 +8,6 @@ import "./libraries/utils/ECDSA.sol";
 import "./upgradeable/GSN/ContextUpgradeable.sol";
 import "./upgradeable/access/AccessControlUpgradeable.sol";
 import "./GSN/BaseRelayRecipient.sol";
-
-import "hardhat/console.sol";
 
 contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, AccessControlUpgradeable {
 

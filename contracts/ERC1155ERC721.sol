@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.0;
+pragma solidity 0.8.1;
 
 import "./interfaces/IERC1155.sol";
 import "./interfaces/IERC1155TokenReceiver.sol";
@@ -10,7 +10,6 @@ import "./interfaces/IERC721Receiver.sol";
 import "./interfaces/IERC20Adapter.sol";
 import "./libraries/GSN/Context.sol";
 import "./libraries/utils/Address.sol";
-import "hardhat/console.sol";
 
 /// @title A ERC1155 and ERC721 Implmentation
 contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
