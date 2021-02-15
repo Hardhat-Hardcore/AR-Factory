@@ -416,11 +416,6 @@ describe('TokenFactory', () => {
         const nftHoldingTimeTx = tokenFactory.holdingTimeOf(owner.address, nftId)
         await expect(ftHoldingTimeTx).to.be.revertedWith('Doesn\'t support this token')
         await expect(nftHoldingTimeTx).to.be.revertedWith('Doesn\'t support this token')
-
-        const ftUpdateTx = tokenFactory.updateHoldingTime(owner.address, ftId)
-        const nftUpdateTx = tokenFactory.updateHoldingTime(owner.address, nftId)
-        await expect(ftUpdateTx).to.be.revertedWith('Doesn\'t support this token')
-        await expect(nftUpdateTx).to.be.revertedWith('Doesn\'t support this token')
       })
       
       it('should return zero if not set time yet', async () => {
