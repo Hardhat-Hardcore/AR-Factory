@@ -52,7 +52,7 @@ describe('GSN', () => {
       provider: web3provider,
       config: {
         loggerConfiguration: { logLevel: 'error' },
-        paymasterAddress: whitelist.address
+        paymasterAddress: whitelist.address,
       },
     }).init()
   })
@@ -62,15 +62,13 @@ describe('GSN', () => {
     tokenFactory = await tokenF.deploy(forwarderAddress)
     await tokenFactory.deployed()
 
-
-
     const invoiceF = await ethers.getContractFactory('InvoiceFactoryMock', deploymentProvider.getSigner())
     invoiceFactory = await invoiceF.deploy(
       3,
       trust.address,
       forwarderAddress,
       tokenFactory.address,
-      whitelist.address
+      whitelist.address,
     )
     await invoiceFactory.deployed()
   })
@@ -233,8 +231,6 @@ describe('GSN', () => {
       const afterWithdraw = BigNumber.from(await userInWitelist.getBalance())
 
       expect(afterWithdraw).to.be.eql(beforeWithdraw.add(balanceOfPaymaster))
-
     })
   })
-
 })

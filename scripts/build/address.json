@@ -1,6 +1,0 @@
-export default {
-    "Address": {
-        "Whitelist": "",
-        "TokenFactory": "",
-        "InvoiceFactory": ""
-}}

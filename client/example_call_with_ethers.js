@@ -23,7 +23,7 @@ async function main () {
     provider: web3provider,
     config: {
       loggerConfiguration: { logLevel: 'error' },
-      paymasterAddress: paymasterAddr
+      paymasterAddress: paymasterAddr,
     },
   }).init()
 
@@ -37,7 +37,6 @@ async function main () {
   const contractInstance = contract.connect(clientProvider.getSigner(userInWhitelist.address))
 
   await contractInstance.METHOD_NAME()
-
 }
 
 main()
