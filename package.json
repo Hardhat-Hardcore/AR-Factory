@@ -7,7 +7,7 @@
     "lint": "solhint -f table 'contracts/**/*.sol'; eslint --fix '**/*.js'",
     "test": "hardhat test $(find test -name '*.js' ! -ipath test/GSN.js)",
     "test-gsn": "sleep 3 && hardhat test --network localhost test/GSN.js",
-    "pretest-gsn": "hardhat node >/dev/null &",
+    "pretest-gsn": "kill $(lsof -t -i:8545) || true; hardhat node >/dev/null &",
     "posttest-gsn": "kill $(lsof -t -i:8545)"
   },
   "repository": {

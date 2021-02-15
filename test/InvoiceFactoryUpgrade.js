@@ -19,8 +19,9 @@ describe('InvoiceFactoryUpgrade', () => {
     [admin, trust, trust2, user1, user2, user3, forwarder] = await ethers.getSigners()
         
     Whitelist = await ethers.getContractFactory('Whitelist')
-    whitelist = await Whitelist.deploy(trust.address)
+    whitelist = await Whitelist.deploy()
     await whitelist.deployed()
+    await whitelist.addWhitelist(trust.address)
 
     const TokenFactory = await ethers.getContractFactory('TokenFactory')
     tokenFactory = await TokenFactory.deploy(forwarder.address)
@@ -259,7 +260,8 @@ describe('InvoiceFactoryUpgrade', () => {
     it('updateWhitelist() should be able to update address to a new IWhitelist', async () => {
       let curWhitelistAddress = await invoiceFactoryUpgrade.whitelist()
       expect(curWhitelistAddress).to.be.eql(whitelist.address)
-      const newWhitelist = await Whitelist.deploy(forwarder.address)
+
+      const newWhitelist = await Whitelist.deploy()
       await invoiceFactoryUpgrade.updateWhitelist(newWhitelist.address)
       let nxtWhitelistAddress = await invoiceFactoryUpgrade.whitelist()
       expect(nxtWhitelistAddress).to.be.eql(newWhitelist.address)
@@ -291,8 +293,8 @@ describe('InvoiceFactoryUpgrade', () => {
       await invoiceFactoryUpgrade.updateWhitelist(whitelist.address)
       await whitelist.addAdmin(invoiceFactoryUpgrade.address)
       await invoiceFactoryUpgrade.enrollSupplier(user2.address)
-      const tx2 = invoiceFactoryUpgrade.enrollSupplier(user2.address)
-      expect(tx2).to.be.revertedWith('Duplicated enrollment')
+      const tx = invoiceFactoryUpgrade.enrollSupplier(user2.address)
+      expect(tx).to.be.revertedWith('Duplicated enrollment')
     })
 
     it('should add into if the user hasn\'t been add into whitelist', async () => {
@@ -326,6 +328,7 @@ describe('InvoiceFactoryUpgrade', () => {
     it('should be able to restore account if the address has been enrolled in anchor', async () => {
       const retBefore = await invoiceFactoryUpgrade.queryAnchorVerified(user3.address)
       expect(retBefore).to.equal(BigNumber.from(0))
+
       const tx = await invoiceFactoryUpgrade.restoreAccount(user1.address, user3.address)
       const blockNumber = (await tx.wait()).blockNumber
       const timestamp = (await ethers.provider.getBlock(blockNumber)).timestamp
@@ -342,6 +345,7 @@ describe('InvoiceFactoryUpgrade', () => {
     it('should be able to restore account if the address has been enrolled in supplier', async () => {
       const retBefore = await invoiceFactoryUpgrade.querySupplierVerified(user3.address)
       expect(retBefore).to.equal(0)
+
       const tx = await invoiceFactoryUpgrade.restoreAccount(user2.address, user3.address)
       const blockNumber = (await tx.wait()).blockNumber
       const timestamp = (await ethers.provider.getBlock(blockNumber)).timestamp

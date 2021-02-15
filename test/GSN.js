@@ -11,7 +11,7 @@ const expect = chai.expect
 chai.use(ChaiAsPromised)
 
 describe('GSN', () => {
-  let trust, userInWitelist, userNotInWitelist
+  let admin, userInWitelist, userNotInWitelist, trust
   let deploymentProvider, clientProvider, gsnProvider
   let whitelist, tokenFactory, invoiceFactory
   let forwarderAddress, relayHubAddress
@@ -26,7 +26,7 @@ describe('GSN', () => {
    * - Set TrustedForwarder on constructor
    */
   before('GSN environment start', async () => {
-    [trust, userInWitelist, userNotInWitelist] = await ethers.getSigners()
+    [admin, userInWitelist, userNotInWitelist, trust] = await ethers.getSigners()
 
     const env = await GsnTestEnvironment.startGsn('localhost')
     forwarderAddress = env.contractsDeployment.forwarderAddress
@@ -35,15 +35,14 @@ describe('GSN', () => {
     const web3provider = new Web3HttpProvider('http://localhost:8545')
     deploymentProvider = new ethers.providers.Web3Provider(web3provider)
 
-    const whitelistF = await ethers.getContractFactory('Whitelist', trust, deploymentProvider.getSigner())
-    whitelist = await whitelistF.deploy(trust.address)
+    const whitelistF = await ethers.getContractFactory('Whitelist', deploymentProvider.getSigner())
+    whitelist = await whitelistF.deploy()
     await whitelist.deployed()
     await whitelist.setRelayHub(relayHubAddress)
     await whitelist.setTrustedForwarder(forwarderAddress)
     await whitelist.addWhitelist(userInWitelist.address)
 
-    const tx = await trust.sendTransaction({
-      from: trust.address,
+    const tx = await admin.sendTransaction({
       to: whitelist.address,
       value: ethers.utils.parseEther('2'),
     })
@@ -59,14 +58,15 @@ describe('GSN', () => {
   })
 
   beforeEach('Deploy baseRelayRecipient contract', async () => {
-    const tokenF = await ethers.getContractFactory('TokenFactoryMock', trust, deploymentProvider.getSigner())
+    const tokenF = await ethers.getContractFactory('TokenFactoryMock', deploymentProvider.getSigner())
     tokenFactory = await tokenF.deploy(forwarderAddress)
     await tokenFactory.deployed()
 
 
 
-    const invoiceF = await ethers.getContractFactory('InvoiceFactoryMock', trust, deploymentProvider.getSigner())
+    const invoiceF = await ethers.getContractFactory('InvoiceFactoryMock', deploymentProvider.getSigner())
     invoiceFactory = await invoiceF.deploy(
+      3,
       trust.address,
       forwarderAddress,
       tokenFactory.address,

@@ -12,13 +12,14 @@ contract InvoiceFactoryMock is InvoiceFactoryUpgrade {
 
 
     constructor(
+        uint8 _decimals,
         address _trustAddress,
         address _trustedForwarder,
         address _tokenFactory,
         address _whitelist
     ) {
        InvoiceFactoryUpgrade.__initialize(
-           3,
+           _decimals,
            _trustAddress,
            _trustedForwarder,
            _tokenFactory,

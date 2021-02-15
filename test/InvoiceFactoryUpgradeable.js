@@ -23,8 +23,9 @@ describe('InvoiceFactoryUpgradeable', () => {
     [admin, trust, user1, user2, forwarder] = await ethers.getSigners()
 
     Whitelist = await ethers.getContractFactory('Whitelist')
-    whitelist = await Whitelist.deploy(trust.address)
+    whitelist = await Whitelist.deploy()
     await whitelist.deployed()
+    await whitelist.addWhitelist(trust.address)
 
     const TokenFactory = await ethers.getContractFactory('TokenFactory')
     tokenFactory = await TokenFactory.deploy(forwarder.address)
@@ -110,7 +111,7 @@ describe('InvoiceFactoryUpgradeable', () => {
       const TokenFactory = await ethers.getContractFactory('TokenFactory')
       const newTokenFactory = await TokenFactory.deploy(forwarder.address)
       await newTokenFactory.deployed()
-      const newWhitelist = await  Whitelist.deploy(trust.address)
+      const newWhitelist = await Whitelist.deploy()
       await newWhitelist.deployed()
 
       await invoiceFactoryUpgradeNew.newTokenFactoryWhitelist(newTokenFactory.address, newWhitelist.address)

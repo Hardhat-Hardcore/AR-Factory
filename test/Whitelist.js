@@ -19,7 +19,7 @@ describe('Whitelis', () => {
 
   beforeEach(async () => {
     const WhitelistFactory = await ethers.getContractFactory('Whitelist')
-    whitelist = await WhitelistFactory.deploy(trustAddress)
+    whitelist = await WhitelistFactory.deploy()
   })
 
   describe('Getter function', () => {
@@ -31,10 +31,8 @@ describe('Whitelis', () => {
     })
         
     it('inWhitelist() should check if account is in whitelist or not', async () => {
-      const trustRet = await whitelist.inWhitelist(trustAddress)
       const adminRet = await whitelist.inWhitelist(adminAddress)
       const otherRet = await whitelist.inWhitelist(user1Address)
-      expect(trustRet).to.be.eql(true)
       expect(adminRet).to.be.eql(true)
       expect(otherRet).to.be.eql(false)
     })
@@ -57,6 +55,7 @@ describe('Whitelis', () => {
 
   describe('removeWhitelist() function', () => {
     it('should be able to remove user in whitelist', async () => {
+      await whitelist.addWhitelist(trustAddress)
       const beforeFunc = await whitelist.inWhitelist(trustAddress)
       expect(beforeFunc).to.eql(true)
       await whitelist.removeWhitelist(trustAddress)

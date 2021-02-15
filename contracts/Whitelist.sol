@@ -6,13 +6,13 @@ import "./interfaces/IWhitelist.sol";
 import "./libraries/AccessControl.sol";
 import "./GSN/BasePaymaster.sol";
 
+/// @title GNS whitelist contract
 contract Whitelist is IWhitelist, AccessControl, BasePaymaster {
 
     bytes32 public constant WHITELIST_ROLE = keccak256("WHITELIST_ROLE");
         
-    constructor(address _trustAddress) {
+    constructor() {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        _setupRole(WHITELIST_ROLE, _trustAddress);
     }
 
     function preRelayedCall(
