@@ -12,6 +12,7 @@ async function main () {
 
   let whitelist = await whitelistF.deploy(admin.address)
   await whitelist.deployed()
+  await whitelist.addWhitelist(trust.address)
   await whitelist.setRelayHub(relayHubAddress)
   await whitelist.setTrustedForwarder(forwarderAddress)
   deployed.:
@@ -33,7 +34,6 @@ async function main () {
   /*  const tokenFM = await ethers.getContractFactory('TokenFactoryMock', admin)
   tokenFactory = await tokenFM.deploy(forwarderAddress)
   await tokenFactory.deployed()
-
   const invoiceFM = await ethers.getContractFactory('InvoiceFactoryMock', admin)
   invoiceFactory = await invoiceFM.deploy(admin.address, forwarderAddress)
   await invoiceFactory.deployed()*/
