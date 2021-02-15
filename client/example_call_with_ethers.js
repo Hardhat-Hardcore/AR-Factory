@@ -1,9 +1,9 @@
-require('dotenv').config()
 const { ethers } = require('hardhat')
 const { RelayProvider } = require('@opengsn/gsn')
 const { getWallet } = require('../test/utils')
 const Web3HttpProvider = require('web3-providers-http')
 const bscTestnetRpc = process.env.BSCTESTNETRPC
+require('dotenv').config({ path: require('find-config')('.env') })
 
 const paymasterAddr = ''
 const contractAddr = ''

@@ -1,5 +1,5 @@
 const { ethers } = require('hardhat')
-require('dotenv').config()
+require('dotenv').config({ path: require('find-config')('.env') })
 
 const signInvoice = async (signer, txAmount, time, interest, pdfhash, numberhash, anchorName, supplier, anchor, list) => {
   const solidityKeccak256 = ethers.utils.solidityKeccak256([

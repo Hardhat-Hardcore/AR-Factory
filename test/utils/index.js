@@ -1,5 +1,6 @@
 const { ethers } = require('hardhat')
-require('dotenv').config()
+const BigNumber = ethers.BigNumber
+require('dotenv').config({ path: require('find-config')('.env') })
 
 const mnemonic = process.env.MNEMONIC || 'test test test test test test test test test test test junk'
 
@@ -9,19 +10,25 @@ async function getTransactionTimestamp (tx) {
 }
 
 async function mine (timestamp) {
+  if (BigNumber.isBigNumber(timestamp))
+    timestamp = timestamp.toNumber()
   if (timestamp) { return ethers.provider.send('evm_mine', [timestamp]) }
   return ethers.provider.send('evm_mine')
 }
 
 async function setNextBlockTimestamp (timestamp) {
+  if (BigNumber.isBigNumber(timestamp))
+    timestamp = timestamp.toNumber()
   return ethers.provider.send('evm_setNextBlockTimestamp', [timestamp])
 }
 
 async function increaseTime (timestamp) {
+  if (BigNumber.isBigNumber(timestamp))
+    timestamp = timestamp.toNumber()
   return ethers.provider.send('evm_increaseTime', [timestamp])
 }
 
-const getWallet = (index = 0) => {
+function getWallet (index=0) {
   return ethers.Wallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/${index}`)
 }
 
@@ -33,7 +40,13 @@ async function getNextContractAddress (address, prev = false) {
   return newAddress
 }
 
-const signInvoice = async (signer, txAmount, time, interest, pdfhash, numberhash, anchorName, supplier, anchor, list) => {
+async function getCurrentTimestamp() {
+  const { timestamp } = await ethers.provider.getBlock()
+  return timestamp
+}
+
+async function signInvoice 
+(signer, txAmount, time, interest, pdfHash, invoiceNumberHash, anchorNameHash, supplier, anchor, list) {
   const solidityKeccak256 = ethers.utils.solidityKeccak256([
     'bytes4', 'uint256', 'uint256', 
     'bytes32', 'bytes32', 'bytes32', 
@@ -41,9 +54,9 @@ const signInvoice = async (signer, txAmount, time, interest, pdfhash, numberhash
     'bool'], [
     '0xa18b7c27', txAmount , time,
     ethers.utils.formatBytes32String(interest),
-    ethers.utils.formatBytes32String(pdfhash),
-    ethers.utils.formatBytes32String(numberhash),
-    ethers.utils.formatBytes32String(anchorName),
+    ethers.utils.formatBytes32String(pdfHash),
+    ethers.utils.formatBytes32String(invoiceNumberHash),
+    ethers.utils.formatBytes32String(anchorNameHash),
     supplier, anchor, list]
   )
   let sigHashBytes = await ethers.utils.arrayify(solidityKeccak256)
@@ -58,5 +71,6 @@ module.exports = {
   increaseTime,
   getWallet,
   getNextContractAddress,
-  signInvoice 
+  signInvoice,
+  getCurrentTimestamp,
 }

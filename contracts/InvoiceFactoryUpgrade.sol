@@ -68,7 +68,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     }
 
     modifier onlyTrust() {
-        require(_msgSender() == trustAddress, "Restricted to only trust by verify");
+        require(_msgSender() == trustAddress, "Restricted to trust.");
         _;
     }
     
@@ -86,7 +86,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     event RemoveAdmin(address indexed _admin);
     event TrustVerifyAnchor(address indexed _anchor);
     event TrustVerifySupplier(address indexed _supplier);
-    event AnchorVerify(address indexed _anchor, uint256 indexed _invoiceId);
+    event AnchorVerifyInvoice(address indexed _anchor, uint256 indexed _invoiceId);
     event UploadInvoice(uint256 indexed _invoiceId, address indexed _supplier, address indexed _anchor);
     event RestoreAccount(address indexed _originAddress, address indexed _newAddress);
     event CreateTokenFromInvoice(uint256 indexed _invoiceId, uint256 indexed _tokenId);
@@ -267,7 +267,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         require(_invoiceList[_invoiceId].anchor == _msgSender(), "Not authorized");
 
         _invoiceList[_invoiceId].anchorConfirmTime = block.timestamp;
-        emit AnchorVerify(_msgSender(), _invoiceId);
+        emit AnchorVerifyInvoice(_msgSender(), _invoiceId);
     }
     
     ///////////////////////////////////  TRUST ONLY FUNCTIONS ///////////////////////////////////////////

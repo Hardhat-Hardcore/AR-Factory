@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint": "solhint -f table \"contracts/**/*.sol\" && eslint --fix \"./**\""
+    "lint": "solhint -f table 'contracts/**/*.sol'; eslint --fix '**/*.js'",
+    "test": "hardhat test $(find test -name '*.js' ! -ipath test/GSN.js)",
+    "test-gsn": "sleep 3 && hardhat test --network localhost test/GSN.js",
+    "pretest-gsn": "hardhat node >/dev/null &",
+    "posttest-gsn": "kill $(lsof -t -i:8545)"
   },
   "repository": {
     "type": "git",
@@ -30,6 +34,7 @@
     "eslint": "^7.19.0",
     "ethereum-waffle": "^3.2.1",
     "ethers": "^5.0.26",
+    "find-config": "^1.0.0",
     "hardhat": "^2.0.8",
     "hardhat-contract-sizer": "^2.0.2",
     "hardhat-docgen": "^1.0.3",
