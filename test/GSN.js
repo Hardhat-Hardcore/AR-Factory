@@ -13,7 +13,7 @@ chai.use(ChaiAsPromised)
 describe('GSN', () => {
   let admin, userInWitelist, userNotInWitelist, trust
   let deploymentProvider, clientProvider, gsnProvider
-  let whitelist, tokenFactory, invoiceFactory
+  let whitelist, TokenFactoryactory, InvoiceFactoryactory
   let forwarderAddress, relayHubAddress
 
   /**
@@ -35,8 +35,8 @@ describe('GSN', () => {
     const web3provider = new Web3HttpProvider('http://localhost:8545')
     deploymentProvider = new ethers.providers.Web3Provider(web3provider)
 
-    const whitelistF = await ethers.getContractFactory('Whitelist', deploymentProvider.getSigner())
-    whitelist = await whitelistF.deploy()
+    const Whitelist = await ethers.getContractFactory('Whitelist', deploymentProvider.getSigner())
+    whitelist = await Whitelist.deploy()
     await whitelist.deployed()
     await whitelist.setRelayHub(relayHubAddress)
     await whitelist.setTrustedForwarder(forwarderAddress)
@@ -58,19 +58,19 @@ describe('GSN', () => {
   })
 
   beforeEach('Deploy baseRelayRecipient contract', async () => {
-    const tokenF = await ethers.getContractFactory('TokenFactoryMock', deploymentProvider.getSigner())
-    tokenFactory = await tokenF.deploy(forwarderAddress)
-    await tokenFactory.deployed()
+    const TokenFactory = await ethers.getContractFactory('TokenFactoryMock', deploymentProvider.getSigner())
+    TokenFactoryactory = await TokenFactory.deploy(forwarderAddress)
+    await TokenFactoryactory.deployed()
 
-    const invoiceF = await ethers.getContractFactory('InvoiceFactoryMock', deploymentProvider.getSigner())
-    invoiceFactory = await invoiceF.deploy(
+    const InvoiceFactory = await ethers.getContractFactory('InvoiceFactoryMock', deploymentProvider.getSigner())
+    InvoiceFactoryactory = await invoiceF.deploy(
       3,
       trust.address,
       forwarderAddress,
-      tokenFactory.address,
+      TokenFactoryactory.address,
       whitelist.address,
     )
-    await invoiceFactory.deployed()
+    await InvoiceFactoryactory.deployed()
   })
 
   describe('BasePaymaster', () => {
@@ -83,18 +83,18 @@ describe('GSN', () => {
         gsnProviderTmp.addAccount(privateKey)
         clientProvider = new ethers.providers.Web3Provider(gsnProviderTmp)
 
-        const tokenF = tokenFactory.connect(clientProvider.getSigner(userNotInWitelist.address))
-        const invoiceF = invoiceFactory.connect(clientProvider.getSigner(userNotInWitelist.address))
+        const TokenFactory = TokenFactoryactory.connect(clientProvider.getSigner(userNotInWitelist.address))
+        const InvoiceFactory = invoiceFactory.connect(clientProvider.getSigner(userNotInWitelist.address))
 
         try {
-          await invoiceF.relayCall()
+          await InvoiceFactory.relayCall()
           expect.fail()
         } catch (e) {
           expect(e.message).to.include('Address is not in whitelist')
         }
 
         try {
-          await tokenF.relayCall()
+          await TokenFactory.relayCall()
           expect.fail()
         } catch (e) {
           expect(e.message).to.include('Address is not in whitelist')
@@ -113,16 +113,16 @@ describe('GSN', () => {
   describe('BaseRelayRecipient', () => {
     describe('_msgSender()', () => {
       it('should return msg.sender if the call is not from trusted forwarder', async () => {
-        const tokenF = tokenFactory.connect(userInWitelist)
-        const invoiceF = invoiceFactory.connect(userInWitelist)
+        const TokenFactory = TokenFactoryactory.connect(userInWitelist)
+        const InvoiceFactory = invoiceFactory.connect(userInWitelist)
 
-        await tokenF.msgSender()
-        await invoiceF.msgSender()
+        await TokenFactory.msgSender()
+        await InvoiceFactory.msgSender()
 
-        const filterToken = tokenFactory.filters.MsgSender()
-        const filterInvoice = invoiceFactory.filters.MsgSender()
-        const eventsToken = await tokenFactory.queryFilter(filterToken)
-        const eventsInvoice = await invoiceFactory.queryFilter(filterInvoice)
+        const filterToken = TokenFactoryactory.filters.MsgSender()
+        const filterInvoice = InvoiceFactoryactory.filters.MsgSender()
+        const eventsToken = await TokenFactoryactory.queryFilter(filterToken)
+        const eventsInvoice = await InvoiceFactoryactory.queryFilter(filterInvoice)
 
         expect(eventsToken.length).to.be.eql(1)
         expect(eventsInvoice.length).to.be.eql(1)
@@ -140,15 +140,15 @@ describe('GSN', () => {
         gsnProviderTmp.addAccount(privateKey)
         clientProvider = new ethers.providers.Web3Provider(gsnProviderTmp)
 
-        const tokenF = tokenFactory.connect(clientProvider.getSigner(userInWitelist.address))
-        const invoiceF = invoiceFactory.connect(clientProvider.getSigner(userInWitelist.address))
-        await tokenF.msgSender()
-        await invoiceF.msgSender()
+        const TokenFactory = TokenFactoryactory.connect(clientProvider.getSigner(userInWitelist.address))
+        const InvoiceFactory = invoiceFactory.connect(clientProvider.getSigner(userInWitelist.address))
+        await TokenFactory.msgSender()
+        await InvoiceFactory.msgSender()
 
-        const filterToken = tokenFactory.filters.MsgSender()
-        const filterInvoice = invoiceFactory.filters.MsgSender()
-        const eventsToken = await tokenFactory.queryFilter(filterToken)
-        const eventsInvoice = await invoiceFactory.queryFilter(filterInvoice)
+        const filterToken = TokenFactoryactory.filters.MsgSender()
+        const filterInvoice = InvoiceFactoryactory.filters.MsgSender()
+        const eventsToken = await TokenFactoryactory.queryFilter(filterToken)
+        const eventsInvoice = await InvoiceFactoryactory.queryFilter(filterInvoice)
 
         expect(eventsToken.length).to.be.eql(1)
         expect(eventsInvoice.length).to.be.eql(1)
@@ -161,16 +161,16 @@ describe('GSN', () => {
 
     describe('_msgData()', () => {
       it('should return msg.data if the call is not from trusted forwarder', async () => {
-        const tokenF = tokenFactory.connect(userInWitelist)
-        const invoiceF = invoiceFactory.connect(userInWitelist)
+        const TokenFactory = TokenFactoryactory.connect(userInWitelist)
+        const InvoiceFactory = invoiceFactory.connect(userInWitelist)
 
-        await tokenF.msgData()
-        await invoiceF.msgData()
+        await TokenFactory.msgData()
+        await InvoiceFactory.msgData()
 
-        const filterToken = tokenFactory.filters.MsgData()
-        const filterInvoice = invoiceFactory.filters.MsgData()
-        const eventsToken = await tokenFactory.queryFilter(filterToken)
-        const eventsInvoice = await invoiceFactory.queryFilter(filterInvoice)
+        const filterToken = TokenFactoryactory.filters.MsgData()
+        const filterInvoice = InvoiceFactoryactory.filters.MsgData()
+        const eventsToken = await TokenFactoryactory.queryFilter(filterToken)
+        const eventsInvoice = await InvoiceFactoryactory.queryFilter(filterInvoice)
 
         expect(eventsToken[0].args._msgData).to.be.eql(eventsToken[0].args._realData)
         expect(eventsInvoice[0].args._msgData).to.be.eql(eventsInvoice[0].args._realData)
@@ -179,8 +179,8 @@ describe('GSN', () => {
 
     describe('versionRecipient', () => {
       it('recipient version should be correct', async () => {
-        const ifVersionRecipient = await invoiceFactory.versionRecipient()
-        const tfVersionRecipient = await tokenFactory.versionRecipient()
+        const ifVersionRecipient = await InvoiceFactoryactory.versionRecipient()
+        const tfVersionRecipient = await TokenFactoryactory.versionRecipient()
 
         expect(ifVersionRecipient).to.be.eql('2.1.0')
         expect(tfVersionRecipient).to.be.eql('2.1.0')
@@ -199,21 +199,21 @@ describe('GSN', () => {
     })
 
     it('should be relay successfully', async () => {
-      const tokenF = tokenFactory.connect(clientProvider.getSigner(userInWitelist.address))
-      const invoiceF = invoiceFactory.connect(clientProvider.getSigner(userInWitelist.address))
+      const TokenFactory = TokenFactoryactory.connect(clientProvider.getSigner(userInWitelist.address))
+      const InvoiceFactory = invoiceFactory.connect(clientProvider.getSigner(userInWitelist.address))
 
-      await tokenF.relayCall()
-      await invoiceF.relayCall()
+      await TokenFactory.relayCall()
+      await InvoiceFactory.relayCall()
     })
 
     it('should not pay for gas after a successful relay call', async () => {
-      const tokenF = tokenFactory.connect(clientProvider.getSigner(userInWitelist.address))
-      const invoiceF = invoiceFactory.connect(clientProvider.getSigner(userInWitelist.address))
+      const TokenFactory = TokenFactoryactory.connect(clientProvider.getSigner(userInWitelist.address))
+      const InvoiceFactory = invoiceFactory.connect(clientProvider.getSigner(userInWitelist.address))
 
       const beforeGas = await clientProvider.getBalance(userInWitelist.address)
 
-      await tokenF.relayCall()
-      await invoiceF.relayCall()
+      await TokenFactory.relayCall()
+      await InvoiceFactory.relayCall()
 
       const afterGas = await clientProvider.getBalance(userInWitelist.address)
 

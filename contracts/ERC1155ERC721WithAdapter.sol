@@ -108,8 +108,8 @@ contract ERC1155ERC721WithAdapter is
         internal
     {
         address adapter = _createClone(template);
-        ERC20Adapter(adapter).initialize(_tokenId);
         _adapters[_tokenId] = adapter;
+        ERC20Adapter(adapter).initialize(_tokenId);
         emit NewAdapter(_tokenId, adapter);
     }
 

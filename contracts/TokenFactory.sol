@@ -72,6 +72,7 @@ contract TokenFactory is
     }
 
     /// @notice Create a token without setting uri
+    /// @dev It emits `NewAdapter` if `_erc20` is true
     /// @param _supply The amount of token to create
     /// @param _receiver Address that receives minted token
     /// @param _settingOperator Address that can perform setTimeInterval
