@@ -26,25 +26,25 @@ describe('Whitelis', () => {
     it('isAdmin() should check if it is admin correctly', async () => {
       const correct = await whitelist.isAdmin(adminAddress)
       expect(correct).to.be.eql(true)
-      const wrong = await whitelist.isAdmin(user1Address)
-      expect(wrong).to.be.eql(false)
+      const other = await whitelist.isAdmin(user1Address)
+      expect(other).to.be.eql(false)
     })
         
     it('inWhitelist() should check if account is in whitelist or not', async () => {
       const adminRet = await whitelist.inWhitelist(adminAddress)
       const otherRet = await whitelist.inWhitelist(user1Address)
-      expect(adminRet).to.be.eql(true)
+      expect(adminRet).to.be.eql(false)
       expect(otherRet).to.be.eql(false)
     })
   })
 
   describe('addWhitelist() function', () => {
     it('should be able to add user into whitelist', async () => {
-      const beforeFunc = await whitelist.inWhitelist(user1Address)
-      expect(beforeFunc).to.eql(false)
+      const before = await whitelist.inWhitelist(user1Address)
+      expect(before).to.eql(false)
       await whitelist.addWhitelist(user1Address)
-      const afterFunc = await whitelist.inWhitelist(user1Address)
-      expect(afterFunc).to.eql(true)
+      const after = await whitelist.inWhitelist(user1Address)
+      expect(after).to.eql(true)
     })
 
     it('should revert if not operate by admin', async () => {
@@ -56,11 +56,11 @@ describe('Whitelis', () => {
   describe('removeWhitelist() function', () => {
     it('should be able to remove user in whitelist', async () => {
       await whitelist.addWhitelist(trustAddress)
-      const beforeFunc = await whitelist.inWhitelist(trustAddress)
-      expect(beforeFunc).to.eql(true)
+      const before = await whitelist.inWhitelist(trustAddress)
+      expect(before).to.eql(true)
       await whitelist.removeWhitelist(trustAddress)
-      const afterFunc = await whitelist.inWhitelist(trustAddress)
-      expect(afterFunc).to.eql(false)
+      const after = await whitelist.inWhitelist(trustAddress)
+      expect(after).to.eql(false)
     })
 
     it('should revert if not operate by admin', async () => {
@@ -86,11 +86,11 @@ describe('Whitelis', () => {
     })
 
     it('should be able to remove admin', async () => {
-      const beforeFuncAdmin = await whitelist.isAdmin(adminAddress)
-      expect(beforeFuncAdmin).to.eql(true)
+      const beforeAdmin = await whitelist.isAdmin(adminAddress)
+      expect(beforeAdmin).to.eql(true)
       await whitelist.connect(admin2).removeAdmin(adminAddress)
-      const afterFuncAdmin = await whitelist.isAdmin(adminAddress)
-      expect(afterFuncAdmin).to.eql(false)
+      const afterAdmin = await whitelist.isAdmin(adminAddress)
+      expect(afterAdmin).to.eql(false)
     })
 
     it('should revert if not operate by admin', async () => {

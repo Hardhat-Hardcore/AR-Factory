@@ -30,7 +30,11 @@ contract Whitelist is IWhitelist, AccessControl, BasePaymaster {
             bool rejectOnRecipientRevert
         )
     {
-        require(inWhitelist(relayRequest.request.from), "Address is not in whitelist");
+        require(
+            inWhitelist(relayRequest.request.from) ||
+            isAdmin(relayRequest.request.from),
+            "Address is not in whitelist"
+        );
 
         _verifyForwarder(relayRequest);
         _verifySignature(relayRequest, signature);
@@ -60,8 +64,11 @@ contract Whitelist is IWhitelist, AccessControl, BasePaymaster {
         return "2.1.0";
     }
 
+    /// @notice Quries whether an address has role admin
+    /// @param _account The address to be queried
+    /// @return `True` if `_account` has role admin
     function isAdmin(address _account) 
-        external
+        public
         view
         override
         returns (bool)
@@ -69,15 +76,22 @@ contract Whitelist is IWhitelist, AccessControl, BasePaymaster {
         return hasRole(DEFAULT_ADMIN_ROLE, _account);
     }
 
+    /// @notice Queries whether an address has role whitelist
+    /// @param _account The address to be queried
+    /// @return `True` if `_account` has role whitelist
     function inWhitelist(address _account)
         public
         view
         override
         returns (bool)
     {
-        return hasRole(WHITELIST_ROLE, _account) || hasRole(DEFAULT_ADMIN_ROLE, _account);
+        return hasRole(WHITELIST_ROLE, _account);
     }
     
+    /// @notice Remove an address from role admin
+    /// @dev It throws if `msg.sender` does no have role admin.
+    ///  It does not throw if address is not in role admin.
+    /// @param _account The address to be removed
     function removeAdmin(address _account)
         external
         override
@@ -85,6 +99,9 @@ contract Whitelist is IWhitelist, AccessControl, BasePaymaster {
         revokeRole(DEFAULT_ADMIN_ROLE, _account);
     }
 
+    /// @notice Insert an address into role whitelist
+    /// @dev It does not throw if address already has role whitelist
+    /// @param _account The address to be inserted
     function addWhitelist(address _account)
         external
         override
@@ -92,6 +109,10 @@ contract Whitelist is IWhitelist, AccessControl, BasePaymaster {
         grantRole(WHITELIST_ROLE, _account);
     }
 
+    /// @notice Remove an address from role whitelist
+    /// @dev It throws if `msg.sender` does no have role admin.
+    ///  It does not throw if address is not in role whitelist.
+    /// @param _account The address to be removed
     function removeWhitelist(address _account)
         external
         override
@@ -99,6 +120,9 @@ contract Whitelist is IWhitelist, AccessControl, BasePaymaster {
         revokeRole(WHITELIST_ROLE, _account);
     }
     
+    /// @notice Insert an address into role admin
+    /// @dev It does not throw if address already has role admin
+    /// @param _account The address to be inserted
     function addAdmin(address _account)
         external
         override
