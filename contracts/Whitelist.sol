@@ -79,7 +79,7 @@ contract Whitelist is IWhitelist, AccessControl, BasePaymaster {
     /// @notice Queries whether an address has whitelist role
     /// @param _account The address to be queried
     /// @return `True` if `_account` has whitelist role
-o   function inWhitelist(address _account)
+    function inWhitelist(address _account)
         public
         view
         override
