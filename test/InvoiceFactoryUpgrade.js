@@ -323,31 +323,25 @@ describe('InvoiceFactoryUpgrade', () => {
     })
 
     it('should be able to restore account if the address has been enrolled in anchor', async () => {
-      const retBefore = await invoiceFactoryUpgrade.queryAnchorVerified(user3.address)
-      expect(retBefore).to.equal(BigNumber.from(0))
+      const verifiedAt = await invoiceFactoryUpgrade.queryAnchorVerified(user1.address)
 
-      const tx = await invoiceFactoryUpgrade.restoreAccount(user1.address, user3.address)
-      const blockNumber = (await tx.wait()).blockNumber
-      const timestamp = (await ethers.provider.getBlock(blockNumber)).timestamp
+      await invoiceFactoryUpgrade.restoreAccount(user1.address, user3.address)
       const ret = await invoiceFactoryUpgrade.queryAnchorVerified(user3.address)
-      expect(ret).to.eql(BigNumber.from(timestamp))
+      expect(ret).to.eql(verifiedAt)
     })
 
-    it('should be add to whitelist as the same time', async () => {
+    it('should be added to whitelist at the same time', async () => {
       await invoiceFactoryUpgrade.restoreAccount(user2.address, user3.address)
       const ret = await whitelist.inWhitelist(user3.address)
       expect(ret).to.eql(true)
     })
 
     it('should be able to restore account if the address has been enrolled in supplier', async () => {
-      const retBefore = await invoiceFactoryUpgrade.querySupplierVerified(user3.address)
-      expect(retBefore).to.equal(0)
+      const verifiedAt = await invoiceFactoryUpgrade.queryAnchorVerified(user2.address)
 
-      const tx = await invoiceFactoryUpgrade.restoreAccount(user2.address, user3.address)
-      const blockNumber = (await tx.wait()).blockNumber
-      const timestamp = (await ethers.provider.getBlock(blockNumber)).timestamp
-      const ret = await invoiceFactoryUpgrade.querySupplierVerified(user3.address)
-      expect(ret).to.eql(BigNumber.from(timestamp))
+      await invoiceFactoryUpgrade.restoreAccount(user2.address, user3.address)
+      const ret = await invoiceFactoryUpgrade.queryAnchorVerified(user3.address)
+      expect(ret).to.eql(verifiedAt)
     })
   })
     

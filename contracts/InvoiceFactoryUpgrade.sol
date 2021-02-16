@@ -9,6 +9,7 @@ import "./upgradeable/GSN/ContextUpgradeable.sol";
 import "./upgradeable/access/AccessControlUpgradeable.sol";
 import "./GSN/BaseRelayRecipient.sol";
 
+/// @title Invoice factory with an upgradeable feature
 contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, AccessControlUpgradeable {
 
     struct Invoice {
@@ -22,8 +23,8 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         bytes32 invoicePdfHash;         // Hash of the invoice pdf
         bytes32 invoiceNumberHash;      // Hash of the invoice number
         bytes32 anchorHash;             // Hash of the anchor name
-        address supplier;               // supplier address
-        address anchor;                 // anchor address
+        address supplier;               // Supplier address
+        address anchor;                 // Anchor address
     }
     
     using ECDSA for bytes32;
@@ -108,29 +109,58 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         decimals = _decimals;
         tokenFactory = ITokenFactory(_tokenFactory);
         whitelist = IWhitelist(_whitelist);
-        if (whitelist.isAdmin(_msgSender()) == false)
-            whitelist.addAdmin(_msgSender());
     }
 
     ///////////////////////////////////  GETTER FUNCTIONS ///////////////////////////////////////////
    
+    /// @notice Queries invoice ID by its correcponding token ID
+    /// @dev It throws if `_tokenId` is zero or does not have a
+    ///  correcsponding invoice
+    /// @param _tokenId Token ID
+    /// @return Invoice ID
     function queryInvoiceId(uint256 _tokenId) external view returns (uint256) {
+        require(_tokenId != 0, "Invalid token");
+
+        uint256 invoiceId = _tokenIdToInvoiceId[_tokenId];
+        require(_invoiceList[invoiceId].tokenId == _tokenId, "No invoice found");
+
         return _tokenIdToInvoiceId[_tokenId];
     }
 
+    /// @notice Queries token ID by its correcponding invoice ID
+    /// @dev It throws if invoice does not have token creation history
+    /// @param _invoiceId Invoice ID
+    /// @return Token ID
     function queryTokenId(uint256 _invoiceId) external view returns (uint256) {
         require(_invoiceIdToTokenId[_invoiceId] > 0, "No token found");
         return _invoiceIdToTokenId[_invoiceId];
     }
 
+    /// @notice Queries the timestamp when the anchor is verified by trust
+    /// @dev It returns zero if anchor is not verified
+    /// @param _anchor Address of the anchor
+    /// @return Timestamp of verification
     function queryAnchorVerified(address _anchor) external view returns (uint256) {
         return _anchorVerified[_anchor];
     }
 
-    function querySupplierVerified(address _anchor) external view returns (uint256) {
-        return _supplierVerified[_anchor];
+    /// @notice Queries the timestamp when the supplier is verified by trust
+    /// @dev It returns zero if supplier is not verified
+    /// @param _supplier Address of the supplier 
+    /// @return Timestamp of verification
+    function querySupplierVerified(address _supplier) external view returns (uint256) {
+        return _supplierVerified[_supplier];
     }
 
+    /// @notice Queries the invoice information uploaded by supplier
+    /// @param _invoiceId Invoice ID to be queried
+    /// @return Invoice ID
+    /// @return Invoice issuance time
+    /// @return Invoice amount
+    /// @return Invoice due date
+    /// @return Hash of the invoice pdf
+    /// @return Hash of the invoice number
+    /// @return Hash of the anchor name
     function queryInvoice(uint256 _invoiceId)
         external
         view
@@ -151,6 +181,12 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         );
     }
 
+    /// @notice Queries the invoice derivative information
+    /// @param _invoiceId Invoice ID to be queried
+    /// @return Corresponding Token ID, zero if does not have token
+    /// @return Interest rate
+    /// @return Address of the supplier
+    /// @return Address of the anchor 
     function queryInvoiceData(uint256 _invoiceId)
         external
         view
@@ -168,6 +204,9 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         );
     }
 
+    /// @notice Check anchor role
+    /// @param _anchor Address
+    /// @return `true` if it has anchor role
     function isAnchor(address _anchor)
         external
         view
@@ -176,6 +215,9 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         return hasRole(ANCHOR_ROLE, _anchor);
     }
     
+    /// @notice Check supplier role
+    /// @param _supplier Address
+    /// @return `true` if it has supplier role
     function isSupplier(address _supplier)
         external
         view
@@ -186,6 +228,8 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
 
     ///////////////////////////////////  UPDATE INTERFACE FUNCTIONS ///////////////////////////////////////////
 
+    /// @notice Update trust address
+    /// @param _newTrust New trust address
     function updateTrustAddress(address _newTrust)
         external
         onlyAdmin
@@ -193,6 +237,8 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         trustAddress = _newTrust;
     }
     
+    /// @notice Update token factory address
+    /// @param _newTokenFactory New token factory address
     function updateTokenFactory(address _newTokenFactory)
         external
         onlyAdmin
@@ -200,6 +246,8 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         tokenFactory = ITokenFactory(_newTokenFactory);
     }
     
+    /// @notice Update whitelist address
+    /// @param _newWhitelist New whitelist address
     function updateWhitelist(address _newWhitelist)
         external
         onlyAdmin
@@ -209,6 +257,10 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
 
     ///////////////////////////////////  ANCHOR , SUPPLIER ///////////////////////////////////////////
     
+    /// @notice Enroll anchor
+    /// @dev It throws if `_newAnchor` has already enrolled, otherwise
+    ///  it emits `EnrollAnchor` if successful
+    /// @param _newAnchor Address of anchor
     function enrollAnchor(address _newAnchor)
         external
         onlyAdmin
@@ -221,6 +273,10 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         emit EnrollAnchor(_newAnchor);
     }
     
+    /// @notice Enroll supplier
+    /// @dev It throws if `_newSupplier` has already enrolled, otherwise
+    ///  it emitn `EnrollSupplier` if successful
+    /// @param _newSupplier Address of supplier 
     function enrollSupplier(address _newSupplier)
         external
         onlyAdmin
@@ -233,6 +289,10 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         emit EnrollSupplier(_newSupplier);
     }
 
+    /// @notice Enroll admin
+    /// @dev It throws if `_newAdmin` has already enrolled, otherwise
+    ///  it emits `EnrollAdmin` if successful
+    /// @param _newAdmin Address of admin
     function enrollAdmin(address _newAdmin)
         external
         onlyAdmin
@@ -245,6 +305,10 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         emit EnrollAdmin(_newAdmin);
     }
 
+    /// @notice Remove an address from admin role
+    /// @dev It throws if `_account` not in admin role, otherwise
+    ///  it emits `RemoveAdmin` if successful
+    /// @param _account Address to admin
     function removeAdmin(address _account)
         external
         onlyAdmin
@@ -256,12 +320,14 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         emit RemoveAdmin(_account);
     }
    
+    /// @notice For anchor to verify an invoice
+    /// @dev It emits `AnchorVerifyInvoice` if successful
+    /// @param _invoiceId Invoice to be verified
     function anchorVerifyInvoice(uint256 _invoiceId)
         external
         onlyAnchor
         checkTrustVerified(_msgSender(), _invoiceList[_invoiceId].supplier)
     {
-        require(_anchorVerified[_msgSender()] > 0, "Not verified yet");
         require(_invoiceList[_invoiceId].anchor == _msgSender(), "Not authorized");
 
         _invoiceList[_invoiceId].anchorConfirmTime = block.timestamp;
@@ -270,6 +336,9 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     
     ///////////////////////////////////  TRUST ONLY FUNCTIONS ///////////////////////////////////////////
 
+    /// @notice Trust verify anchor
+    /// @dev It emits `TrustVerifyAnchor` if successful
+    /// @param _anchor Address of anchor
     function trustVerifyAnchor(address _anchor)
         external
         onlyTrust
@@ -278,6 +347,9 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         emit TrustVerifyAnchor(_anchor);
     }
     
+    /// @notice Trust verify supplier 
+    /// @dev It emits `TrustVerifySupplier` if successful
+    /// @param _supplier Address of supplier 
     function trustVerifySupplier(address _supplier)
         external
         onlyTrust
@@ -288,13 +360,24 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
 
     ///////////////////////////////////  INVOICE UPDATE FUNCTIONS ///////////////////////////////////////////
 
+    /// @notice Upload an invoice by supplier
+    /// @dev It emits `UploadInvoice` if successful
+    /// @param _invoiceAmount Invoice Amount
+    /// @param _time The first(high) 128-bit is issuance time of invoice,
+    ///  the last(low) 128-bit is due date
+    /// @param _interestRate Interest rate
+    /// @param _invoicePdfHash Hash of the invoice pdf
+    /// @param _invoiceNumberHash Hash of the invoice number
+    /// @param _anchorHash Hash of the anchor name
+    /// @param _anchorAddr Address of anchor
+    /// @param _signature Admin signature
     function uploadInvoice(
         uint256 _invoiceAmount,
         uint256 _time,
         bytes32 _interestRate,
         bytes32 _invoicePdfHash,
         bytes32 _invoiceNumberHash,
-        bytes32 _anchorName,
+        bytes32 _anchorHash,
         address _anchorAddr,
         bytes   calldata _signature
     ) 
@@ -308,7 +391,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
             _interestRate,
             _invoicePdfHash,
             _invoiceNumberHash,
-            _anchorName,
+            _anchorHash,
             _msgSender(),
             _anchorAddr
         );
@@ -321,7 +404,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
             _interestRate,
             _invoicePdfHash,
             _invoiceNumberHash,
-            _anchorName,
+            _anchorHash,
             _msgSender(),
             _anchorAddr
         );
@@ -333,7 +416,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         bytes32 _interestRate,
         bytes32 _invoicePdfHash,
         bytes32 _invoiceNumberHash,
-        bytes32 _anchorName,
+        bytes32 _anchorHash,
         address _supplierAddr,
         address _anchorAddr
     )
@@ -349,7 +432,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
             _interestRate,
             _invoicePdfHash,
             _invoiceNumberHash,
-            _anchorName,
+            _anchorHash,
             _supplierAddr,
             _anchorAddr
         );
@@ -358,13 +441,23 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         emit UploadInvoice(invoiceCount - 1, _supplierAddr, _anchorAddr);
     }
 
+    /// @notice Hash invoice
+    /// @param _invoiceAmount Invoice Amount
+    /// @param _time The first(high) 128-bit is issuance time of invoice,
+    ///  the last(low) 128-bit is due date
+    /// @param _interestRate Interest rate
+    /// @param _invoicePdfHash Hash of the invoice pdf
+    /// @param _invoiceNumberHash Hash of the invoice number
+    /// @param _anchorHash Hash of the anchor name
+    /// @param _supplierAddr Address of supplier 
+    /// @param _anchorAddr Address of anchor
     function uploadPreSignedHash(
         uint256 _invoiceAmount,
         uint256 _time,
         bytes32 _interestRate,
         bytes32 _invoicePdfHash,
         bytes32 _invoiceNumberHash,
-        bytes32 _anchorName,
+        bytes32 _anchorHash,
         address _supplierAddr,
         address _anchorAddr
     )
@@ -381,13 +474,18 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
                 _interestRate, 
                 _invoicePdfHash,
                 _invoiceNumberHash,
-                _anchorName,
+                _anchorHash,
                 _supplierAddr,
                 _anchorAddr
             )
         );
     }
     
+    /// @notice Create a token for invoice
+    /// @dev It throws if `msg.sender` is not admin, invoice hasn't
+    ///  been confirmed by anchor or token has created before.
+    ///  It emits `CreateTokenFromInvioce` if successful
+    /// @param _invoiceId Invoice ID
     function invoiceToToken(uint256 _invoiceId)
         external
         onlyAdmin
@@ -411,6 +509,11 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         emit CreateTokenFromInvoice(_invoiceId, tokenId);
     }
 
+    /// @notice Set time interval for token holding time calculation 
+    /// @dev This function can only be accessed by trust
+    /// @param _invoiceId Invoice ID
+    /// @param _startTime Starting time in unix time format
+    /// @param _endTime Ending time in unix time format
     function setTimeInterval(
         uint256 _invoiceId,
         uint128 _startTime,
@@ -429,7 +532,15 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     
     ///////////////////////////////////  RESTORE FUNCTIONS ///////////////////////////////////////////
 
-    function restoreAccount(address _originAddress, address _newAddress)
+    /// @notice Set a new address for anchor or supplier
+    /// @dev This function can only be accessed by admin. It emits
+    ///  `RestoreAccount` if successful
+    /// @param _originAddress Original address
+    /// @param _newAddress New address
+    function restoreAccount(
+        address _originAddress,
+        address _newAddress
+    )
         external
         onlyAdmin
     {
@@ -440,10 +551,10 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         );
 
         if (_supplierVerified[_originAddress] > 0) 
-            _supplierVerified[_newAddress] = block.timestamp;
+            _supplierVerified[_newAddress] = _supplierVerified[_originAddress];
         
         if (_anchorVerified[_originAddress] > 0)
-            _anchorVerified[_newAddress] = block.timestamp;
+            _anchorVerified[_newAddress] = _anchorVerified[_originAddress];
 
         if (whitelist.inWhitelist(_newAddress) == false)
             whitelist.addWhitelist(_newAddress);
