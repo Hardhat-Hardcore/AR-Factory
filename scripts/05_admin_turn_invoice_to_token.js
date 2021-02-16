@@ -28,7 +28,8 @@ async function main () {
   const provider = new ethers.providers.Web3Provider(gsnProvider)
 
   const invoiceFactroyUpgrade = new ethers.Contract(invoiceFactoryAddr, invoiceFactoryAbi, provider)
-  await invoiceFactroyUpgrade.connect(provider.getSigner(admin.address)).invoiceToToken(0)
+  const invoiceToToken = await invoiceFactroyUpgrade.connect(provider.getSigner(admin.address)).invoiceToToken(0)
+  console.log("Turn invoiceToToken: ", invoiceToToken.hash)
 }
 
 main()

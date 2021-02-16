@@ -58,7 +58,7 @@ async function main () {
   const provider = new ethers.providers.Web3Provider(gsnProvider)
 
   const invoiceFactroyUpgrade = new ethers.Contract(invoiceFactoryAddr, invoiceFactoryAbi, provider)
-  await invoiceFactroyUpgrade.connect(provider.getSigner(supplier.address)).uploadInvoice(
+  const uploadInvoice = await invoiceFactroyUpgrade.connect(provider.getSigner(supplier.address)).uploadInvoice(
     100000,
     time,
     EthUtils.formatBytes32String('0.05'),
@@ -68,6 +68,7 @@ async function main () {
     anchor.address,
     adminSig,
   )
+  console.log("Upload Invoice: ", uploadInvoice.hash)
 }
 
 main()

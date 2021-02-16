@@ -30,8 +30,10 @@ async function main () {
   const provider = new ethers.providers.Web3Provider(gsnProvider)
 
   const invoiceFactroyUpgrade = new ethers.Contract(invoiceFactoryAddr, invoiceFactoryAbi, provider)
-  await invoiceFactroyUpgrade.connect(provider.getSigner(admin.address)).enrollSupplier(supplier.address)
-  await invoiceFactroyUpgrade.connect(provider.getSigner(trust.address)).trustVerifySupplier(supplier.address)
+  const enrollWs = await invoiceFactroyUpgrade.connect(provider.getSigner(admin.address)).enrollSupplier(supplier.address)
+  const trustVerifyWs = await invoiceFactroyUpgrade.connect(provider.getSigner(trust.address)).trustVerifySupplier(supplier.address)
+  console.log('Admin enroll supplier: ', enrollWs.hash)
+  console.log('Trust verify supplier: ', trustVerifyWs.hash)
 }
 
 main()
