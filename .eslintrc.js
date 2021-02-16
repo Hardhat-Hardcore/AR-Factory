@@ -19,5 +19,5 @@ module.exports = {
   },
   'ignorePatterns': ['README.md', 'contracts/', 'node_modules/', 'artifacts/',
     'coverage/', 'package-lock.json', 'cache/', 'coverage.json', 'package.json',
-    'clinet/', '/docs']
+    'client/', '/docs']
 }
