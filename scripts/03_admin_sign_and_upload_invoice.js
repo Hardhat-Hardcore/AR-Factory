@@ -30,7 +30,6 @@ async function main () {
     anchorName: 'Anchor name',
     supplier: supplier.address,
     anchor: anchor.address,
-    list: true,
   }
   const adminSig = await signInvoice(
     admin,
@@ -42,7 +41,6 @@ async function main () {
     negoResult.anchorName,
     negoResult.supplier,
     negoResult.anchor,
-    negoResult.list,
   )
 
   const web3provider = new Web3HttpProvider(url)
@@ -68,7 +66,6 @@ async function main () {
     EthUtils.formatBytes32String('Invoice number hash'),
     EthUtils.formatBytes32String('Anchor name'),
     anchor.address,
-    true,
     adminSig,
   )
 }
