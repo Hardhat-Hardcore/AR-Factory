@@ -265,6 +265,38 @@ describe('InvoiceFactoryUpgrade', () => {
     })
   })
 
+  describe('Enroll Admin', () => {
+    it('should revert if the new Admin had been enrolled before', async () => {
+      await invoiceFactoryUpgrade.enrollAdmin(user2.address)
+      const tx = invoiceFactoryUpgrade.enrollAdmin(user2.address)
+      expect(tx).to.be.revertedWith('Duplicated enrollment')
+    })
+    it('should be able to been add into whitelist if he wasn\'t in whitelist', async () => {
+      const before = await whitelist.isAdmin(user3.address)
+      expect(before).to.be.eql(false)
+      await invoiceFactoryUpgrade.enrollAdmin(user3.address)
+      const after = await whitelist.isAdmin(user3.address)
+      expect(after).to.be.eql(true)
+    })
+  })
+
+  describe('Remove Admin', () => {
+    beforeEach(async () => {
+      await invoiceFactoryUpgrade.enrollAdmin(user2.address)
+    })
+    it('should revert if the address wasn\'t in admin group', async () => {
+      const tx = invoiceFactoryUpgrade.removeAdmin(user2.address)
+      expect(tx).to.be.revertedWith('Not in admin group')
+    })
+    it('should be able to remove from whitelist as well', async () => {
+      const before = await whitelist.isAdmin(user2.address)
+      expect(before).to.be.eql(true)
+      await invoiceFactoryUpgrade.removeAdmin(user2.address)
+      const after = await whitelist.isAdmin(user2.address)
+      expect(after).to.be.eql(false)
+    })
+  })
+
   describe('Enroll Anchor', () => {
     it('should revert if the new anchor have already been added to Anchor role', async () => {
       await invoiceFactoryUpgrade.enrollAnchor(user2.address)

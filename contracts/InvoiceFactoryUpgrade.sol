@@ -61,11 +61,6 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         require(hasRole(ANCHOR_ROLE, _msgSender()) == true, "Restricted to anchors.");
         _;
     }
-    
-    modifier checkWhitelist() {
-        require(address(whitelist) > address(0), "Whitelist not initialized yet.");
-        _;
-    }
 
     modifier onlyTrust() {
         require(_msgSender() == trustAddress, "Restricted to trust.");
