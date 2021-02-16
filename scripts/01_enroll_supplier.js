@@ -5,10 +5,10 @@ const Web3HttpProvider = require('web3-providers-http')
 const { address: paymasterAddr } = require('./build/Whitelist.json')
 const { address: invoiceFactoryAddr } = require('./build/InvoiceFactory.json')
 const { abi: invoiceFactoryAbi } = require('../artifacts/contracts/InvoiceFactoryUpgrade.sol/InvoiceFactoryUpgrade.json')
-const { NETWORK, BSCTESTNETRPC } = process.env
+const { NETWORK, RPCURL } = process.env
 require('dotenv').config({ path: require('find-config')('.env') })
 
-const url = NETWORK === 'localhost' ? 'http://127.0.0.1:8545' : BSCTESTNETRPC
+const url = NETWORK === 'localhost' ? 'http://127.0.0.1:8545' : RPCURL
 
 async function main () {
   const [admin, trust, supplier] = await ethers.getSigners()
@@ -30,8 +30,13 @@ async function main () {
   const provider = new ethers.providers.Web3Provider(gsnProvider)
 
   const invoiceFactroyUpgrade = new ethers.Contract(invoiceFactoryAddr, invoiceFactoryAbi, provider)
-  const enrollWs = await invoiceFactroyUpgrade.connect(provider.getSigner(admin.address)).enrollSupplier(supplier.address)
-  const trustVerifyWs = await invoiceFactroyUpgrade.connect(provider.getSigner(trust.address)).trustVerifySupplier(supplier.address)
+
+  const enrollWs =
+    await invoiceFactroyUpgrade.connect(provider.getSigner(admin.address)).enrollSupplier(supplier.address)
+
+  const trustVerifyWs =
+    await invoiceFactroyUpgrade.connect(provider.getSigner(trust.address)).trustVerifySupplier(supplier.address)
+
   console.log('Admin enroll supplier: ', enrollWs.hash)
   console.log('Trust verify supplier: ', trustVerifyWs.hash)
 }

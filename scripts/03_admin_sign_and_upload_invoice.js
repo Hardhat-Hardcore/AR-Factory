@@ -7,40 +7,43 @@ const Web3HttpProvider = require('web3-providers-http')
 const { address: paymasterAddr } = require('./build/Whitelist.json')
 const { address: invoiceFactoryAddr } = require('./build/InvoiceFactory.json')
 const { abi: invoiceFactoryAbi } = require('../artifacts/contracts/InvoiceFactoryUpgrade.sol/InvoiceFactoryUpgrade.json')
-const { NETWORK, BSCTESTNETRPC } = process.env
+const { NETWORK, RPCURL } = process.env
 require('dotenv').config({ path: require('find-config')('.env') })
 
-const url = NETWORK === 'localhost' ? 'http://127.0.0.1:8545' : BSCTESTNETRPC
+const url = NETWORK === 'localhost' ? 'http://127.0.0.1:8545' : RPCURL
 
 const BigNumber = ethers.BigNumber
 const EthUtils = ethers.utils
 
 async function main () {
-  const [admin, , supplier, anchor] = await ethers.getSigners()
+  const [admin, supplier, anchor] = await ethers.getSigners()
 
   const TWO = BigNumber.from(2)
-  const now = BigNumber.from(await utils.getCurrentTimestamp())
-  const time = now.mul(TWO.pow(128)).add(now).add(1000000)
-  const negoResult = {
+  const invoiceTime = BigNumber.from(123456)
+  const dueDate = BigNumber.from(1234567)
+  const time = invoiceTime.mul(TWO.pow(128)).add(dueDate)
+
+  const negotiationResult = {
     txAmount: 100000,
     time: time,
     interest: '0.05',
     pdfhash: 'Invoice pdf hash',
     numberhash: 'Invoice number hash',
-    anchorName: 'Anchor name',
+    anchorName: 'Anchor name hash',
     supplier: supplier.address,
     anchor: anchor.address,
   }
+
   const adminSig = await signInvoice(
     admin,
-    negoResult.txAmount,
-    negoResult.time,
-    negoResult.interest,
-    negoResult.pdfhash,
-    negoResult.numberhash,
-    negoResult.anchorName,
-    negoResult.supplier,
-    negoResult.anchor,
+    negotiationResult.txAmount,
+    negotiationResult.time,
+    negotiationResult.interest,
+    negotiationResult.pdfhash,
+    negotiationResult.numberhash,
+    negotiationResult.anchorName,
+    negotiationResult.supplier,
+    negotiationResult.anchor,
   )
 
   const web3provider = new Web3HttpProvider(url)
@@ -64,7 +67,7 @@ async function main () {
     EthUtils.formatBytes32String('0.05'),
     EthUtils.formatBytes32String('Invoice pdf hash'),
     EthUtils.formatBytes32String('Invoice number hash'),
-    EthUtils.formatBytes32String('Anchor name'),
+    EthUtils.formatBytes32String('Anchor name hash'),
     anchor.address,
     adminSig,
   )

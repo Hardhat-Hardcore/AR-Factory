@@ -1,10 +1,15 @@
 const fs = require('fs')
 const { ethers, upgrades } = require('hardhat')
 const utils = require('./utils')
-const Forwarder = require('../build/gsn/Forwarder.json')
-const RelayHub = require('../build/gsn/RelayHub.json')
 const { RELAYHUB, FORWARDER, NETWORK } = process.env
 require('dotenv').config({ path: require('find-config')('.env') })
+
+let relayHubAddress = RELAYHUB
+let forwarderAddress = FORWARDER
+if (NETWORK === 'localhost') {
+  relayHubAddress = require('../build/gsn/RelayHub.json').address  
+  forwarderAddress = require('../build/gsn/Forwarder.json').address  
+}
 
 const relayHubAddress = NETWORK === 'localhost' ? RelayHub.address : RELAYHUB
 const forwarderAddress = NETWORK === 'localhost' ? Forwarder.address : FORWARDER
@@ -31,7 +36,7 @@ async function main () {
   console.log('Add admin to whitelist: ', addAdminToWhitelist.hash)
   console.log('Add trust to whitelist: ', addTrustToWhitelist.hash)
   console.log('Set Relay Hub: ', setRelayHub.hash)
-  console.log('Set Trust Forward: ', setTrustForward.hash)
+  console.log('Set Trust Forwarder: ', setTrustForward.hash)
   console.log(' ')
 
   console.log('Deploying TokenFactory...')
@@ -53,11 +58,14 @@ async function main () {
     { initializer: '__initialize' },
   )
   await invoiceFactory.deployed()
+
   console.log('InvoiceFactory address: ', invoiceFactory.address)
   console.log('Transaction hash: ', invoiceFactory.deployTransaction.hash)
+
   const addInvoiceFactoryToWhitelist = await whitelist.addAdmin(invoiceFactory.address)
   console.log('Add InvoiceFactory to whitelsit: ', addInvoiceFactoryToWhitelist.hash)
-  console.log(' ')
+  console.log('')
+
   const tx = await admin.sendTransaction({
     from: admin.address,
     to: whitelist.address,
