@@ -85,6 +85,56 @@ describe('ERC20', () => {
         })
       })
     })
+
+    describe("when transfer to contract address", () => {
+      it("should be fulfilled", async () => {
+        await erc20.transfer(tokenFactory.address, 10)
+        const balance = await erc20.balanceOf(tokenFactory.address)
+        
+        expect(balance).to.be.equal(10)
+      })
+    })
+  })
+
+  describe('transferFrom', () => {
+    describe('when recipient is zero address', () => {
+      it('reverts', async () => {
+        const tx = erc20.transferFrom(owner.address, ZERO_ADDRESS, 1)
+
+        await expect(tx).to.be.revertedWith('_to must be non-zero')
+      })
+    })
+
+    describe('when recipient is not zero address', () => {
+      describe('when sender does not have enough balance', () => {
+        const amount = 101
+        it('reverts', async () => {
+          await erc20.approve(operator.address, amount)
+          const tx = erc20.transferFrom(operator.address, receiver.address, amount)
+
+          await expect(tx).to.be.reverted
+        })
+      })
+
+      describe('when sender have enough balance', () => {
+        const amount = 10
+        it('transfers the requested amount', async () => {
+          await erc20.approve(operator.address, amount)
+          await erc20.connect(operator).transferFrom(owner.address, receiver.address, amount)
+
+          expect(await erc20.balanceOf(owner.address)).to.be.equal(90)
+          expect(await erc20.balanceOf(receiver.address)).to.be.equal(10)
+        })
+
+        it('emits a transfer event', async () => {
+          await erc20.approve(operator.address, amount)
+          const tx = erc20.connect(operator).transferFrom(owner.address, receiver.address, amount)
+
+          await expect(tx).to.emit(erc20, 'Transfer')
+            .withArgs(owner.address, receiver.address, amount)
+        })
+      })
+    })
   })
 
   describe('approve', () => {

@@ -211,6 +211,8 @@ contract ERC20Adapter is IERC20Adapter {
         override
         returns (bool)
     {
+        require(_to != address(0), "_to must be non-zero");
+
         _approve(_from, msg.sender, _allowances[_from][msg.sender] - _value);
         _transfer(_from, _to, _value);
         return true;
@@ -226,6 +228,7 @@ contract ERC20Adapter is IERC20Adapter {
         returns (bool)
     {
         require(_to != address(0), "_to must be non-zero");
+
         _transfer(msg.sender, _to, _value);
         return true;
     }
