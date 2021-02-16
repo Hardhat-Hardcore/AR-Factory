@@ -46,19 +46,23 @@ async function getCurrentTimestamp() {
 }
 
 async function signInvoice 
-(signer, txAmount, time, interest, pdfHash, invoiceNumberHash, anchorNameHash, supplier, anchor, list) {
-  const solidityKeccak256 = ethers.utils.solidityKeccak256([
-    'bytes4', 'uint256', 'uint256', 
-    'bytes32', 'bytes32', 'bytes32', 
-    'bytes32', 'address', 'address',
-    'bool'], [
-    '0xa18b7c27', txAmount , time,
-    ethers.utils.formatBytes32String(interest),
-    ethers.utils.formatBytes32String(pdfHash),
-    ethers.utils.formatBytes32String(invoiceNumberHash),
-    ethers.utils.formatBytes32String(anchorNameHash),
-    supplier, anchor, list]
+(signer, invoiceAmount, time, interest, pdfHash, invoiceNumberHash, anchorNameHash, supplier, anchor) {
+  const solidityKeccak256 = ethers.utils.solidityKeccak256(
+    [
+      'bytes4', 'uint256', 'uint256', 
+      'bytes32', 'bytes32', 'bytes32', 
+      'bytes32', 'address', 'address',
+    ], 
+    [
+      '0xa18b7c27', invoiceAmount ,time,
+      ethers.utils.formatBytes32String(interest),
+      ethers.utils.formatBytes32String(pdfHash),
+      ethers.utils.formatBytes32String(invoiceNumberHash),
+      ethers.utils.formatBytes32String(anchorNameHash),
+      supplier, anchor
+    ]
   )
+
   let sigHashBytes = await ethers.utils.arrayify(solidityKeccak256)
   let sig = await signer.signMessage(sigHashBytes)
   return sig

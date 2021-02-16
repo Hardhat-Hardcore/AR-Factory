@@ -67,8 +67,7 @@ describe('InvoiceFactoryUpgradeable', () => {
       'Invoice number hash',
       'anchor hash',
       user2.address,
-      user1.address,
-      true
+      user1.address
     )
     await invoiceFactoryUpgrade.connect(user2).uploadInvoice(
       100000,
@@ -78,7 +77,6 @@ describe('InvoiceFactoryUpgradeable', () => {
       EthUtils.formatBytes32String('Invoice number hash'),
       EthUtils.formatBytes32String('anchor hash'),
       user1.address,
-      true,
       sig
     )
     await invoiceFactoryUpgrade.connect(user1).anchorVerifyInvoice(0)
@@ -156,7 +154,6 @@ describe('InvoiceFactoryUpgradeable', () => {
         EthUtils.formatBytes32String('Invoice number hash No.1'),
         EthUtils.formatBytes32String('anchor hash 1'),
         user1.address,
-        true,
         sig
       )
       await invoiceFactoryUpgradeNew.connect(user1).anchorVerifyInvoice(1)

@@ -125,8 +125,7 @@ describe('InvoiceFactoryUpgrade', () => {
           'Invoice number hash',
           'anchor hash',
           user2.address,
-          user1.address,
-          true
+          user1.address
         )
         
         await invoiceFactoryUpgrade.connect(user2).uploadInvoice(
@@ -137,7 +136,6 @@ describe('InvoiceFactoryUpgrade', () => {
           EthUtils.formatBytes32String('Invoice number hash'),
           EthUtils.formatBytes32String('anchor hash'),
           user1.address,
-          true,
           sig
         )
 
@@ -175,7 +173,6 @@ describe('InvoiceFactoryUpgrade', () => {
         expect(ret[2]).to.be.eql(EthUtils.formatBytes32String('0.05'))
         expect(ret[3]).to.be.eql(user2.address)
         expect(ret[4]).to.be.eql(user1.address)
-        expect(ret[5]).to.be.eql(true)
       })
     })
   })
@@ -367,20 +364,22 @@ describe('InvoiceFactoryUpgrade', () => {
         EthUtils.formatBytes32String('Invoice number hash'),
         EthUtils.formatBytes32String('anchor hash'),
         user1.address,
-        user2.address,
-        true
+        user2.address
       )
-      const solidityKeccak256 = EthUtils.solidityKeccak256([
-        'bytes4', 'uint256', 'uint256',
-        'bytes32', 'bytes32', 'bytes32',
-        'bytes32', 'address', 'address',
-        'bool'], [
-        '0xa18b7c27', '100000', time,
-        EthUtils.formatBytes32String('0.05'), 
-        EthUtils.formatBytes32String('Invoice pdf hash'),
-        EthUtils.formatBytes32String('Invoice number hash'),
-        EthUtils.formatBytes32String('anchor hash'),
-        user1.address, user2.address, true]
+      const solidityKeccak256 = EthUtils.solidityKeccak256(
+        [
+          'bytes4', 'uint256', 'uint256',
+          'bytes32', 'bytes32', 'bytes32',
+          'bytes32', 'address', 'address',
+        ],
+        [
+          '0xa18b7c27', '100000', time,
+          EthUtils.formatBytes32String('0.05'), 
+          EthUtils.formatBytes32String('Invoice pdf hash'),
+          EthUtils.formatBytes32String('Invoice number hash'),
+          EthUtils.formatBytes32String('anchor hash'),
+          user1.address, user2.address
+        ]
       )
 
       expect(ret).to.be.eql(solidityKeccak256)
@@ -407,8 +406,7 @@ describe('InvoiceFactoryUpgrade', () => {
         'Invoice number hash',
         'anchor hash',
         user2.address,
-        user1.address,
-        true
+        user1.address
       )
       const tx = invoiceFactoryUpgrade.connect(user2).uploadInvoice(
         100000,
@@ -418,7 +416,6 @@ describe('InvoiceFactoryUpgrade', () => {
         EthUtils.formatBytes32String('Invoice number hash'),
         EthUtils.formatBytes32String('anchor hash'),
         user1.address,
-        true,
         sig
       )
       expect(tx).to.be.revertedWith('Anchor not verified by trust.')
@@ -439,8 +436,7 @@ describe('InvoiceFactoryUpgrade', () => {
         'Invoice number hash',
         'anchor hash',
         user2.address,
-        user1.address,
-        true
+        user1.address
       )
 
       const tx = invoiceFactoryUpgrade.connect(user2).uploadInvoice(
@@ -451,7 +447,6 @@ describe('InvoiceFactoryUpgrade', () => {
         EthUtils.formatBytes32String('Invoice number hash'),
         EthUtils.formatBytes32String('anchor hash'),
         user1.address,
-        true,
         sig
       )
       expect(tx).to.be.revertedWith('Not authorized by admin')
@@ -472,8 +467,7 @@ describe('InvoiceFactoryUpgrade', () => {
         'Invoice number hash',
         'anchor hash',
         user2.address,
-        user1.address,
-        true
+        user1.address
       )
       const tx = invoiceFactoryUpgrade.connect(user2).uploadInvoice(
         100000,
@@ -483,7 +477,6 @@ describe('InvoiceFactoryUpgrade', () => {
         EthUtils.formatBytes32String('Invoice number hash'),
         EthUtils.formatBytes32String('anchor hash'),
         user1.address,
-        true,
         sig
       )
 
@@ -513,8 +506,7 @@ describe('InvoiceFactoryUpgrade', () => {
         'Invoice number hash',
         'anchor hash',
         user2.address,
-        user1.address,
-        true
+        user1.address
       )
       await invoiceFactoryUpgrade.connect(user2).uploadInvoice(
         100000,
@@ -524,7 +516,6 @@ describe('InvoiceFactoryUpgrade', () => {
         EthUtils.formatBytes32String('Invoice number hash'),
         EthUtils.formatBytes32String('anchor hash'),
         user1.address,
-        true,
         sig
       )
     })
@@ -576,8 +567,7 @@ describe('InvoiceFactoryUpgrade', () => {
         'Invoice number hash',
         'anchor hash',
         user2.address,
-        user1.address,
-        true
+        user1.address
       )
       await invoiceFactoryUpgrade.connect(user2).uploadInvoice(
         100000,
@@ -587,7 +577,6 @@ describe('InvoiceFactoryUpgrade', () => {
         EthUtils.formatBytes32String('Invoice number hash'),
         EthUtils.formatBytes32String('anchor hash'),
         user1.address,
-        true,
         sig
       )
     })
@@ -646,8 +635,7 @@ describe('InvoiceFactoryUpgrade', () => {
         'Invoice number hash',
         'anchor hash',
         user2.address,
-        user1.address,
-        true
+        user1.address
       )
       await invoiceFactoryUpgrade.connect(user2).uploadInvoice(
         100000,
@@ -657,7 +645,6 @@ describe('InvoiceFactoryUpgrade', () => {
         EthUtils.formatBytes32String('Invoice number hash'),
         EthUtils.formatBytes32String('anchor hash'),
         user1.address,
-        true,
         sig
       )
     })
@@ -714,8 +701,7 @@ describe('InvoiceFactoryUpgrade', () => {
         'Invoice number hash',
         'anchor hash',
         user2.address,
-        user1.address,
-        true
+        user1.address
       )
 
       // supplier upload invoice (with invoice pdf and anchor)
@@ -727,7 +713,6 @@ describe('InvoiceFactoryUpgrade', () => {
         EthUtils.formatBytes32String('Invoice number hash'),
         EthUtils.formatBytes32String('anchor hash'),
         user1.address,
-        true,
         sig
       )
       // anchor verify invoice

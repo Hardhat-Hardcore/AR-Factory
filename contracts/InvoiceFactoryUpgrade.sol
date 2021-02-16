@@ -12,19 +12,18 @@ import "./GSN/BaseRelayRecipient.sol";
 contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, AccessControlUpgradeable {
 
     struct Invoice {
-        uint256 invoiceId;              //發票編號
-        uint256 tokenId;                //生成的token id
-        uint256 txAmount;               //發票金額
-        uint256 anchorConfirmTime;      //anchor verify time
-        uint128 invoiceTime;            //發票時間
-        uint128 dueDate;                //發票回款時間
-        bytes32 interestRate;             //利率
-        bytes32 invoicePdfHash;         //發票pdf   hash
-        bytes32 invoiceNumberHash;      //發票編號  hash
-        bytes32 anchorHash;             //anchor name hash
-        address supplier;               //supplier address
-        address anchor;                 //anchor address
-        bool    toList;                 //to list or not
+        uint256 invoiceId;              // Unique invoice ID
+        uint256 tokenId;                // Corresponding token ID
+        uint256 invoiceAmount;          // Invoice Amount
+        uint256 anchorConfirmTime;      // anchor verification time
+        uint128 invoiceTime;            // Invoice issuance time
+        uint128 dueDate;                // Due date of the invoice
+        bytes32 interestRate;           // Interest rate
+        bytes32 invoicePdfHash;         // Hash of the invoice pdf
+        bytes32 invoiceNumberHash;      // Hash of the invoice number
+        bytes32 anchorHash;             // Hash of the anchor name
+        address supplier;               // supplier address
+        address anchor;                 // anchor address
     }
     
     using ECDSA for bytes32;
@@ -144,7 +143,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         return (
             _invoiceList[_invoiceId].invoiceId,
             _invoiceList[_invoiceId].invoiceTime,
-            _invoiceList[_invoiceId].txAmount,
+            _invoiceList[_invoiceId].invoiceAmount,
             _invoiceList[_invoiceId].dueDate,
             _invoiceList[_invoiceId].invoicePdfHash,
             _invoiceList[_invoiceId].invoiceNumberHash,
@@ -157,7 +156,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         view
         returns (
             uint256, uint256, bytes32,
-            address, address, bool
+            address, address
         )
     {
         return (
@@ -165,8 +164,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
             _invoiceList[_invoiceId].anchorConfirmTime,
             _invoiceList[_invoiceId].interestRate,
             _invoiceList[_invoiceId].supplier,
-            _invoiceList[_invoiceId].anchor,
-            _invoiceList[_invoiceId].toList
+            _invoiceList[_invoiceId].anchor
         );
     }
 
@@ -291,14 +289,13 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     ///////////////////////////////////  INVOICE UPDATE FUNCTIONS ///////////////////////////////////////////
 
     function uploadInvoice(
-        uint256 _txAmount,
+        uint256 _invoiceAmount,
         uint256 _time,
         bytes32 _interestRate,
         bytes32 _invoicePdfHash,
         bytes32 _invoiceNumberHash,
         bytes32 _anchorName,
         address _anchorAddr,
-        bool    _tolist,
         bytes   calldata _signature
     ) 
         external
@@ -306,49 +303,46 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         checkTrustVerified(_anchorAddr, _msgSender())
     {
         bytes32 hashedParams = uploadPreSignedHash(
-            _txAmount,
+            _invoiceAmount,
             _time,
             _interestRate,
             _invoicePdfHash,
             _invoiceNumberHash,
             _anchorName,
             _msgSender(),
-            _anchorAddr,
-            _tolist
+            _anchorAddr
         );
         address from = hashedParams.toEthSignedMessageHash().recover(_signature);
         require(hasRole(DEFAULT_ADMIN_ROLE, from), "Not authorized by admin");
 
         _uploadInvoice(
-            _txAmount,
+            _invoiceAmount,
             _time,
             _interestRate,
             _invoicePdfHash,
             _invoiceNumberHash,
             _anchorName,
             _msgSender(),
-            _anchorAddr,
-            _tolist
+            _anchorAddr
         );
     }
     
     function _uploadInvoice(
-        uint256 _txAmount,
+        uint256 _invoiceAmount,
         uint256 _time,
         bytes32 _interestRate,
         bytes32 _invoicePdfHash,
         bytes32 _invoiceNumberHash,
         bytes32 _anchorName,
         address _supplierAddr,
-        address _anchorAddr,
-        bool    _tolist
+        address _anchorAddr
     )
         internal
     {
         Invoice memory newInvoice = Invoice(
             invoiceCount,
             0,
-            _txAmount,
+            _invoiceAmount,
             0,
             uint128(_time >> 128),
             uint128(_time),
@@ -357,8 +351,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
             _invoiceNumberHash,
             _anchorName,
             _supplierAddr,
-            _anchorAddr,
-            _tolist
+            _anchorAddr
         );
         invoiceCount = invoiceCount + 1;
         _invoiceList.push(newInvoice);
@@ -366,15 +359,14 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
     }
 
     function uploadPreSignedHash(
-        uint256 _txAmount,
+        uint256 _invoiceAmount,
         uint256 _time,
         bytes32 _interestRate,
         bytes32 _invoicePdfHash,
         bytes32 _invoiceNumberHash,
         bytes32 _anchorName,
         address _supplierAddr,
-        address _anchorAddr,
-        bool    _tolist
+        address _anchorAddr
     )
         public
         pure
@@ -384,15 +376,14 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         return keccak256(
             abi.encodePacked(
                 bytes4(0xa18b7c27),
-                _txAmount,
+                _invoiceAmount,
                 _time,
                 _interestRate, 
                 _invoicePdfHash,
                 _invoiceNumberHash,
                 _anchorName,
                 _supplierAddr,
-                _anchorAddr,
-                _tolist
+                _anchorAddr
             )
         );
     }
@@ -405,7 +396,7 @@ contract InvoiceFactoryUpgrade is ContextUpgradeable, BaseRelayRecipient, Access
         require(_invoiceList[_invoiceId].tokenId == 0, "Token already created");
 
         uint256 tokenId = tokenFactory.createTokenWithRecording(
-            _invoiceList[_invoiceId].txAmount,
+            _invoiceList[_invoiceId].invoiceAmount,
             trustAddress,
             address(this),
             false,
