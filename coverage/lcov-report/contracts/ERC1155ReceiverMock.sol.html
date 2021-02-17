@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts/ERC1155ReceiverMock.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> ERC1155ReceiverMock.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>23/23</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">83.33% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>10/12</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>4/4</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>23/23</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">90×</span>
+<span class="cline-any cline-yes">90×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+&nbsp;
+pragma solidity 0.8.0;
+&nbsp;
+import "./interfaces/IERC1155.sol";
+&nbsp;
+&nbsp;
+// Contract to test safe transfer behavior.
+contract ERC1155ReceiverMock {
+&nbsp;
+  bytes4 constant internal ERC1155_RECEIVED_SIG = 0xf23a6e61;
+  bytes4 constant internal ERC1155_BATCH_RECEIVED_SIG = 0xbc197c81;
+  bytes4 constant internal ERC1155_RECEIVED_INVALID = 0xdeadbeef;
+  bytes4 constant internal IS_ERC1155_RECEIVER = 0x0d912442; //bytes4(keccak256("isERC1155TokenReceiver()"));
+&nbsp;
+  // Keep values from last received contract.
+  bool public shouldReject;
+&nbsp;
+  bytes public lastData;
+  address public lastOperator;
+  uint256 public lastId;
+  uint256 public lastValue;
+&nbsp;
+  //Debug event
+  event TransferSingleReceiver(address _from, address _to, uint256 _fromBalance, uint256 _toBalance);
+  event TransferBatchReceiver(address _from, address _to, uint256[] _fromBalances, uint256[] _toBalances);
+&nbsp;
+  /**
+   * @notice Indicates whether a contract implements the `ERC1155TokenReceiver` functions and so can accept ERC1155 token types.
+   * @param  interfaceID The ERC-165 interface ID that is queried for support.s
+   * @dev This function MUST return true if it implements the ERC1155TokenReceiver interface and ERC-165 interface.
+   *      This function MUST NOT consume more than 5,000 gas.
+   * @return Wheter ERC-165 or ERC1155TokenReceiver interfaces are supported.
+   */
+  function supportsInterface(bytes4 interfaceID) external pure returns (bool) {
+    return  interfaceID == 0x01ffc9a7 || // ERC-165 support (i.e. `bytes4(keccak256('supportsInterface(bytes4)'))`).
+      interfaceID == 0x4e2312e0;         // ERC-1155 `ERC1155TokenReceiver` support
+  }
+&nbsp;
+  /**
+   * @notice Handle the receipt of a single ERC1155 token type.
+   * @dev An ERC1155-compliant smart contract MUST call this function on the token recipient contract, at the end of a `safeTransferFrom` after the balance has been updated.
+   * This function MAY throw to revert and reject the transfer.
+   * Return of other than the magic value MUST result in the transaction being reverted.
+   * Note: The contract address is always the message sender.
+   * @param _from      The address which previously owned the token
+   * @param _id        The id of the token being transferred
+   * @param _data      Additional data with no specified format
+   * @return           `bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))`
+   */
+  function onERC1155Received(address, address _from, uint256 _id, uint256, bytes memory _data)
+    public returns(bytes4)
+  {
+    // To check the following conditions;
+    //   All the balances in the transfer MUST have been updated to match the senders intent before any hook is called on a recipient.
+    //   All the transfer events for the transfer MUST have been emitted to reflect the balance changes before any hook is called on a recipient.
+    //   If data is passed, must be specific
+    uint256 fromBalance = IERC1155(msg.sender).balanceOf(_from, _id);
+    uint256 toBalance = IERC1155(msg.sender).balanceOf(address(this), _id);
+    emit TransferSingleReceiver(_from, address(this), fromBalance, toBalance);
+&nbsp;
+    if (_data.length != 0) {
+      <span class="missing-if-branch" title="else path not taken" >E</span>require(
+        keccak256(_data) == keccak256(abi.encodePacked("Hello from the other side")),
+        "ERC1155ReceiverMock#onERC1155Received: UNEXPECTED_DATA"
+      );
+    }
+&nbsp;
+    if (shouldReject == true) {
+      return ERC1155_RECEIVED_INVALID; // Some random value
+    } else {
+      return ERC1155_RECEIVED_SIG;
+    }
+  }
+&nbsp;
+  /**
+   * @notice Handle the receipt of multiple ERC1155 token types.
+   * @dev An ERC1155-compliant smart contract MUST call this function on the token recipient contract, at the end of a `safeBatchTransferFrom` after the balances have been updated.
+   * This function MAY throw to revert and reject the transfer.
+   * Return of other than the magic value WILL result in the transaction being reverted.
+   * Note: The contract address is always the message sender.
+   * @param _from      The address which previously owned the token
+   * @param _ids       An array containing ids of each token being transferred
+   * @param _data      Additional data with no specified format
+   * @return           `bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))`
+   */
+  function onERC1155BatchReceived(address, address _from, uint256[] memory _ids, uint256[] memory, bytes memory _data)
+    public returns(bytes4)
+  {
+    // To check the following conditions;
+    //   All the balances in the transfer MUST have been updated to match the senders intent before any hook is called on a recipient.
+    //   All the transfer events for the transfer MUST have been emitted to reflect the balance changes before any hook is called on a recipient.
+    //   If data is passed, must be specific
+    address[] memory fromAddressArray = new address[](_ids.length);
+    address[] memory toAddressArray = new address[](_ids.length);
+    for (uint i = 0; i &lt; _ids.length; i++ ) {
+      fromAddressArray[i] = _from;
+      toAddressArray[i] = (address(this));
+    }
+    uint256[] memory fromBalances = IERC1155(msg.sender).balanceOfBatch(fromAddressArray, _ids);
+    uint256[] memory toBalances = IERC1155(msg.sender).balanceOfBatch(toAddressArray, _ids);
+    emit TransferBatchReceiver(_from, address(this), fromBalances, toBalances);
+&nbsp;
+    if (_data.length != 0) {
+      <span class="missing-if-branch" title="else path not taken" >E</span>require(
+        keccak256(_data) == keccak256(abi.encodePacked("Hello from the other side")),
+        "ERC1155ReceiverMock#onERC1155Received: UNEXPECTED_DATA");
+    }
+&nbsp;
+    if (shouldReject == true) {
+      return ERC1155_RECEIVED_INVALID; // Some random value
+    } else {
+      return ERC1155_BATCH_RECEIVED_SIG;
+    }
+  }
+&nbsp;
+  function setShouldReject(bool _value) public {
+    shouldReject = _value;
+  }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed Jan 20 2021 14:08:42 GMT+0800 (Taipei Standard Time)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>

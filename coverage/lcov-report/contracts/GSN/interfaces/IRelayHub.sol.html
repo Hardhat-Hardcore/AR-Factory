@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts/GSN/interfaces/IRelayHub.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../prettify.css" />
+    <link rel="stylesheet" href="../../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../../index.html">all files</a> / <a href="index.html">contracts/GSN/interfaces/</a> IRelayHub.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>0/0</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>0/0</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>0/0</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>0/0</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+&nbsp;
+pragma solidity 0.8.0;
+pragma experimental ABIEncoderV2;
+&nbsp;
+import "./GsnTypes.sol";
+import "./IStakeManager.sol";
+&nbsp;
+interface IRelayHub {
+&nbsp;
+    /// Emitted when a relay server registers or updates its details
+    /// Looking at these events lets a client discover relay servers
+    event RelayServerRegistered(
+        address indexed relayManager,
+        uint256 baseRelayFee,
+        uint256 pctRelayFee,
+        string relayUrl);
+&nbsp;
+    /// Emitted when relays are added by a relayManager
+    event RelayWorkersAdded(
+        address indexed relayManager,
+        address[] newRelayWorkers,
+        uint256 workersCount
+    );
+&nbsp;
+    // Emitted when an account withdraws funds from RelayHub.
+    event Withdrawn(
+        address indexed account,
+        address indexed dest,
+        uint256 amount
+    );
+&nbsp;
+    // Emitted when depositFor is called, including the amount and account that was funded.
+    event Deposited(
+        address indexed paymaster,
+        address indexed from,
+        uint256 amount
+    );
+&nbsp;
+    /// Emitted when an attempt to relay a call fails and Paymaster does not accept the transaction.
+    /// The actual relayed call was not executed, and the recipient not charged.
+    /// @param reason contains a revert reason returned from preRelayedCall or forwarder.
+    event TransactionRejectedByPaymaster(
+        address indexed relayManager,
+        address indexed paymaster,
+        address indexed from,
+        address to,
+        address relayWorker,
+        bytes4 selector,
+        uint256 innerGasUsed,
+        bytes reason);
+&nbsp;
+    // Emitted when a transaction is relayed. Note that the actual encoded function might be reverted: this will be
+    // indicated in the status field.
+    // Useful when monitoring a relay's operation and relayed calls to a contract.
+    // Charge is the ether value deducted from the recipient's balance, paid to the relay's manager.
+    event TransactionRelayed(
+        address indexed relayManager,
+        address indexed relayWorker,
+        address indexed from,
+        address to,
+        address paymaster,
+        bytes4 selector,
+        RelayCallStatus status,
+        uint256 charge);
+&nbsp;
+    event TransactionResult(
+        RelayCallStatus status,
+        bytes returnValue
+    );
+&nbsp;
+    /// Reason error codes for the TransactionRelayed event
+    /// @param OK - the transaction was successfully relayed and execution successful - never included in the event
+    /// @param RelayedCallFailed - the transaction was relayed, but the relayed call failed
+    /// @param RejectedByPreRelayed - the transaction was not relayed due to preRelatedCall reverting
+    /// @param RejectedByForwarder - the transaction was not relayed due to forwarder check (signature,nonce)
+    /// @param PostRelayedFailed - the transaction was relayed and reverted due to postRelatedCall reverting
+    /// @param PaymasterBalanceChanged - the transaction was relayed and reverted due to the paymaster balance change
+    enum RelayCallStatus {
+        OK,
+        RelayedCallFailed,
+        RejectedByPreRelayed,
+        RejectedByForwarder,
+        RejectedByRecipientRevert,
+        PostRelayedFailed,
+        PaymasterBalanceChanged
+    }
+&nbsp;
+    /// Add new worker addresses controlled by sender who must be a staked Relay Manager address.
+    /// Emits a RelayWorkersAdded event.
+    /// This function can be called multiple times, emitting new events
+    function addRelayWorkers(address[] calldata newRelayWorkers) external;
+&nbsp;
+    function registerRelayServer(uint256 baseRelayFee, uint256 pctRelayFee, string calldata url) external;
+&nbsp;
+    // Balance management
+&nbsp;
+    // Deposits ether for a contract, so that it can receive (and pay for) relayed transactions. Unused balance can only
+    // be withdrawn by the contract itself, by calling withdraw.
+    // Emits a Deposited event.
+    function depositFor(address target) external payable;
+&nbsp;
+    // Withdraws from an account's balance, sending it back to it. Relay managers call this to retrieve their revenue, and
+    // contracts can also use it to reduce their funding.
+    // Emits a Withdrawn event.
+    function withdraw(uint256 amount, address payable dest) external;
+&nbsp;
+    // Relaying
+&nbsp;
+&nbsp;
+    /// Relays a transaction. For this to succeed, multiple conditions must be met:
+    ///  - Paymaster's "acceptRelayCall" method must succeed and not revert
+    ///  - the sender must be a registered Relay Worker that the user signed
+    ///  - the transaction's gas price must be equal or larger than the one that was signed by the sender
+    ///  - the transaction must have enough gas to run all internal transactions if they use all gas available to them
+    ///  - the Paymaster must have enough balance to pay the Relay Worker for the scenario when all gas is spent
+    ///
+    /// If all conditions are met, the call will be relayed and the recipient charged.
+    ///
+    /// Arguments:
+    /// @param relayRequest - all details of the requested relayed call
+    /// @param signature - client's EIP-712 signature over the relayRequest struct
+    /// @param approvalData: dapp-specific data forwarded to preRelayedCall.
+    ///        This value is *not* verified by the Hub. For example, it can be used to pass a signature to the Paymaster
+    /// @param externalGasLimit - the value passed as gasLimit to the transaction.
+    ///
+    /// Emits a TransactionRelayed event.
+    function relayCall(
+        uint paymasterMaxAcceptanceBudget,
+        GsnTypes.RelayRequest calldata relayRequest,
+        bytes calldata signature,
+        bytes calldata approvalData,
+        uint externalGasLimit
+    )
+    external
+    returns (bool paymasterAccepted, bytes memory returnValue);
+&nbsp;
+    function penalize(address relayWorker, address payable beneficiary) external;
+&nbsp;
+    /// The fee is expressed as a base fee in wei plus percentage on actual charge.
+    /// E.g. a value of 40 stands for a 40% fee, so the recipient will be
+    /// charged for 1.4 times the spent amount.
+    function calculateCharge(uint256 gasUsed, GsnTypes.RelayData calldata relayData) external view returns (uint256);
+&nbsp;
+    /* getters */
+&nbsp;
+    /// Returns the stake manager of this RelayHub.
+    function stakeManager() external view returns(IStakeManager);
+    function penalizer() external view returns(address);
+&nbsp;
+    /// Returns an account's deposits. It can be either a deposit of a paymaster, or a revenue of a relay manager.
+    function balanceOf(address target) external view returns (uint256);
+&nbsp;
+    // Minimum stake a relay can have. An attack to the network will never cost less than half this value.
+    function minimumStake() external view returns (uint256);
+&nbsp;
+    // Minimum unstake delay blocks of a relay manager's stake on the StakeManager
+    function minimumUnstakeDelay() external view returns (uint256);
+&nbsp;
+    // Maximum funds that can be deposited at once. Prevents user error by disallowing large deposits.
+    function maximumRecipientDeposit() external view returns (uint256);
+&nbsp;
+    //gas overhead to calculate gasUseWithoutPost
+    function postOverhead() external view returns (uint256);
+&nbsp;
+    // Gas set aside for all relayCall() instructions to prevent unexpected out-of-gas exceptions
+    function gasReserve() external view returns (uint256);
+&nbsp;
+    // maximum number of worker account allowed per manager
+    function maxWorkerCount() external view returns (uint256);
+&nbsp;
+    function workerToManager(address worker) external view returns(address);
+&nbsp;
+    function workerCount(address manager) external view returns(uint256);
+&nbsp;
+    function isRelayManagerStaked(address relayManager) external view returns(bool);
+&nbsp;
+    /**
+    * @dev the total gas overhead of relayCall(), before the first gasleft() and after the last gasleft().
+    * Assume that relay has non-zero balance (costs 15'000 more otherwise).
+    */
+&nbsp;
+    // Gas cost of all relayCall() instructions after actual 'calculateCharge()'
+    function gasOverhead() external view returns (uint256);
+&nbsp;
+    function versionHub() external view returns (string memory);
+}</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sun Jan 24 2021 02:09:54 GMT+0800 (Taipei Standard Time)
+</div>
+</div>
+<script src="../../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../../sorter.js"></script>
+</body>
+</html>

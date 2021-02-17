@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts/GSN/interfaces/IPaymaster.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../prettify.css" />
+    <link rel="stylesheet" href="../../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../../index.html">all files</a> / <a href="index.html">contracts/GSN/interfaces/</a> IPaymaster.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>0/0</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>0/0</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>0/0</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>0/0</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+&nbsp;
+pragma solidity 0.8.0;
+pragma experimental ABIEncoderV2;
+&nbsp;
+import "./GsnTypes.sol";
+&nbsp;
+interface IPaymaster {
+&nbsp;
+    /**
+     * @param acceptanceBudget -
+     *      Paymaster expected gas budget to accept (or reject) a request
+     *      This a gas required by any calculations that might need to reject the
+     *      transaction, by preRelayedCall, forwarder and recipient.
+     *      See value in BasePaymaster.PAYMASTER_ACCEPTANCE_BUDGET
+     *      Transaction that gets rejected above that gas usage is on the paymaster's expense.
+     *      As long this value is above preRelayedCallGasLimit (see defaults in BasePaymaster), the
+     *      Paymaster is guaranteed it will never pay for rejected transactions.
+     *      If this value is below preRelayedCallGasLimt, it might might make Paymaster open to a "griefing" attack.
+     *
+     *      Specifying value too high might make the call rejected by some relayers.
+     *
+     *      From a Relay's point of view, this is the highest gas value a paymaster might "grief" the relay,
+     *      since the paymaster will pay anything above that (regardless if the tx reverts)
+     *
+     * @param preRelayedCallGasLimit - the max gas usage of preRelayedCall. any revert (including OOG)
+     *      of preRelayedCall is a reject by the paymaster.
+     *      as long as acceptanceBudget is above preRelayedCallGasLimit, any such revert (including OOG)
+     *      is not payed by the paymaster.
+     * @param postRelayedCallGasLimit - the max gas usage of postRelayedCall.
+     *      note that an OOG will revert the transaction, but the paymaster already committed to pay,
+     *      so the relay will get compensated, at the expense of the paymaster
+     */
+    struct GasLimits {
+        uint256 acceptanceBudget;
+        uint256 preRelayedCallGasLimit;
+        uint256 postRelayedCallGasLimit;
+    }
+&nbsp;
+    /**
+     * Return the GasLimits constants used by the Paymaster.
+     */
+    function getGasLimits()
+    external
+    view
+    returns (
+        GasLimits memory limits
+    );
+&nbsp;
+    function trustedForwarder() external view returns (IForwarder);
+&nbsp;
+    /**
+     * return the relayHub of this contract.
+     */
+    function getHubAddr() external view returns (address);
+&nbsp;
+    /**
+     * Can be used to determine if the contract can pay for incoming calls before making any.
+     * @return the paymaster's deposit in the RelayHub.
+     */
+    function getRelayHubDeposit() external view returns (uint256);
+&nbsp;
+    /**
+     * Called by Relay (and RelayHub), to validate if the paymaster agrees to pay for this call.
+     *
+     * MUST be protected with relayHubOnly() in case it modifies state.
+     *
+     * The Paymaster rejects by the following "revert" operations
+     *  - preRelayedCall() method reverts
+     *  - the forwarder reverts because of nonce or signature error
+     *  - the paymaster returned "rejectOnRecipientRevert", and the recipient contract reverted.
+     * In any of the above cases, all paymaster calls (and recipient call) are reverted.
+     * In any other case, the paymaster agrees to pay for the gas cost of the transaction (note
+     *  that this includes also postRelayedCall revert)
+     *
+     * The rejectOnRecipientRevert flag means the Paymaster "delegate" the rejection to the recipient
+     *  code.  It also means the Paymaster trust the recipient to reject fast: both preRelayedCall,
+     *  forwarder check and receipient checks must fit into the GasLimits.acceptanceBudget,
+     *  otherwise the TX is paid by the Paymaster.
+     *
+     *  @param relayRequest - the full relay request structure
+     *  @param signature - user's EIP712-compatible signature of the {@link relayRequest}.
+     *              Note that in most cases the paymaster shouldn't try use it at all. It is always checked
+     *              by the forwarder immediately after preRelayedCall returns.
+     *  @param approvalData - extra dapp-specific data (e.g. signature from trusted party)
+     *  @param maxPossibleGas - based on values returned from {@link getGasLimits},
+     *         the RelayHub will calculate the maximum possible amount of gas the user may be charged for.
+     *         In order to convert this value to wei, the Paymaster has to call "relayHub.calculateCharge()"
+     *  return:
+     *      a context to be passed to postRelayedCall
+     *      rejectOnRecipientRevert - TRUE if paymaster want to reject the TX if the recipient reverts.
+     *          FALSE means that rejects by the recipient will be completed on chain, and paid by the paymaster.
+     *          (note that in the latter case, the preRelayedCall and postRelayedCall are not reverted).
+     */
+    function preRelayedCall(
+        GsnTypes.RelayRequest calldata relayRequest,
+        bytes calldata signature,
+        bytes calldata approvalData,
+        uint256 maxPossibleGas
+    )
+    external
+    returns (bytes memory context, bool rejectOnRecipientRevert);
+&nbsp;
+    /**
+     * This method is called after the actual relayed function call.
+     * It may be used to record the transaction (e.g. charge the caller by some contract logic) for this call.
+     *
+     * MUST be protected with relayHubOnly() in case it modifies state.
+     *
+     * @param context - the call context, as returned by the preRelayedCall
+     * @param success - true if the relayed call succeeded, false if it reverted
+     * @param gasUseWithoutPost - the actual amount of gas used by the entire transaction, EXCEPT
+     *        the gas used by the postRelayedCall itself.
+     * @param relayData - the relay params of the request. can be used by relayHub.calculateCharge()
+     *
+     * Revert in this functions causes a revert of the client's relayed call (and preRelayedCall(), but the Paymaster
+     * is still committed to pay the relay for the entire transaction.
+     */
+    function postRelayedCall(
+        bytes calldata context,
+        bool success,
+        uint256 gasUseWithoutPost,
+        GsnTypes.RelayData calldata relayData
+    ) external;
+&nbsp;
+    function versionPaymaster() external view returns (string memory);
+}</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sun Jan 24 2021 02:09:54 GMT+0800 (Taipei Standard Time)
+</div>
+</div>
+<script src="../../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../../sorter.js"></script>
+</body>
+</html>
