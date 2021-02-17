@@ -4,19 +4,17 @@ const utils = require('../test/utils')
 const { RelayProvider } = require('@opengsn/gsn')
 const { getWallet } = require('../test/utils')
 const Web3HttpProvider = require('web3-providers-http')
-const { address: paymasterAddr } = require('./build/Whitelist.json')
-const { address: invoiceFactoryAddr } = require('./build/InvoiceFactory.json')
-const { abi: invoiceFactoryAbi } = require('../artifacts/contracts/InvoiceFactoryUpgrade.sol/InvoiceFactoryUpgrade.json')
-const { NETWORK, RPCURL } = process.env
+const { address: paymasterAddr } = require('../build/Whitelist.json')
+const { address: invoiceFactoryAddr } = require('../build/InvoiceFactory.json')
 require('dotenv').config({ path: require('find-config')('.env') })
 
-const url = NETWORK === 'localhost' ? 'http://127.0.0.1:8545' : RPCURL
+const url = hre.network.config.url
 
 const BigNumber = ethers.BigNumber
 const EthUtils = ethers.utils
 
 async function main () {
-  const [admin, supplier, anchor] = await ethers.getSigners()
+  const [admin, , supplier, anchor] = await ethers.getSigners()
 
   const TWO = BigNumber.from(2)
   const invoiceTime = BigNumber.from(123456)
@@ -60,8 +58,8 @@ async function main () {
 
   const provider = new ethers.providers.Web3Provider(gsnProvider)
 
-  const invoiceFactroyUpgrade = new ethers.Contract(invoiceFactoryAddr, invoiceFactoryAbi, provider)
-  const uploadInvoice = await invoiceFactroyUpgrade.connect(provider.getSigner(supplier.address)).uploadInvoice(
+  const invoiceFactroy = await ethers.getContractAt("InvoiceFactoryUpgrade", invoiceFactoryAddr)
+  const uploadInvoice = await invoiceFactroy.connect(provider.getSigner(supplier.address)).uploadInvoice(
     100000,
     time,
     EthUtils.formatBytes32String('0.05'),

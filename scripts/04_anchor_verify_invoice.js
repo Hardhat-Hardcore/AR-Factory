@@ -2,16 +2,13 @@ const { ethers } = require('hardhat')
 const { RelayProvider } = require('@opengsn/gsn')
 const { getWallet } = require('../test/utils')
 const Web3HttpProvider = require('web3-providers-http')
-const { address: paymasterAddr } = require('./build/Whitelist.json')
-const { address: invoiceFactoryAddr } = require('./build/InvoiceFactory.json')
-const { abi: invoiceFactoryAbi } = require('../artifacts/contracts/InvoiceFactoryUpgrade.sol/InvoiceFactoryUpgrade.json')
-const { NETWORK, BSCTESTNETRPC } = process.env
-require('dotenv').config({ path: require('find-config')('.env') })
+const { address: paymasterAddr } = require('../build/Whitelist.json')
+const { address: invoiceFactoryAddr } = require('../build/InvoiceFactory.json')
 
-const url = NETWORK === 'localhost' ? 'http://127.0.0.1:8545' : BSCTESTNETRPC
+const url = hre.network.config.url
 
 async function main () {
-  const [,,, anchor] = await ethers.getSigners()
+  const [, , , anchor] = await ethers.getSigners()
 
   const web3provider = new Web3HttpProvider(url)
   const gsnProvider = await RelayProvider.newProvider({
@@ -27,10 +24,9 @@ async function main () {
 
   const provider = new ethers.providers.Web3Provider(gsnProvider)
 
-  const invoiceFactroyUpgrade = new ethers.Contract(invoiceFactoryAddr, invoiceFactoryAbi, provider)
-  const anchorVerifyInvoice = await invoiceFactroyUpgrade.connect(provider.getSigner(anchor.address)).anchorVerifyInvoice(0)
+  const invoiceFactroy = await ethers.getContractAt("InvoiceFactoryUpgrade", invoiceFactoryAddr)
+  const anchorVerifyInvoice = await invoiceFactroy.connect(provider.getSigner(anchor.address)).anchorVerifyInvoice(0)
   console.log("Anchor Verify Invoice: ", anchorVerifyInvoice.hash)
-
 }
 
 main()

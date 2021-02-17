@@ -1,14 +1,17 @@
 const { ethers } = require('hardhat')
+const utils = require('../test/utils')
 const { RelayProvider } = require('@opengsn/gsn')
 const { getWallet } = require('../test/utils')
 const Web3HttpProvider = require('web3-providers-http')
 const { address: paymasterAddr } = require('../build/Whitelist.json')
-const { address: invoiceFactoryAddr } = require('../build/InvoiceFactory.json')
+const { address: tokenFactoryAddr } = require('../build/TokenFactory.json')
 
 const url = hre.network.config.url
 
+const BigNumber = ethers.BigNumber
+
 async function main () {
-  const [admin, trust, , anchor] = await ethers.getSigners()
+  const [, trust, , , other] = await ethers.getSigners()
 
   const web3provider = new Web3HttpProvider(url)
   const gsnProvider = await RelayProvider.newProvider({
@@ -19,23 +22,17 @@ async function main () {
     },
   }).init()
 
-  const adminWallet = getWallet(0)
-  const trustWallet = getWallet(1)
+  const adminWallet = getWallet(1)
   gsnProvider.addAccount(adminWallet.privateKey)
-  gsnProvider.addAccount(trustWallet.privateKey)
 
   const provider = new ethers.providers.Web3Provider(gsnProvider)
 
-  const invoiceFactroy = await ethers.getContractAt("InvoiceFactoryUpgrade", invoiceFactoryAddr)
-
-  const enrollWa =
-    await invoiceFactroy.connect(provider.getSigner(admin.address)).enrollAnchor(anchor.address)
-
-  const trustVerifyWa =
-    await invoiceFactroy.connect(provider.getSigner(trust.address)).trustVerifyAnchor(anchor.address)
-
-  console.log('Admin enroll anchor: ', enrollWa.hash)
-  console.log('Trust verify anchor: ', trustVerifyWa.hash)
+  const tokenFactory = await ethers.getContractAt("TokenFactory", tokenFactoryAddr)
+  const tx = await tokenFactory.connect(provider.getSigner(trust.address)).recordingTransferFrom(
+    trust.address, other.address, 1, 10
+  )
+  console.log("Transfer recording token from:", trust.address, ", to:", other.address)
+  console.log("Transaction Hash:", tx.hash)
 }
 
 main()
@@ -44,4 +41,3 @@ main()
     console.error(error)
     process.exit(1)
   })
-

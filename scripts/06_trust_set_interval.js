@@ -3,13 +3,10 @@ const utils = require('../test/utils')
 const { RelayProvider } = require('@opengsn/gsn')
 const { getWallet } = require('../test/utils')
 const Web3HttpProvider = require('web3-providers-http')
-const { address: paymasterAddr } = require('./build/Whitelist.json')
-const { address: invoiceFactoryAddr } = require('./build/InvoiceFactory.json')
-const { abi: invoiceFactoryAbi } = require('../artifacts/contracts/InvoiceFactoryUpgrade.sol/InvoiceFactoryUpgrade.json')
-const { NETWORK, BSCTESTNETRPC } = process.env
-require('dotenv').config({ path: require('find-config')('.env') })
+const { address: paymasterAddr } = require('../build/Whitelist.json')
+const { address: invoiceFactoryAddr } = require('../build/InvoiceFactory.json')
 
-const url = NETWORK === 'localhost' ? 'http://127.0.0.1:8545' : BSCTESTNETRPC
+const url = hre.network.config.url
 
 const BigNumber = ethers.BigNumber
 
@@ -18,8 +15,8 @@ async function main () {
 
   const now = BigNumber.from(await utils.getCurrentTimestamp())
 
-  const invoiceTime = now
-  const dueTime = now.add(1000000)
+  const startTime = now.add(90)
+  const endTime = now.add(1000000)
 
   const web3provider = new Web3HttpProvider(url)
   const gsnProvider = await RelayProvider.newProvider({
@@ -35,9 +32,9 @@ async function main () {
 
   const provider = new ethers.providers.Web3Provider(gsnProvider)
 
-  const invoiceFactroyUpgrade = new ethers.Contract(invoiceFactoryAddr, invoiceFactoryAbi, provider)
-  const setTimeInterval = await invoiceFactroyUpgrade.connect(provider.getSigner(trust.address)).setTimeInterval(
-    0, invoiceTime + 1000, dueTime + 10000000,
+  const invoiceFactory = await ethers.getContractAt("InvoiceFactoryUpgrade", invoiceFactoryAddr)
+  const setTimeInterval = await invoiceFactory.connect(provider.getSigner(trust.address)).setTimeInterval(
+    0, startTime, endTime,
   )
   console.log('Trust set time interval: ', setTimeInterval.hash)
 }

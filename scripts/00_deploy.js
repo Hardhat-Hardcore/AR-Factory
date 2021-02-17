@@ -1,22 +1,17 @@
 const fs = require('fs')
 const { ethers, upgrades } = require('hardhat')
 const utils = require('./utils')
-const { RELAYHUB, FORWARDER, NETWORK } = process.env
 require('dotenv').config({ path: require('find-config')('.env') })
 
-let relayHubAddress = RELAYHUB
-let forwarderAddress = FORWARDER
-if (NETWORK === 'localhost') {
+let relayHubAddress 
+let forwarderAddress
+
+if (hre.network.name === 'localhost') {
   relayHubAddress = require('../build/gsn/RelayHub.json').address  
   forwarderAddress = require('../build/gsn/Forwarder.json').address  
-}
-
-const relayHubAddress = NETWORK === 'localhost' ? RelayHub.address : RELAYHUB
-const forwarderAddress = NETWORK === 'localhost' ? Forwarder.address : FORWARDER
-
-const addressToJson = (name, address, txHash) => {
-  const jsonString = JSON.stringify({ address, txHash })
-  fs.writeFileSync(`./scripts/build/${name}.json`, jsonString)
+} else {
+  relayHubAddress = hre.network.config.relayhub
+  forwarderAddress = hre.network.config.forwarder
 }
 
 async function main () {
@@ -29,11 +24,11 @@ async function main () {
   await whitelist.deployed()
   console.log('Whitelist address: ', whitelist.address)
   console.log('Transaction hash: ', whitelist.deployTransaction.hash)
-  const addAdminToWhitelist = await whitelist.addWhitelist(admin.address)
+
   const addTrustToWhitelist = await whitelist.addWhitelist(trust.address)
   const setRelayHub = await whitelist.setRelayHub(relayHubAddress)
   const setTrustForward = await whitelist.setTrustedForwarder(forwarderAddress)
-  console.log('Add admin to whitelist: ', addAdminToWhitelist.hash)
+
   console.log('Add trust to whitelist: ', addTrustToWhitelist.hash)
   console.log('Set Relay Hub: ', setRelayHub.hash)
   console.log('Set Trust Forwarder: ', setTrustForward.hash)
@@ -41,19 +36,19 @@ async function main () {
 
   console.log('Deploying TokenFactory...')
   console.log('===========================')
-  const tokenF = await ethers.getContractFactory('TokenFactory', admin)
-  const tokenFactory = await tokenF.deploy(forwarderAddress)
+  const TokenFactory = await ethers.getContractFactory('TokenFactory', admin)
+  const tokenFactory = await TokenFactory.deploy(forwarderAddress)
   await tokenFactory.deployed()
   console.log('TokenFactory address: ', tokenFactory.address)
   console.log('Transaction hash: ', tokenFactory.deployTransaction.hash)
-  console.log(' ')
+  console.log('')
 
   console.log('Deploying InvoiceFactory...')
   console.log('===========================')
   const initData = [3, trust.address, forwarderAddress, tokenFactory.address, whitelist.address]
-  const invoiceF = await ethers.getContractFactory('InvoiceFactoryUpgrade', admin)
+  const InvoiceFactory = await ethers.getContractFactory('InvoiceFactoryUpgrade', admin)
   const invoiceFactory = await upgrades.deployProxy(
-    invoiceF,
+    InvoiceFactory,
     initData,
     { initializer: '__initialize' },
   )
@@ -69,7 +64,7 @@ async function main () {
   const tx = await admin.sendTransaction({
     from: admin.address,
     to: whitelist.address,
-    value: ethers.utils.parseEther('1'),
+    value: ethers.utils.parseEther('2'),
   })
   await tx.wait(1)
 
