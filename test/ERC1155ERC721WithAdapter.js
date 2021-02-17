@@ -13,6 +13,7 @@ describe('ERC1155ERC721WithAdapter', () => {
   const safeTransferFromERC721 = 'safeTransferFrom(address,address,uint256,bytes)'
 
   const IS_NFT = BigNumber.from(2).pow(255)
+  const NEED_TIME = BigNumber.from(2).pow(254)
   const TRUST_FORWARDER = '0x0000000000000000000000000000000000000001'
   const NAME = 'TOKEN'
   const SYMBOL = 'TOKEN'
@@ -171,6 +172,88 @@ describe('ERC1155ERC721WithAdapter', () => {
 
         expect(await erc20.balanceOf(owner.address)).to.be.equal(0)
         expect(await erc20.balanceOf(receiver.address)).to.be.equal(1)
+      })
+    })
+    
+    describe("transfer need-time token", () => {
+      it('should return correct holding time', async () => {
+        const tokenId = NEED_TIME.add(3)
+        const tx = await tokenFactory[createToken](
+          100, owner.address, operator.address, true, true
+        )
+
+        const adapter = await tokenFactory.getAdapter(tokenId)
+        const erc20 = await ethers.getContractAt('ERC20Adapter', adapter)
+        
+        const timestamp = await utils.getTransactionTimestamp(tx)
+        await tokenFactory.connect(operator).setTimeInterval(tokenId, timestamp + 100, timestamp + 1000)
+        
+        await utils.mine(timestamp + 200)
+        
+        const holdingTime = await tokenFactory.holdingTimeOf(owner.address, tokenId)
+        // 100 * 100s
+        expect(holdingTime).to.be.eql(BigNumber.from(10000))
+ 
+        await utils.setNextBlockTimestamp(timestamp + 300)
+        
+        await erc20.transfer(receiver.address, 10)
+        let preOwnerHoldingTime = await tokenFactory.holdingTimeOf(owner.address, tokenId)
+        let preReceiverHoldingTime = await tokenFactory.holdingTimeOf(receiver.address, tokenId)
+        // 100 * 100s + 100 * 100s
+        expect(preOwnerHoldingTime).to.be.eql(BigNumber.from(20000))
+        // 0 * 0s
+        expect(preReceiverHoldingTime).to.be.eql(BigNumber.from(0))
+
+        await utils.mine(timestamp + 400)
+
+        let postOwnerHoldingTime = await tokenFactory.holdingTimeOf(owner.address, tokenId)
+        let postReceiverHoldingTime = await tokenFactory.holdingTimeOf(receiver.address, tokenId)
+        // 100 * 100s + 100 * 100s + 90 * 100s
+        expect(postOwnerHoldingTime).to.be.eql(BigNumber.from(29000))
+        // 0 * 0s + 10 * 100s
+        expect(postReceiverHoldingTime).to.be.eql(BigNumber.from(1000))
+
+        // safeBatchTransferFrom
+        await utils.setNextBlockTimestamp(timestamp + 500)
+
+        await tokenFactory.safeBatchTransferFrom(owner.address, receiver.address, [tokenId], [10], [])
+        preOwnerHoldingTime = await tokenFactory.holdingTimeOf(owner.address, tokenId)
+        preReceiverHoldingTime = await tokenFactory.holdingTimeOf(receiver.address, tokenId)
+        // 100 * 100s + 100 * 100s + 90 * 100s + 90 * 100s
+        expect(preOwnerHoldingTime).to.be.eql(BigNumber.from(38000))
+        // 0 * 0s + 10 * 100s + 10 * 100s
+        expect(preReceiverHoldingTime).to.be.eql(BigNumber.from(2000))
+
+        await utils.mine(timestamp + 600)
+
+        postOwnerHoldingTime = await tokenFactory.holdingTimeOf(owner.address, tokenId)
+        postReceiverHoldingTime = await tokenFactory.holdingTimeOf(receiver.address, tokenId)
+        // 100 * 100s + 100 * 100s + 90 * 100s + 90 * 100s + 80 * 100s
+        expect(postOwnerHoldingTime).to.be.eql(BigNumber.from(46000))
+        // 0 * 0s + 10 * 100s + 10 * 100s + 20 * 100s
+        expect(postReceiverHoldingTime).to.be.eql(BigNumber.from(4000))
+
+        // After the period end
+        await utils.mine(timestamp + 1100)
+
+        let finalOwnerHoldingTime = await tokenFactory.holdingTimeOf(owner.address, tokenId)
+        let finalReceiverHoldingTime = await tokenFactory.holdingTimeOf(receiver.address, tokenId)
+        // 100 * 100s + 100 * 100s + 90 * 100s + 90 * 100s + 80 * 100s + 80 * 400s
+        expect(finalOwnerHoldingTime).to.be.eql(BigNumber.from(78000))
+        // 0 * 0s + 10 * 100s + 10 * 100s + 20 * 100s + 20 * 400s
+        expect(finalReceiverHoldingTime).to.be.eql(BigNumber.from(12000))
+
+        // The transfer after the period end should not change the holding time
+        await erc20.transfer(receiver.address, 10)
+
+        await utils.mine(timestamp + 1200)
+
+        finalOwnerHoldingTime = await tokenFactory.holdingTimeOf(owner.address, tokenId)
+        finalReceiverHoldingTime = await tokenFactory.holdingTimeOf(receiver.address, tokenId)
+        // 100 * 100s + 100 * 100s + 90 * 100s + 90 * 100s + 80 * 100s + 80 * 400s
+        expect(finalOwnerHoldingTime).to.be.eql(BigNumber.from(78000))
+        // 0 * 0s + 10 * 100s + 10 * 100s + 20 * 100s + 20 * 400s
+        expect(finalReceiverHoldingTime).to.be.eql(BigNumber.from(12000))
       })
     })
   })

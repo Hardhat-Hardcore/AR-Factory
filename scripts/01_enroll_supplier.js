@@ -2,13 +2,10 @@ const { ethers } = require('hardhat')
 const { RelayProvider } = require('@opengsn/gsn')
 const { getWallet } = require('../test/utils')
 const Web3HttpProvider = require('web3-providers-http')
-const { address: paymasterAddr } = require('./build/Whitelist.json')
-const { address: invoiceFactoryAddr } = require('./build/InvoiceFactory.json')
-const { abi: invoiceFactoryAbi } = require('../artifacts/contracts/InvoiceFactoryUpgrade.sol/InvoiceFactoryUpgrade.json')
-const { NETWORK, BSCTESTNETRPC } = process.env
-require('dotenv').config({ path: require('find-config')('.env') })
+const { address: paymasterAddr } = require('../build/Whitelist.json')
+const { address: invoiceFactoryAddr } = require('../build/InvoiceFactory.json')
 
-const url = NETWORK === 'localhost' ? 'http://127.0.0.1:8545' : BSCTESTNETRPC
+const url = hre.network.config.url
 
 async function main () {
   const [admin, trust, supplier] = await ethers.getSigners()
@@ -29,9 +26,14 @@ async function main () {
 
   const provider = new ethers.providers.Web3Provider(gsnProvider)
 
-  const invoiceFactroyUpgrade = new ethers.Contract(invoiceFactoryAddr, invoiceFactoryAbi, provider)
-  const enrollWs = await invoiceFactroyUpgrade.connect(provider.getSigner(admin.address)).enrollSupplier(supplier.address)
-  const trustVerifyWs = await invoiceFactroyUpgrade.connect(provider.getSigner(trust.address)).trustVerifySupplier(supplier.address)
+  const invoiceFactroy = await ethers.getContractAt("InvoiceFactoryUpgrade", invoiceFactoryAddr)
+
+  const enrollWs =
+    await invoiceFactroy.connect(provider.getSigner(admin.address)).enrollSupplier(supplier.address)
+
+  const trustVerifyWs =
+    await invoiceFactroy.connect(provider.getSigner(trust.address)).trustVerifySupplier(supplier.address)
+
   console.log('Admin enroll supplier: ', enrollWs.hash)
   console.log('Trust verify supplier: ', trustVerifyWs.hash)
 }
