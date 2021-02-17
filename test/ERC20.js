@@ -86,8 +86,8 @@ describe('ERC20', () => {
       })
     })
 
-    describe("when transfer to contract address", () => {
-      it("should be fulfilled", async () => {
+    describe('when transfer to contract address', () => {
+      it('should be fulfilled', async () => {
         await erc20.transfer(tokenFactory.address, 10)
         const balance = await erc20.balanceOf(tokenFactory.address)
         

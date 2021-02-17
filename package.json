@@ -1,5 +1,5 @@
 {
-  "name": "ar-factory",
+  "name": "factor-quick",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,16 +10,8 @@
     "pretest-gsn": "kill $(lsof -t -i:8545) || true; hardhat node >/dev/null &",
     "posttest-gsn": "kill $(lsof -t -i:8545)"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Hardhat-Hardcore/AR-Factory.git"
-  },
   "author": "",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Hardhat-Hardcore/AR-Factory/issues"
-  },
-  "homepage": "https://github.com/Hardhat-Hardcore/AR-Factory#readme",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.1",
     "@nomiclabs/hardhat-etherscan": "^2.1.1",

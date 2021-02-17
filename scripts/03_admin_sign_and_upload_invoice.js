@@ -1,6 +1,6 @@
 const { ethers } = require('hardhat')
+const hre = require('hardhat')
 const { signInvoice } = require('./signatrue')
-const utils = require('../test/utils')
 const { RelayProvider } = require('@opengsn/gsn')
 const { getWallet } = require('../test/utils')
 const Web3HttpProvider = require('web3-providers-http')
@@ -58,7 +58,7 @@ async function main () {
 
   const provider = new ethers.providers.Web3Provider(gsnProvider)
 
-  const invoiceFactroy = await ethers.getContractAt("InvoiceFactoryUpgrade", invoiceFactoryAddr)
+  const invoiceFactroy = await ethers.getContractAt('InvoiceFactoryUpgrade', invoiceFactoryAddr)
   const uploadInvoice = await invoiceFactroy.connect(provider.getSigner(supplier.address)).uploadInvoice(
     100000,
     time,
@@ -69,7 +69,7 @@ async function main () {
     anchor.address,
     adminSig,
   )
-  console.log("Upload Invoice: ", uploadInvoice.hash)
+  console.log('Upload Invoice: ', uploadInvoice.hash)
 }
 
 main()

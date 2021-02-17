@@ -175,7 +175,7 @@ describe('ERC1155ERC721WithAdapter', () => {
       })
     })
     
-    describe("transfer need-time token", () => {
+    describe('transfer need-time token', () => {
       it('should return correct holding time', async () => {
         const tokenId = NEED_TIME.add(3)
         const tx = await tokenFactory[createToken](

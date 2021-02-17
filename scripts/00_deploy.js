@@ -1,4 +1,4 @@
-const fs = require('fs')
+const hre = require('hardhat')
 const { ethers, upgrades } = require('hardhat')
 const utils = require('./utils')
 require('dotenv').config({ path: require('find-config')('.env') })

@@ -1,6 +1,5 @@
-const fs = require('fs')
+const hre = require('hardhat')
 const { ethers, upgrades } = require('hardhat')
-const utils = require('../test/utils')
 const { RelayProvider } = require('@opengsn/gsn')
 const { getWallet } = require('../test/utils')
 const Web3HttpProvider = require('web3-providers-http')
@@ -10,11 +9,7 @@ require('dotenv').config({ path: require('find-config')('.env') })
 
 const url = hre.network.config.url
 
-const BigNumber = ethers.BigNumber
-
 async function main () {
-  const [admin] = await ethers.getSigners()
-
   const web3provider = new Web3HttpProvider(url)
   const gsnProvider = await RelayProvider.newProvider({
     provider: web3provider,
@@ -27,8 +22,6 @@ async function main () {
   const adminWallet = getWallet(1)
   gsnProvider.addAccount(adminWallet.privateKey)
 
-  const provider = new ethers.providers.Web3Provider(gsnProvider)
-
   console.log('Deploying InvoiceFactory...')
   console.log('===========================')
   const InvoiceFactoryUpgradeNew = await ethers.getContractFactory('InvoiceFactoryUpgradeNew')
@@ -39,7 +32,7 @@ async function main () {
   console.log(invoiceFactoryUpgradeNew)
   await invoiceFactoryUpgradeNew.deployed()
 
-  console.log("New InvoiceFactory address:", invoiceFactoryUpgradeNew.address)
+  console.log('New InvoiceFactory address:', invoiceFactoryUpgradeNew.address)
 }
 
 main()

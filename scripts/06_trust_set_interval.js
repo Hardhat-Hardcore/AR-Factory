@@ -1,4 +1,5 @@
 const { ethers } = require('hardhat')
+const hre = require('hardhat')
 const utils = require('../test/utils')
 const { RelayProvider } = require('@opengsn/gsn')
 const { getWallet } = require('../test/utils')
@@ -32,7 +33,7 @@ async function main () {
 
   const provider = new ethers.providers.Web3Provider(gsnProvider)
 
-  const invoiceFactory = await ethers.getContractAt("InvoiceFactoryUpgrade", invoiceFactoryAddr)
+  const invoiceFactory = await ethers.getContractAt('InvoiceFactoryUpgrade', invoiceFactoryAddr)
   const setTimeInterval = await invoiceFactory.connect(provider.getSigner(trust.address)).setTimeInterval(
     0, startTime, endTime,
   )

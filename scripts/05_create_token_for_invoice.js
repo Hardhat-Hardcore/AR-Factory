@@ -1,4 +1,5 @@
 const { ethers } = require('hardhat')
+const hre = require('hardhat')
 const { RelayProvider } = require('@opengsn/gsn')
 const { getWallet } = require('../test/utils')
 const Web3HttpProvider = require('web3-providers-http')
@@ -24,9 +25,9 @@ async function main () {
 
   const provider = new ethers.providers.Web3Provider(gsnProvider)
 
-  const invoiceFactroy = await ethers.getContractAt("InvoiceFactoryUpgrade", invoiceFactoryAddr)
+  const invoiceFactroy = await ethers.getContractAt('InvoiceFactoryUpgrade', invoiceFactoryAddr)
   const invoiceToToken = await invoiceFactroy.connect(provider.getSigner(admin.address)).invoiceToToken(0)
-  console.log("Create token for invoice: ", invoiceToToken.hash)
+  console.log('Create token for invoice: ', invoiceToToken.hash)
 }
 
 main()
