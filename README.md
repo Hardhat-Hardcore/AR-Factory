@@ -71,7 +71,7 @@ Their address will be stored in json format in `scripts/build`.
 
 `npx hardhat run --network ropsten scripts/02_enroll_anchor.js`
 
-4. For supplier to upload invoice, change the `negotiationResult` object in `scripts/03_admin_sign_and_upload_invoice.js`, and run:
+4. For supplier to upload invoice, you can change the `negotiationResult` object in `scripts/03_admin_sign_and_upload_invoice.js`, and run:
 
 `npx hardhat run --network ropsten scripts/03_admin_sign_and_upload_invoice.js`
 
@@ -94,6 +94,10 @@ Their address will be stored in json format in `scripts/build`.
 9. To upgrade invoiceFactory, run:
 
 `npx hardhat run --network ropsten scripts/upgrade_proxy.js`
+
+10. To create a erc20 adapter, run:
+
+`npx hardhat run --network ropsten scripts/erc20_adapter.js`
 
 ### Security analysis report
 

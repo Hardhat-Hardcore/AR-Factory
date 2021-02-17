@@ -159,6 +159,7 @@ contract ERC20Adapter is IERC20Adapter {
         symbol = _symbol;
         decimals = _decimals;
     }
+
     function totalSupply()
        external
        view
