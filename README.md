@@ -102,19 +102,18 @@ Their address will be stored in json format in `scripts/build`.
 ### GSN
 
 #### relayed call example
-- The GSN relayed call example is in client folder
+- The GSN relayed call example is in `client` folder
 
-#### configure for contracts 
-- Set trustedForwarder on constructor of BaseRelayRecipient contract : `InvoiceFactoryUpgrade.sol` and `TokenFactory.sol`
-- Set trustedForwarder and relayHub of BasePaymaster contract : `Whitelist.sol` through `setTrustedForwarder()` and `setRelayHub()`
+#### configuration for smart contracts 
+- Set trusted forwarder address in the constructor of contracts: `InvoiceFactoryUpgrade.sol` and `TokenFactory.sol`
+- Set trusted forwarder address and relayHub address at `Whitelist.sol` through `setTrustedForwarder()` and `setRelayHub()` function.
 
-#### deposit and withdraw ETH to paymaster in order to pay for relayed request
-- After deployed and set down configure, send ETH to the address of `Whitelist.sol`
-- Withdraw ETH from relayHub through `withdrawRelayHubDepositTo()`
+#### deposit and withdraw ETH to paymaster(Whitelist) in order to pay for relayed request
+- After deployment and address configuration, send ETH directly to the address of `Whitelist.sol`
 
 #### run GSN server on localhost
 1. Run the local chain
-2. `npx gsn start`, will run GSN server and list address of `RelayHub`, `Forwader`, `Paymaster`
+2. `npx gsn start`, will run a GSN server and show addresses of `RelayHub`, `Forwader`, `Paymaster`
 
 ### Security analysis report
 
