@@ -102,7 +102,7 @@ Their address will be stored in json format in `scripts/build`.
 ### GSN
 
 #### relayed call example
-- The GSN relayed call example is in [client folder](https://github.com/Hardhat-Hardcore/AR-Factory/tree/master/client)
+- The GSN relayed call example is in client folder
 
 #### configure for contracts 
 - Set trustedForwarder on constructor of BaseRelayRecipient contract : `InvoiceFactoryUpgrade.sol` and `TokenFactory.sol`
