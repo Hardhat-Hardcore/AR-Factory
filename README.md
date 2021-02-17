@@ -99,6 +99,23 @@ Their address will be stored in json format in `scripts/build`.
 
 `npx hardhat run --network ropsten scripts/erc20_adapter.js`
 
+### GSN
+
+#### relayed call example
+- The GSN relayed call example is in [client folder](https://github.com/Hardhat-Hardcore/AR-Factory/tree/master/client)
+
+#### configure for contracts 
+- Set trustedForwarder on constructor of BaseRelayRecipient contract : `InvoiceFactoryUpgrade.sol` and `TokenFactory.sol`
+- Set trustedForwarder and relayHub of BasePaymaster contract : `Whitelist.sol` through `setTrustedForwarder()` and `setRelayHub()`
+
+#### deposit and withdraw ETH to paymaster in order to pay for relayed request
+- After deployed and set down configure, send ETH to the address of `Whitelist.sol`
+- Withdraw ETH from relayHub through `withdrawRelayHubDepositTo()`
+
+#### run GSN server on localhost
+1. Run the local chain
+2. `npx gsn start`, will run GSN server and list address of `RelayHub`, `Forwader`, `Paymaster`
+
 ### Security analysis report
 
 The report of `TokenFactory.sol`, `InvoiceFactory.sl` an `Whitelist.sol` can be found in the `report` folder.
