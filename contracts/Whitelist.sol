@@ -38,8 +38,6 @@ contract Whitelist is IWhitelist, AccessControl, BasePaymaster {
 
         _verifyForwarder(relayRequest);
         _verifySignature(relayRequest, signature);
-        // _verifySigner or not ?
-        // _verifyGaslimit or not ?
         return ("PreRelayedCall success", false);
     }
     
