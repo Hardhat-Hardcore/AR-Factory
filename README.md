@@ -51,12 +51,12 @@ Run GSN test:
 `npm run test-gsn`
 
 ### Run example scripts on ropten network
-1. Setup mnemonic, relayhub, forwarder, and network in your .env file like the following example
+1. Setup mnemonic in your .env file like the following: 
 ```
 MNEMONIC=xxx xxx xxx xxx...
-RELAYHUB=0x29e41C2b329fF4921d8AC654CEc909a0B575df20
-FORWARDER=0x25CEd1955423BA34332Ec1B60154967750a0297D
 ```
+
+You can also setup network config at `hardhat.config.js`.
 you can find the address of relayhub and forwarder on different networks at: [GSN List](https://docs.opengsn.org/contracts/addresses.html#ethereum)
 
 2. To deploy contract `Whitelist`, `TokenFactory` and `InvoiceFactory`, run:
@@ -87,8 +87,16 @@ Their address will be stored in json format in `scripts/build`.
 
 `npx hardhat run --network ropsten scripts/06_trust_set_interval.js`
 
-8. To upgrade invoiceFactory, run:
+8. To transfer recording token, run:
+
+`npx hardhat run --network ropsten scripts/07_transfer_recording_token.js`
+
+9. To upgrade invoiceFactory, run:
 
 `npx hardhat run --network ropsten scripts/upgrade_proxy.js`
 
-### Security nalysis report
+### Security analysis report
+
+The report of `TokenFactory.sol`, `InvoiceFactory.sl` an `Whitelist.sol` can be found in the `report` folder.
+
+The analysis process including static analysis, dynamic analysis and symbolic execution.

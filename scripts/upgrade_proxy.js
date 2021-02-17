@@ -4,20 +4,13 @@ const utils = require('../test/utils')
 const { RelayProvider } = require('@opengsn/gsn')
 const { getWallet } = require('../test/utils')
 const Web3HttpProvider = require('web3-providers-http')
-const { address: paymasterAddr } = require('./build/Whitelist.json')
-const { address: invoiceFactoryAddr } = require('./build/InvoiceFactory.json')
-const { abi: invoiceFactoryAbi } = require('../artifacts/contracts/InvoiceFactoryUpgrade.sol/InvoiceFactoryUpgrade.json')
-const { NETWORK, BSCTESTNETRPC } = process.env
+const { address: paymasterAddr } = require('../build/Whitelist.json')
+const { address: invoiceFactoryAddr } = require('../build/InvoiceFactory.json')
 require('dotenv').config({ path: require('find-config')('.env') })
 
-const url = NETWORK === 'localhost' ? 'http://127.0.0.1:8545' : BSCTESTNETRPC
+const url = hre.network.config.url
 
 const BigNumber = ethers.BigNumber
-
-const addressToJson = (name, address) => {
-  const jsonString = JSON.stringify({ address })
-  fs.writeFileSync(`./scripts/build/${name}.json`, jsonString)
-}
 
 async function main () {
   const [admin] = await ethers.getSigners()
@@ -36,14 +29,17 @@ async function main () {
 
   const provider = new ethers.providers.Web3Provider(gsnProvider)
 
+  console.log('Deploying InvoiceFactory...')
+  console.log('===========================')
   const InvoiceFactoryUpgradeNew = await ethers.getContractFactory('InvoiceFactoryUpgradeNew')
   const invoiceFactoryUpgradeNew = await upgrades.upgradeProxy(
     invoiceFactoryAddr,
     InvoiceFactoryUpgradeNew
   )
+  console.log(invoiceFactoryUpgradeNew)
   await invoiceFactoryUpgradeNew.deployed()
 
-  addressToJson('InvoiceFactory', invoiceFactoryUpgradeNew.address)
+  console.log("New InvoiceFactory address:", invoiceFactoryUpgradeNew.address)
 }
 
 main()
