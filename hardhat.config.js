@@ -11,9 +11,6 @@ require('dotenv').config({ path: require('find-config')('.env') })
 const mnemonic = process.env.MNEMONIC || 'test test test test test test test test test test test junk'
 const scanApiKey = process.env.SCAN_API_KEY
 
-/**
- * @type import("hardhat/config").HardhatUserConfig
- */
 module.exports = {
   networks: {
     hardhat: {
@@ -33,13 +30,14 @@ module.exports = {
       }
     },
     ropsten: {
-      url: 'https://ropsten.infura.io/v3/5891425d7ae8410f8c2ec2dc8e3238c4',
+      url: process.env.ROPSTEN_RPC,
       accounts: {
         mnemonic: mnemonic,
         path: 'm/44\'/60\'/0\'/0',
       },
       relayhub: '0x29e41C2b329fF4921d8AC654CEc909a0B575df20',
       forwarder: '0x25CEd1955423BA34332Ec1B60154967750a0297D',
+      relayerUrl: 'https://42bchen.com/gsn1',
     }
   },
   solidity: {

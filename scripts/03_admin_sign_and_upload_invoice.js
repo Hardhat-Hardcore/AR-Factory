@@ -50,6 +50,7 @@ async function main () {
     config: {
       loggerConfiguration: { logLevel: 'error' },
       paymasterAddress: paymasterAddr,
+      preferredRelays: hre.network.config.relayerUrl ? [hre.network.config.relayerUrl] : [],
     },
   }).init()
 

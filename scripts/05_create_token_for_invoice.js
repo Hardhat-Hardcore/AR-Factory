@@ -8,6 +8,8 @@ const { address: invoiceFactoryAddr } = require('../build/InvoiceFactory.json')
 
 const url = hre.network.config.url
 
+const invoiceId = 0
+
 async function main () {
   const [admin] = await ethers.getSigners()
 
@@ -17,6 +19,7 @@ async function main () {
     config: {
       loggerConfiguration: { logLevel: 'error' },
       paymasterAddress: paymasterAddr,
+      preferredRelays: hre.network.config.relayerUrl ? [hre.network.config.relayerUrl] : [],
     },
   }).init()
 
@@ -26,7 +29,7 @@ async function main () {
   const provider = new ethers.providers.Web3Provider(gsnProvider)
 
   const invoiceFactroy = await ethers.getContractAt('InvoiceFactoryUpgrade', invoiceFactoryAddr)
-  const invoiceToToken = await invoiceFactroy.connect(provider.getSigner(admin.address)).invoiceToToken(0)
+  const invoiceToToken = await invoiceFactroy.connect(provider.getSigner(admin.address)).invoiceToToken(invoiceId)
   console.log('Create token for invoice: ', invoiceToToken.hash)
 }
 

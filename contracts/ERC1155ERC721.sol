@@ -57,6 +57,9 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     /// `_from` to `_to` by `_operator`.
     event RecordingTransferSingle(address _operator, address indexed _from, address indexed _to, uint256 indexed _tokenId, uint256 _value);
     
+    /// @dev Emitted when `_tokenId`'s interval of token holding time range is being set
+    event TimeInterval(uint256 indexed _tokenId, uint256 _startTime, uint256 _endTime);
+
     modifier AuthorizedTransfer(
         address _operator,
         address _from,
@@ -593,6 +596,8 @@ contract ERC1155ERC721 is IERC165, IERC1155, IERC721, Context {
     {
         uint256 timeInterval = _startTime + (uint256(_endTime) << 128);
         _timeInterval[_tokenId] = timeInterval;
+
+        emit TimeInterval(_tokenId, uint256(_startTime), uint256(_endTime));
     }
 
     function _recordingTransferFrom(

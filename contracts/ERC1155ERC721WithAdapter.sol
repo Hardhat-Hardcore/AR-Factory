@@ -266,7 +266,7 @@ contract ERC20Adapter is IERC20Adapter {
         internal
     {
         entity.transferByAdapter(_from, _to, tokenId, _value);
-        emit Transfer(_from, _to, _value);
+        // Transfer event will be emitted inside `emitTransfer` function
     }
 }
 

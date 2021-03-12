@@ -11,13 +11,14 @@ const url = hre.network.config.url
 
 const BigNumber = ethers.BigNumber
 
+const startTime = now.add(90)
+const endTime = now.add(1000000)
+
 async function main () {
   const [, trust] = await ethers.getSigners()
 
   const now = BigNumber.from(await utils.getCurrentTimestamp())
 
-  const startTime = now.add(90)
-  const endTime = now.add(1000000)
 
   const web3provider = new Web3HttpProvider(url)
   const gsnProvider = await RelayProvider.newProvider({
@@ -25,6 +26,7 @@ async function main () {
     config: {
       loggerConfiguration: { logLevel: 'error' },
       paymasterAddress: paymasterAddr,
+      preferredRelays: hre.network.config.relayerUrl ? [hre.network.config.relayerUrl] : [],
     },
   }).init()
 

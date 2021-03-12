@@ -3,6 +3,9 @@ const { ethers, upgrades } = require('hardhat')
 const utils = require('./utils')
 require('dotenv').config({ path: require('find-config')('.env') })
 
+const DECIMALS = 3
+const GSN_DEPOSIT = '2'
+
 let relayHubAddress 
 let forwarderAddress
 
@@ -26,6 +29,7 @@ async function main () {
   console.log('Transaction hash: ', whitelist.deployTransaction.hash)
 
   const addTrustToWhitelist = await whitelist.addWhitelist(trust.address)
+  // GSN
   const setRelayHub = await whitelist.setRelayHub(relayHubAddress)
   const setTrustForward = await whitelist.setTrustedForwarder(forwarderAddress)
 
@@ -45,7 +49,7 @@ async function main () {
 
   console.log('Deploying InvoiceFactory...')
   console.log('===========================')
-  const initData = [3, trust.address, forwarderAddress, tokenFactory.address, whitelist.address]
+  const initData = [DECIMALS, trust.address, forwarderAddress, tokenFactory.address, whitelist.address]
   const InvoiceFactory = await ethers.getContractFactory('InvoiceFactoryUpgrade', admin)
   const invoiceFactory = await upgrades.deployProxy(
     InvoiceFactory,
@@ -61,10 +65,11 @@ async function main () {
   console.log('Add InvoiceFactory to whitelsit: ', addInvoiceFactoryToWhitelist.hash)
   console.log('')
 
+  // GSN
   const tx = await admin.sendTransaction({
     from: admin.address,
     to: whitelist.address,
-    value: ethers.utils.parseEther('2'),
+    value: ethers.utils.parseEther(GSN_DEPOSIT),
   })
   await tx.wait(1)
 

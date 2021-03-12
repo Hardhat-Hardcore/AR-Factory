@@ -17,6 +17,7 @@ async function main () {
     config: {
       loggerConfiguration: { logLevel: 'error' },
       paymasterAddress: paymasterAddr,
+      preferredRelays: hre.network.config.relayerUrl ? [hre.network.config.relayerUrl] : [],
     },
   }).init()
 
@@ -29,13 +30,13 @@ async function main () {
 
   const invoiceFactroy = await ethers.getContractAt('InvoiceFactoryUpgrade', invoiceFactoryAddr)
 
-  const enrollWs =
-    await invoiceFactroy.connect(provider.getSigner(admin.address)).enrollSupplier(supplier.address)
+  //const enrollWs =
+  //  await invoiceFactroy.connect(provider.getSigner(admin.address)).enrollSupplier(supplier.address)
 
   const trustVerifyWs =
     await invoiceFactroy.connect(provider.getSigner(trust.address)).trustVerifySupplier(supplier.address)
 
-  console.log('Admin enroll supplier: ', enrollWs.hash)
+  //console.log('Admin enroll supplier: ', enrollWs.hash)
   console.log('Trust verify supplier: ', trustVerifyWs.hash)
 }
 

@@ -1,0 +1,7 @@
+{
+  "baseRelayFee": 0,
+  "pctRelayFee": 30,
+  "versionRegistryAddress": "0x666eaf8628FEb3389003ef69C57fE4ebaae2aAF5",
+  "gasPriceFactor": 1,
+  "ethereumNodeUrl": "https://ropsten.infura.io/v3/<api_key>"
+}
